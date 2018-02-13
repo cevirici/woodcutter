@@ -1,0 +1,95 @@
+{% load static %}
+<html>
+	<head>
+		<title>Test Render</title>
+		<meta name='viewport' content='width=device-width, initial-scale=1'>
+		<script src="{% static 'woodcutter/jquery-3.2.1.min.js' %}"></script>
+		<link rel='stylesheet' href="{% static 'woodcutter/renderstyle.css' %}">
+		<link rel='stylesheet' href="{% static 'woodcutter/perfect-scrollbar.css' %}">
+		<script src="{% static 'woodcutter/perfect-scrollbar.min.js' %}"></script>
+	</head>
+	<body>
+		<div class = 'container'>
+			<div class = 'graph-control-container' >
+				<div class = 'graph-control' ></div>
+				<div class = 'graph-control' ></div>
+			</div>
+			<div class = 'graph' >
+				<div class = 'graph-container' graphname = 'all'>
+					<div class = 'row fullwidth'>
+						{{ graph_all_toprow|safe }}
+					</div>
+					<div class = 'row fullwidth'>
+						{{ graph_all_botrow|safe }}
+					</div>
+				</div>
+				
+				<div class = 'graph-container' graphname = 'gained'>
+					<div class = 'row fullwidth'>
+						{{ graph_gained_toprow|safe }}
+					</div>
+					<div class = 'row fullwidth'>
+						{{ graph_gained_botrow|safe }}
+					</div>
+				</div>
+
+				<div class = 'graph-container' graphname = 'shuffle'>
+					<div class = 'row fullwidth'>
+						{{ graph_shuffle_toprow|safe }}
+					</div>
+					<div class = 'row fullwidth'>
+						{{ graph_shuffle_botrow|safe }}
+					</div>
+				</div>
+
+				<div class = 'graph-background' >
+					<div class = 'row fullwidth'>
+						{{ graph_bg_top|safe }}
+					</div>
+					<div class = 'axis'>
+						{{ graph_bg_axis|safe }}
+					</div>
+					<div class = 'row fullwidth'>
+						{{ graph_bg_bot|safe }}
+					</div>
+				</div>
+			</div>
+
+			<div class = 'middle-stack'>
+				<div class = 'legend'>
+					{{ legend|safe }}
+				</div>
+
+				<div class = 'controls'>
+					<div class = 'controlbox' control = 'all'>
+						<span class='wrap'>All Cards</span>
+					</div>
+					<div class = 'controlbox' control = 'gained'>
+						<span class='wrap'>Gained / Trashed Cards</span>
+					</div>
+					<div class = 'controlbox' control = 'shuffle'>
+						<span class='wrap'>Shuffle Progress</span>
+					</div>
+				</div>
+
+				<div class = 'controls'>
+					<div class = 'valuebox' control = 'normal'>
+						<span class='wrap'>Normal</span>
+					</div>
+					<div class = 'valuebox' control = 'cost'>
+						<span class='wrap'>Cost</span>
+					</div>
+				</div>
+			</div>
+
+			<div class = 'story-container'>
+				{{ story_main|safe }}
+			</div>
+			
+			<div class = 'story-sidebar'>
+				{{ story_sidebar|safe }}
+			</div>
+		</div>
+	</body>
+	<script src="{% static 'woodcutter/main.js' %}"></script>
+</html>

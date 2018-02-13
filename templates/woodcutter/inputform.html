@@ -1,0 +1,44 @@
+{% load static %}
+
+<html>
+	<head>
+		<title>Input Form</title>
+		<meta name='viewport' content='width=device-width, initial-scale=1'>
+		<script src="{% static 'woodcutter/jquery-3.2.1.min.js' %}"></script>
+		<link rel='stylesheet' href="{% static 'woodcutter/formstyle.css' %}">
+		<link rel='stylesheet' href="{% static 'woodcutter/perfect-scrollbar.css' %}">
+		<script src="{% static 'woodcutter/perfect-scrollbar.min.js' %}"></script>
+	</head>
+	<body>
+		<div class = 'content-container'>
+			<div class = 'filetype-selector-bar'>
+				<div class = 'filetype-selector' assoc='fileone'>
+					<span class='wrap'>Log 1</span>
+				</div>
+				<div class = 'filetype-selector' assoc='filetwo'>
+					<span class='wrap'>Log 2</span>
+				</div>
+				<div class = 'filetype-selector' assoc='supply'>
+					<span class='wrap'>Supply</span>
+				</div>
+			</div>
+			<div class='input-container'>
+				<div class = 'textarea ps' assoc = 'fileone'>
+					<textarea form='submitform' name='fileone'></textarea>
+				</div>
+				<div class = 'textarea ps' assoc = 'filetwo'>
+					<textarea form='submitform' name='filetwo'></textarea>
+				</div>
+				<div class = 'textarea ps' assoc = 'supply'>
+					<textarea form='submitform' name='supply'></textarea>
+				</div>
+				<div class = 'submitbutton'></div>
+			</div>
+			<form action="{% url 'woodcutter:submit' %}" method="post" id='submitform'>
+				{% csrf_token %}
+				<input type="submit" value="Submit" />
+			</form>
+		</div>
+		<script src="{% static 'woodcutter/form.js' %}"></script>
+	</body>
+</html>

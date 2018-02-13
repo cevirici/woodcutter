@@ -1,0 +1,78 @@
+
+body{
+	background: #202020;
+}
+
+.content-container{
+	width: 60%;
+	min-width: 600px;
+	height: 90%;
+	margin-left:auto;
+	margin-right:auto;
+	margin-top: auto;
+	display:flex;
+	flex-direction:column;
+}
+
+.filetype-selector-bar{
+	width:100%;
+	height:10%;
+	display:flex;
+	flex-direction:row;
+	margin: 5% 0%;
+}
+
+.filetype-selector{
+	-moz-transition: all .2s ease-in;
+	-o-transition: all .2s ease-in;
+	-webkit-transition: all .2s ease-in;
+	transition: all .2s ease-in;
+	flex-grow: 1;
+	min-height: 30%;
+	font-family: "Segoe UI";
+	display:flex;
+	align-items:center;
+	justify-content:center;
+	font-size: 1em;
+	padding: 0 5% 0 5%;
+	margin: 4px 0 4px 0;
+	border-top: 4px solid #DDDDDD;
+	border-bottom: 4px solid #DDDDDD;
+	color: #FFFFFF;
+}
+
+.filetype-selector:not(.faded){
+	background: linear-gradient(to right, rgba(0, 0, 0, 0) 10%, rgba(255, 255, 80, 0.4), rgba(0, 0, 0, 0) 90%);
+}
+
+.highlight{
+	background-color:#FFFF99;
+}
+
+.faded{
+	opacity:0.3;
+}
+
+.input-container{
+	width:100%;
+	height:70%;
+	position:relative;
+}
+
+.textarea{
+	width:100%;
+	height:100%;
+	position:absolute;
+	display:flex;
+	white-space: pre-line;
+}
+
+textarea{
+	width: 100%;
+	height: 100%;
+	font-family: "Segoe UI";
+	background: #444444;
+	color:#FFFFFF;
+	border:#FFF 1px solid;
+	resize:none;
+}

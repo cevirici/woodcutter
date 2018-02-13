@@ -1,0 +1,314 @@
+
+body{
+	background: #202020;
+}
+
+.container{
+	height: 100%;
+	min-height: 900px;
+	display:flex;
+	flex-direction:row;
+	justify-content:flex-start;
+	align-items: center;
+}
+
+.graph{
+	width: 40%;
+	height: 90%;
+	overflow: hidden;
+	position:relative;
+}
+.graph-control-container{
+	width: 40%;
+	height: 92%;
+	min-height: 830px;
+	display:flex;
+	flex-direction:column;
+	justify-content:space-between;
+	position:absolute;	
+}
+.graph-container, .graph-background{
+	width: 100%;
+	height: 100%;
+	display:flex;
+	flex-direction:column;
+	justify-content:space-between;
+	position:absolute;
+}
+
+.row{
+	-moz-transition: all 0.2s ease-in;
+	-o-transition: all 0.2s ease-in;
+	-webkit-transition: all 0.2s ease-in;
+	transition: all 0.2s ease-in;
+	height:47%;
+	width: 100%;
+	display: flex;
+}
+
+.row.shrunken{
+	height:0%;
+}
+.row.expanded{
+	height:94%;
+}
+
+.graph-control{
+	background: #444444;
+	height:2%;
+}
+
+.graph-control.highlight{
+	background: #99AACC!important;
+}
+.graph-container{
+	z-index:1;
+	pointer-events:none;
+}
+
+.axis{
+	background: #111111;
+	height: 6%;
+	display: flex;
+}
+.axislabel{
+	-moz-transition: all 0.2s ease-in;
+	-o-transition: all 0.2s ease-in;
+	-webkit-transition: all 0.2s ease-in;
+	transition: all 0.2s ease-in;
+	min-width: 3%;
+	height: 100%;
+	font-family: "Consolas";
+	display:flex;
+	align-items:center;
+	justify-content: center;
+	text-align:center;
+	font-size: 0.8em;
+	color: #FFFFFF;
+	background:#111111;
+	padding: 0 0 0 0.5%;
+}
+.axislabel.highlight{
+	background:#CC9922!important;
+}
+
+.col{
+	min-width: 3%;
+	height: 100%;
+	display: flex;
+	flex-direction:row;
+	flex-wrap: wrap-reverse;
+	align-items:flex-start;
+	padding: 0 0.5% 0 0;
+	background: #222525;
+}
+.active{
+	background:#333535;
+}
+.boxstack{
+	min-width: 3%;
+	height:100%;
+	padding: 0 0.5% 0 0;
+	margin: inherit;
+	display: flex;
+	flex-direction: column-reverse;
+	align-items: flex-end;
+	overflow: hidden;
+}
+.box-outline{
+	-moz-transition: all .2s ease-in;
+	-o-transition: all .2s ease-in;
+	-webkit-transition: all .2s ease-in;
+	transition: all .2s ease-in;
+	width: 80%;
+	min-height: 14px;	
+	margin-top: 1px;
+	margin-bottom: 1px;
+	display:flex;
+	justify-content: center;
+	align-items: center;
+	pointer-events:auto;
+}
+
+.box{
+	background:#120462;
+	width: calc(100% - 6px);
+	height: calc(100% - 6px);
+}
+
+.redoutline, .blueoutline{
+	width: calc(80% - 2px);
+	min-height: 12px;
+	margin-top: 2px;
+	margin-bottom: 2px;
+	margin-right: 1px;
+}
+
+.redoutline{
+	outline: #FF0000 solid 2px;
+}
+
+.blueoutline{
+	outline: #006699 solid 2px;
+}
+
+.highlight{
+	background-color:#FFFF99!important;
+}
+
+.spacer{
+	margin-top: 2px;
+	margin-bottom: 2px;
+}
+
+.reverse.boxstack{
+	flex-direction:column;
+}
+.reverse.col{
+	flex-wrap: wrap;
+}
+
+.leftstripe{
+	align-self:flex-start;
+	width: 20%;
+	height: 100%;
+}
+
+.leftstripe.active{	
+	background:#FF3333;
+}
+
+.legend{
+	width: 95%;
+	height: 90%;
+	margin-left: 1%;
+	display: flex;
+	flex-direction: row;
+	flex-wrap: wrap;
+	align-content: flex-start;
+	justify-content:center;
+	overflow:hidden;
+	position:relative;
+}
+.legendbox{
+	-moz-transition: all .2s ease-in;
+	-o-transition: all .2s ease-in;
+	-webkit-transition: all .2s ease-in;
+	transition: all .2s ease-in;
+	width: 20%;
+	min-height: 6%;
+	background:#120462;
+	font-family: "Segoe UI";
+	display:flex;
+	align-items:center;
+	justify-content:center;
+	font-size: 1em;
+	padding: 0 3% 0 3%;
+	margin: 2% 7% 2% 7%;
+	outline: 10px solid;
+	color: #FFFFFF;
+}
+.wrap{
+	display: inline-block;
+	text-align:center;
+    text-shadow: 1px 1px 0 #000;
+}
+.faded{
+	opacity:0.3;
+}
+.vanish{
+	min-height:0px!important;
+	outline: 0px;
+	margin: 0px;
+}
+
+.story-container{
+	width:37%;
+	height: 90%;
+	display: flex;
+	flex-direction: column;
+	overflow:hidden;
+	position:relative;
+}
+
+.story-line{
+	min-width: 100%;
+	min-height: 4%;
+	font-family: "Segoe UI";
+	font-size: 1em;
+	display:flex;
+	align-items:center;
+	color: #FFFFFF;
+	background: #222222;
+}
+
+.story-line.alternate{
+	background: #444444;
+}
+
+.story-sidebar{
+	width: 3%;
+	height: 90%;
+	display:flex;
+	flex-direction: column;
+}
+.story-sidebar-block{
+	-moz-transition: all .1s ease-in;
+	-o-transition: all .1s ease-in;
+	-webkit-transition: all .1s ease-in;
+	transition: all .1s ease-in;
+	height:0.8em;
+	font-family: "Segoe UI";
+	font-size: 1em;
+	display:flex;
+	align-items:center;
+	justify-content:center;
+	color: #FFFFFF;
+	background: #222222;
+}
+.story-sidebar-block.highlight{
+	height:40px;
+	background:#CC9922!important;
+}
+.story-sidebar-block.alternate{
+	background: #444444;
+}
+.middle-stack{
+	width: 20%;
+	height:90%;
+	display: flex;
+	flex-direction: column;
+	align-items:center;
+}
+
+.controls{
+	width: 95%;
+	min-height: 13%;
+	margin-left: 1%;
+	display: flex;
+	flex-direction: row;
+	align-items:flex-start;
+	justify-content: center;
+	position:relative;
+}
+.controlbox, .valuebox{
+	-moz-transition: all .2s ease-in;
+	-o-transition: all .2s ease-in;
+	-webkit-transition: all .2s ease-in;
+	transition: all .2s ease-in;
+	flex-grow: 1;
+	min-height: 30%;
+	font-family: "Segoe UI";
+	display:flex;
+	align-items:center;
+	justify-content:center;
+	font-size: 1em;
+	padding: 0 5% 0 5%;
+	margin: 4px 0 4px 0;
+	border-top: 4px solid #DDDDDD;
+	border-bottom: 4px solid #DDDDDD;
+	color: #FFFFFF;
+}
+.controlbox:not(.faded),.valuebox:not(.faded){
+	background: linear-gradient(to right, rgba(0, 0, 0, 0) 10%, rgba(255, 255, 80, 0.4), rgba(0, 0, 0, 0) 90%);
+}
