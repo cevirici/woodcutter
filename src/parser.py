@@ -79,7 +79,7 @@ class Parser:
 		return [player, indent, pred, cards]
 
 	def translate_file(self,inString):
-		f = inString.split('\n')
+		f = inString.split('~')
 		a = []
 		player_list = []
 		backup_player = ''
@@ -106,7 +106,7 @@ class Parser:
 		return [a,len(player_list)]
 
 	def parse_supply(self,inString):
-		f = inString.split('\n')
+		f = inString.split('~')
 		cards = []
 
 		for line in f:
