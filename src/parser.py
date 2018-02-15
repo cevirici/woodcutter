@@ -65,7 +65,7 @@ class Parser:
 
 		m = re.match(self.preds[pred][0], line)
 		player = -1
-		if len(m.groups()) > 0:
+		if m.group('player'):
 			player = m.group('player')
 
 		cards = Cardstack({})
