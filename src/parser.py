@@ -25,6 +25,7 @@ class Parser:
 				return i
 
 		print('Unknown card {} found'.format(name))
+		return 0
 
 	def card_list_splitter(self,cardlist):
 		r = re.split(', | and ', cardlist)
@@ -65,16 +66,21 @@ class Parser:
 
 		m = re.match(self.preds[pred][0], line)
 		player = -1
-		if m.group('player'):
+		lowlim = 3
+		try:
 			player = m.group('player')
+		except:
+			lowlim -= 1
 
 		cards = Cardstack({})
-		if len(m.groups()) > 1:
+		try:
 			c_raw = m.group('cards')
 			cards = self.card_list_splitter(c_raw)
+		except:
+			lowlim -= 1
 
-			for i in range(3,len(m.groups())+1):
-				cards.insert(4095,m.group(i))
+		for i in range(lowlim,len(m.groups())+1):
+			cards.insert(4095,m.group(i))
 
 		return [player, indent, pred, cards]
 
@@ -100,9 +106,7 @@ class Parser:
 
 			backup_player = t[0]
 			t[0] = player_list.index(t[0])
-
 			a.append(t)
-
 		return [a,len(player_list)]
 
 	def parse_supply(self,inString):
