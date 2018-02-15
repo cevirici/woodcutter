@@ -3,6 +3,7 @@ from django.shortcuts import get_object_or_404, render
 from django.conf import settings
 from django.urls import reverse
 from django.core.exceptions import ObjectDoesNotExist
+from django.views.decorators.csrf import csrf_exempt
 from .src import Parser, Renderer, unpack
 from .models import GameLog, CardData, PredData, ExceptionData
 
@@ -12,6 +13,7 @@ def index(request):
 def inputFields(request):
 	return render(request,'woodcutter/inputform.html')
 
+@csrf_exempt
 def submit(request):
 	preds = PredData.objects.all()
 	cards = CardData.objects.all()
