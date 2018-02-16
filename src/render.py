@@ -203,7 +203,7 @@ class Renderer:
 			theState = gameStates[t]
 			combined = reduce(lambda x,y:x+y,[theState[i][0] + theState[i][1] for i in [1,2,4,5,6]])
 			combined += theState[3]
-			involvedCards += combined
+			involvedCards += combined.val
 
 		involvedCards.sort()
 		return involvedCards
