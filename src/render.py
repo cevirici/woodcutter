@@ -196,15 +196,16 @@ class Renderer:
 		return [allTurns, turnOwners, shuffleTurns]
 
 	def get_involved_cards(self, gameStates, allTurns):
-		involvedCards = []
+		involvedCards = set()
 		playerCount = len(gameStates[0][1])
 
 		for t in allTurns:
 			theState = gameStates[t]
 			combined = reduce(lambda x,y:x+y,[theState[i][0] + theState[i][1] for i in [1,2,4,5,6]])
 			for i in combined.cardList():
-				involvedCards.append(i);
+				involvedCards.update(i)
 
+		involvedCards = list(involvedCards)
 		involvedCards.sort()
 		return involvedCards
 
