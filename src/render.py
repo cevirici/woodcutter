@@ -202,7 +202,8 @@ class Renderer:
 		for t in allTurns:
 			theState = gameStates[t]
 			combined = reduce(lambda x,y:x+y,[theState[i][0] + theState[i][1] for i in [1,2,4,5,6]])
-			involvedCards += combined.getval()
+			for i in combined.cardList():
+				involvedCards.append(i);
 
 		involvedCards.sort()
 		return involvedCards
