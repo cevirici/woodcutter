@@ -22,15 +22,17 @@ def submit(request):
 	arr = [request.POST['fileone'],request.POST['filetwo']]
 	ret = p.combined_parse(arr)
 	sup = p.parse_supply(request.POST['supply'])
+	players = request.POST['players']
 
 	gameid = ret[1]
 	try:
 		existinglog = GameLog.objects.get(game_id=gameid)
 	except ObjectDoesNotExist:
-		newLog = GameLog.objects.create(game_id=ret[1],log=ret[0],supply=sup)
+		newLog = GameLog.objects.create(game_id=ret[1],log=ret[0],supply=sup,players=players)
 	else:
 		existinglog.log = ret[0]
 		existinglog.supply = sup
+		existinglog.players=players
 		existinglog.save()
 
 	return HttpResponseRedirect(reverse('woodcutter:display', args=(ret[1],)))
@@ -66,7 +68,7 @@ def display(request,game_id):
 	graph_shuffle_top = r.render_graph_row(turn_shuffle[0],0)
 	graph_shuffle_bot = r.render_graph_row(turn_shuffle[1],1)
 
-	story_main = r.render_story_main(r.elaborate_story(['Player 1','Player 2'],moveData[0]),turnData[0])
+	story_main = r.render_story_main(r.elaborate_story(log.players.split('~'),moveData[0]),turnData[0])
 	story_sidebar = r.render_story_sidebar(turnData[1],turnData[0])
 
 	context = {
