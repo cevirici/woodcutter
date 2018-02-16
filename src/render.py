@@ -173,14 +173,6 @@ class Renderer:
 							source = 5
 							destination = 1
 
-			#Boon / Hex fuckery
-			if pred == 8:
-				for e in range(373,404):
-					if self.cardPrimaries[e] in items:
-						source = 6
-						destination = 6
-						break
-
 			if source != destination:
 				if 4095 in items:
 					del items.val[4095]
