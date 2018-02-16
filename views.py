@@ -20,9 +20,10 @@ def submit(request):
 
 	p = Parser(preds,cards)
 	arr = [request.POST['fileone'],request.POST['filetwo']]
+	print(arr)
+	print(request.POST['supply'])
 	ret = p.combined_parse(arr)
 	sup = p.parse_supply(request.POST['supply'])
-
 
 	gameid = ret[1]
 	try:
