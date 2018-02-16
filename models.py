@@ -16,6 +16,11 @@ class GameLog(models.Model):
 					default='',
 					blank=True)
 
+	players = models.CharField(
+					max_length=100,
+					default='',
+					blank=True)
+
 class CardData(models.Model):
 	def __str__(self):
 		return self.single_name+ '({})'.format(str(hex(self.id)))
