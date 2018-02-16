@@ -48,7 +48,7 @@ def display(request,game_id):
 
 	decisionLog = r.parse_game(moveData[0],moveData[1],2) #Change playercount when you want to later on
 	turnData = r.get_turn_data(decisionLog[1],decisionLog[2], len(decisionLog[0]))
-	involvedCards = r.get_involved_cards(decisionLog[0])
+	involvedCards = r.get_involved_cards(decisionLog[0], turnData[0])
 
 	bg_top_row = r.render_graph_bg_row(turnData[1],turnData[2][0],0)
 	bg_bot_row = r.render_graph_bg_row(turnData[1],turnData[2][1],1)
