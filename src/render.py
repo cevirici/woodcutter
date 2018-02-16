@@ -148,7 +148,10 @@ class Renderer:
 			if indent > 0:
 				#Exceptions
 				if len(indentTree[-2][3].cardList()) > 0:
-					activeExceptions = self.exceptions[indentTree[-2][3].cardList()[0]]
+					activeExceptionsList = [self.exceptions[x] for x in indentTree[-2][3].cardList()]
+					activeExceptions = []
+					for i in activeExceptionsList:
+						activeExceptions += i
 				else:
 					activeExceptions = self.exceptions[0]
 				for exception in activeExceptions:

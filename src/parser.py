@@ -58,7 +58,7 @@ class Parser:
 		indent = self.get_indent(line)
 		line = line.strip()
 		line = re.sub('<.*?>|&bull;|&sdot;','',line)
-
+		pred = 255
 		for x in range(len(self.preds)):
 			if re.match(self.preds[x][0],line) != None:
 				pred = x
