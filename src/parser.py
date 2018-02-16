@@ -128,7 +128,7 @@ class Parser:
 		logs = [x[0] for x in raws]
 		gameNum = int(logs[0][0][3][4095].split('/')[0])
 
-		for i in range(len(logs[0])):
+		for i in range(min([len(log) for log in logs])):
 			t = [x[i] for x in logs]
 			combined = t[0][:]
 
