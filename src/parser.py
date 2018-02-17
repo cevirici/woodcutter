@@ -25,7 +25,7 @@ class Parser:
 				return i
 
 		print('Unknown card {} found'.format(name))
-		return 0
+		return 4095
 
 	def card_list_splitter(self,cardlist):
 		r = re.split(', | and ', cardlist)
@@ -47,15 +47,20 @@ class Parser:
 
 				a.insert(item[1],item[0])
 			else:
-				if re.match('^\d+$',item[0]) != None:
-					item[0] = int(item[0])
-				a.insert(4095,item[0])
+				match = self.get_normalized_name(item[0])
+				if match == 4095:
+					if re.match('^\d+$',item[0]) != None:
+						item[0] = int(item[0])
+					a.insert(match,item[0])
+				else:
+					a.insert(match,0)
 
 		return a
 
 
 	def get_arguments(self,line):
 		indent = self.get_indent(line)
+
 		line = line.strip()
 		line = re.sub('<.*?>|&bull;|&sdot;','',line)
 		pred = 255
