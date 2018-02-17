@@ -92,3 +92,4 @@ def display(request,game_id):
 	}
 
 	return render(request,'woodcutter/display.html', context)
+

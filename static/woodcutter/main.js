@@ -4,17 +4,17 @@ $('.graph-container').not(':eq(0)').hide();
 
 
 $('.box-outline').hover(
-	function(){	$(this).addClass('highlight');
+	function(){	$('.box-outline:not([card=\''+$(this).attr('card')+'\'])').addClass('nonhover');
 			    $('.legendbox[card=\''+$(this).attr('card')+'\']').addClass('highlight')},
-	function(){	$(this).removeClass('highlight');
+	function(){	$('.box-outline:not([card=\''+$(this).attr('card')+'\'])').removeClass('nonhover');
 				$('.legendbox[card=\''+$(this).attr('card')+'\']').removeClass('highlight')}
 );
 
 $('.legendbox').hover(
 	function(){	$(this).addClass('highlight');
-			    $('.box-outline[card=\''+$(this).attr('card')+'\']').addClass('highlight')},
+			    $('.box-outline:not([card=\''+$(this).attr('card')+'\'])').addClass('nonhover');},
 	function(){	$(this).removeClass('highlight');
-				$('.box-outline[card=\''+$(this).attr('card')+'\']').removeClass('highlight')}
+			    $('.box-outline:not([card=\''+$(this).attr('card')+'\'])').removeClass('nonhover');}
 );
 
 $('.story-sidebar-block').hover(

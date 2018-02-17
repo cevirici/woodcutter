@@ -146,8 +146,8 @@ body{
 
 .box{
 	background:#120462;
-	width: calc(100% - 6px);
-	height: calc(100% - 6px);
+	width: calc(100% - 4px);
+	height: calc(100% - 4px);
 }
 
 .redoutline, .blueoutline{
@@ -250,6 +250,9 @@ body{
 
 .faded{
 	opacity:0.3;
+}
+.nonhover{
+	opacity:0.2;
 }
 .vanish{
 	min-height:0px!important;
