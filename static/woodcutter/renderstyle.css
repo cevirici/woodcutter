@@ -51,10 +51,10 @@ body{
 }
 
 .row{
-	-moz-transition: all 0.2s ease-in;
-	-o-transition: all 0.2s ease-in;
-	-webkit-transition: all 0.2s ease-in;
-	transition: all 0.2s ease-in;
+	-moz-transition: all 0.5s;
+	-o-transition: all 0.5s;
+	-webkit-transition: all 0.5s;
+	transition: all 0.5s;
 	height:47%;
 	width: 100%;
 	display: flex;
@@ -86,10 +86,10 @@ body{
 	display: flex;
 }
 .axislabel{
-	-moz-transition: all 0.2s ease-in;
-	-o-transition: all 0.2s ease-in;
-	-webkit-transition: all 0.2s ease-in;
-	transition: all 0.2s ease-in;
+	-moz-transition: all 0.5s;
+	-o-transition: all 0.5s;
+	-webkit-transition: all 0.5s;
+	transition: all 0.5s;
 	min-width: 3%;
 	height: 100%;
 	font-family: "Consolas";
@@ -130,10 +130,10 @@ body{
 	overflow: hidden;
 }
 .box-outline{
-	-moz-transition: all .2s ease-in;
-	-o-transition: all .2s ease-in;
-	-webkit-transition: all .2s ease-in;
-	transition: all .2s ease-in;
+	-moz-transition: all .5s;
+	-o-transition: all .5s;
+	-webkit-transition: all .5s;
+	transition: all .5s;
 	width: 80%;
 	min-height: 14px;	
 	margin-top: 1px;
@@ -205,36 +205,40 @@ body{
 	position:relative;
 }
 .legendbox{
-	-moz-transition: all .2s ease-in;
-	-o-transition: all .2s ease-in;
-	-webkit-transition: all .2s ease-in;
-	transition: all .2s ease-in;
+	-moz-transition: all .5s;
+	-o-transition: all .5s;
+	-webkit-transition: all .5s;
+	transition: all .5s;
 	width: 20%;
 	min-height: 6%;
 	background:#120462;
-	font-family: "Segoe UI";
+	font-size: 1em;
+	padding: 10px;
+	margin: 3px;
+	color: #FFFFFF;
+	overflow: hidden;
+}
+.inner-color{
+	width:100%;
+	height:100%;
+	padding: 0 2% 0 2%;
 	display:flex;
 	align-items:center;
 	justify-content:center;
-	font-size: 1em;
-	padding: 0 3% 0 3%;
-	margin: 2% 7% 2% 7%;
-	outline: 10px solid;
-	color: #FFFFFF;
-	overflow: hidden;
 }
 
 .wrap{
 	display: inline-block;
 	text-align:center;
 	text-shadow: 1px 1px 0 #000;
+	font-family: "Segoe UI";
 }
 
 .story-color{
-	-moz-transition: all .2s ease-in;
-	-o-transition: all .2s ease-in;
-	-webkit-transition: all .2s ease-in;
-	transition: all .2s ease-in;
+	-moz-transition: all .5s;
+	-o-transition: all .5s;
+	-webkit-transition: all .5s;
+	transition: all .5s;
 	height:1.4em;
 	background:#120462;
 	font-family: "Segoe UI";
@@ -247,11 +251,7 @@ body{
 	margin: 4px;
 	padding: 0px 2px 0px 0px;
 }
-
 .faded{
-	opacity:0.3;
-}
-.nonhover{
 	opacity:0.2;
 }
 .vanish{
@@ -294,10 +294,10 @@ body{
 	flex-direction: column;
 }
 .story-sidebar-block{
-	-moz-transition: all .1s ease-in;
-	-o-transition: all .1s ease-in;
-	-webkit-transition: all .1s ease-in;
-	transition: all .1s ease-in;
+	-moz-transition: all .1s;
+	-o-transition: all .1s;
+	-webkit-transition: all .1s;
+	transition: all .1s;
 	height:0.8em;
 	font-family: "Segoe UI";
 	font-size: 1em;
@@ -333,10 +333,10 @@ body{
 	position:relative;
 }
 .controlbox, .valuebox{
-	-moz-transition: all .2s ease-in;
-	-o-transition: all .2s ease-in;
-	-webkit-transition: all .2s ease-in;
-	transition: all .2s ease-in;
+	-moz-transition: all .5s;
+	-o-transition: all .5s;
+	-webkit-transition: all .5s;
+	transition: all .5s;
 	flex-grow: 1;
 	min-height: 30%;
 	font-family: "Segoe UI";

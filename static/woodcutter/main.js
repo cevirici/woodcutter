@@ -4,17 +4,23 @@ $('.graph-container').not(':eq(0)').hide();
 
 
 $('.box-outline').hover(
-	function(){	$('.box-outline:not([card=\''+$(this).attr('card')+'\'])').addClass('nonhover');
-			    $('.legendbox[card=\''+$(this).attr('card')+'\']').addClass('highlight')},
-	function(){	$('.box-outline:not([card=\''+$(this).attr('card')+'\'])').removeClass('nonhover');
-				$('.legendbox[card=\''+$(this).attr('card')+'\']').removeClass('highlight')}
+	function(){	$('.box-outline:not([card=\''+$(this).attr('card')+'\']):not(.faded)').css('opacity',0.2);
+			    $('.legendbox[card=\''+$(this).attr('card')+'\']').addClass('highlight');},
+	function(){	$('.legendbox[card=\''+$(this).attr('card')+'\']').removeClass('highlight');
+				$('.box-outline:not([card=\''+$(this).attr('card')+'\']):not(.faded)').css('opacity',1);}
+);
+
+$('.legend').hover(
+	function(){;},
+	function(){$('.box-outline:not(.faded)').css('opacity',1);}
 );
 
 $('.legendbox').hover(
 	function(){	$(this).addClass('highlight');
-			    $('.box-outline:not([card=\''+$(this).attr('card')+'\'])').addClass('nonhover');},
+			    $('.box-outline:not([card=\''+$(this).attr('card')+'\']):not(.faded)').css('opacity',0.2);
+				$('.box-outline[card=\''+$(this).attr('card')+'\']:not(.faded)').css('opacity',1)},
 	function(){	$(this).removeClass('highlight');
-			    $('.box-outline:not([card=\''+$(this).attr('card')+'\'])').removeClass('nonhover');}
+			    $('.box-outline[card=\''+$(this).attr('card')+'\']:not(.faded)').css('opacity',0.2);}
 );
 
 $('.story-sidebar-block').hover(

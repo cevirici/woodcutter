@@ -416,9 +416,12 @@ class Renderer:
 	def render_legend(self, involvedCards):
 		legendString = ''
 		for card in involvedCards:
-			legendString += self.makeDiv(	'legendbox','\n<span class=\'wrap\'>'+self.cardPrimaries[card]+'</span>',{'style':
-											'background: #{}; \
-											 outline-color: #{};'.format(self.cardcolors[card],self.bordercolors[card]),
+			legendString += self.makeDiv(	'legendbox',
+									self.makeDiv('inner-color','\n<span class=\'wrap\'>'+self.cardPrimaries[card]+'</span>',
+										{'style': 'background: #{};'.format(self.cardcolors[card])
+										}),
+											{'style':
+											'background: #{};'.format(self.bordercolors[card]),
 											'card':card})
 		return legendString
 
