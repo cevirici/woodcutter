@@ -149,11 +149,14 @@ class Renderer:
 				#Exceptions
 				if len(indentTree[-2][3].cardList()) > 0:
 					activeExceptionsList = [self.exceptions[x] for x in indentTree[-2][3].cardList()]
+					activeExceptionsList.append(self.exceptions[0])
 					activeExceptions = []
 					for i in activeExceptionsList:
 						activeExceptions += i
 				else:
 					activeExceptions = self.exceptions[0]
+
+
 				for exception in activeExceptions:
 					if pred in [x.id for x in exception.target_preds.all()]:
 						if indentTree[-2][2] in [x.id for x in exception.root_preds.all()] or \
@@ -338,11 +341,6 @@ class Renderer:
 					entryString = re.sub(r'\(\?P<cards>(\.\*|\\d\+)\)',argumentsSplit.pop(0),entryString)
 
 			entryString = reduce(lambda x,y: re.sub(r'\(\.\*\)',y,x),argumentsSplit,entryString)
-			print(entry)
-			if argumentsSplit != []:
-				print(argumentsSplit)
-			print(entryString)
-
 
 			entryString = re.sub(r'\\([\.\(\)])',r'\1',entryString)
 			entryString = re.sub('\^|\$|\*','',entryString)
