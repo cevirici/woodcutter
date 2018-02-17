@@ -68,8 +68,12 @@ def display(request,game_id):
 	graph_shuffle_top = r.render_graph_row(turn_shuffle[0],0)
 	graph_shuffle_bot = r.render_graph_row(turn_shuffle[1],1)
 
-	story_main = r.render_story_main(r.elaborate_story(log.players.split('~'),moveData[0]),turnData[0])
+	players = log.players.split('~')
+
+	story_main = r.render_story_main(r.elaborate_story(players,moveData[0]),turnData[0])
 	story_sidebar = r.render_story_sidebar(turnData[1],turnData[0])
+
+	titleString = 'Game #{}: {} - {}'.format(game_id, players[0],players[1])
 
 	context = {
 		'graph_all_toprow': graph_all_top,
@@ -84,6 +88,7 @@ def display(request,game_id):
 		'legend': legend,
 		'story_main': story_main,
 		'story_sidebar': story_sidebar,
+		'title_string': titleString
 	}
 
 	return render(request,'woodcutter/display.html', context)

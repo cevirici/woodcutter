@@ -3,8 +3,21 @@ body{
 	background: #202020;
 }
 
+.topbar{
+	height: 5%;
+	background: #444444;
+	font-size: 2em;
+	color: #FFFFFF;
+    text-shadow: 1px 1px 0 #000;
+    padding: 0 0 0 2%;
+    display: flex;
+    flex-direction:column;
+    justify-content: center;
+	font-family: "Trebuchet MS";
+}
+
 .container{
-	height: 100%;
+	height: 95%;
 	min-height: 900px;
 	display:flex;
 	flex-direction:row;
@@ -20,7 +33,7 @@ body{
 }
 .graph-control-container{
 	width: 40%;
-	height: 92%;
+	height: 88%;
 	min-height: 830px;
 	display:flex;
 	flex-direction:column;
@@ -207,12 +220,33 @@ body{
 	margin: 2% 7% 2% 7%;
 	outline: 10px solid;
 	color: #FFFFFF;
+	overflow: hidden;
 }
+
 .wrap{
 	display: inline-block;
 	text-align:center;
     text-shadow: 1px 1px 0 #000;
 }
+
+.story-color{
+	-moz-transition: all .2s ease-in;
+	-o-transition: all .2s ease-in;
+	-webkit-transition: all .2s ease-in;
+	transition: all .2s ease-in;
+	height:1.4em;
+	background:#120462;
+	font-family: "Segoe UI";
+	display:flex;
+	align-items:center;
+	justify-content:center;
+	font-size: 0.9em;
+	outline: 2px solid;
+	color: #FFFFFF;
+	margin: 4px;
+	padding: 0px 2px 0px 0px;
+}
+
 .faded{
 	opacity:0.3;
 }
@@ -232,14 +266,17 @@ body{
 }
 
 .story-line{
-	min-width: 100%;
-	min-height: 4%;
-	font-family: "Segoe UI";
+	width: 100%;
 	font-size: 1em;
 	display:flex;
+	font-family: "Segoe UI";
+	flex-wrap:wrap;
 	align-items:center;
+	justify-content: flex-start;
 	color: #FFFFFF;
 	background: #222222;
+	padding: 0.25em 0 0.25em 0;
+	box-sizing: border-box;
 }
 
 .story-line.alternate{

@@ -106,7 +106,6 @@ class Renderer:
 		turncount = 0
 		for i in range(len(parsedLog)):
 			line = parsedLog[i]
-			print('     Turn {} - {}'.format(turncount,line))
 
 			player = line[0]-1
 			indent = line[1]
@@ -179,7 +178,6 @@ class Renderer:
 			if source != destination:
 				if 4095 in items:
 					del items.val[4095]
-				print('     moving {} to {}'.format(source,destination))
 				gameState = self.move_stuff(gameState, source, destination, player, items)
 			#Clear indentTree if it's the end of the turn.
 			if pred == 1:
@@ -310,15 +308,25 @@ class Renderer:
 		for item in cardlist:
 			if item != 4095:
 				rightC = self.cards[item]
+				thisPhrase = ''
+
 				if cardlist[item] == 1:
-					phrases.append(rightC[2])
+					thisPhrase = rightC[2]
 				elif cardlist[item] == 0:
-					phrases.append(rightC[0])
+					thisPhrase = rightC[0]
 				else:
-					phrases.append('{} {}'.format(cardlist[item],rightC[1]))
+					thisPhrase = '{} {}'.format(cardlist[item],rightC[1])
+
+				thisPhrase = self.makeDiv('story-color', self.makeDiv('wrap',thisPhrase), 
+					{'card': item,
+					 'style':'background:#{}; outline-color:#{};'.format(
+					 	self.cardcolors[item], self.bordercolors[item])
+					})
+				phrases.append(thisPhrase)
 
 		if len(phrases)>1:
 			phrases[-1] = 'and ' + phrases[-1]
+
 		return ', '.join(phrases)
 
 	def elaborate_story(self, players, gamelog):
