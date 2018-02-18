@@ -130,10 +130,11 @@ body{
 	overflow: hidden;
 }
 .box-outline{
-	-moz-transition: all .5s;
-	-o-transition: all .5s;
-	-webkit-transition: all .5s;
-	transition: all .5s;
+	-moz-transition: all .5s ease-in;
+	-o-transition: all .5 ease-in;
+	-webkit-transition: all .5s ease-in;
+	transition: all .5s ease-in;
+	transform: translate3d(0,0,0);
 	width: 80%;
 	min-height: 14px;	
 	margin-top: 1px;
@@ -307,8 +308,8 @@ body{
 	color: #FFFFFF;
 	background: #222222;
 }
-.story-sidebar-block.highlight{
-	height:40px;
+.story-sidebar-block:hover{
+	transform:translateX(-10px);
 	background:#CC9922!important;
 }
 .story-sidebar-block.alternate{

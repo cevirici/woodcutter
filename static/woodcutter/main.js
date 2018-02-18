@@ -1,31 +1,32 @@
 $('.controlbox').not(':eq(0)').addClass('faded');
 $('.valuebox').not(':eq(0)').addClass('faded');
-$('.graph-container').not(':eq(0)').hide();
+$('.graph-container').not(':eq(0)').css('display','none');
 
 
 $('.box-outline').hover(
-	function(){	$('.box-outline:not([card=\''+$(this).attr('card')+'\']):not(.faded)').css('opacity',0.2);
-			    $('.legendbox[card=\''+$(this).attr('card')+'\']').addClass('highlight');},
-	function(){	$('.legendbox[card=\''+$(this).attr('card')+'\']').removeClass('highlight');
-				$('.box-outline:not([card=\''+$(this).attr('card')+'\']):not(.faded)').css('opacity',1);}
+	function(){	targetCard = $(this).attr('card');
+				$('.box-outline:not([card=\''+targetCard+'\']):not(.faded)').css('opacity',0.2);
+				$('.box-outline[card=\''+targetCard+'\']:not(.faded)').css('opacity',1)},
+	function(){	//$('.box-outline:not([card=\''+$(this).attr('card')+'\']):not(.faded)').css('opacity',1)}
+				}
 );
 
 $('.legend').hover(
-	function(){;},
+	function(){},
+	function(){$('.box-outline:not(.faded)').css('opacity',1);}
+);
+
+$('.graph').hover(
+	function(){},
 	function(){$('.box-outline:not(.faded)').css('opacity',1);}
 );
 
 $('.legendbox').hover(
-	function(){	$(this).addClass('highlight');
-			    $('.box-outline:not([card=\''+$(this).attr('card')+'\']):not(.faded)').css('opacity',0.2);
-				$('.box-outline[card=\''+$(this).attr('card')+'\']:not(.faded)').css('opacity',1)},
-	function(){	$(this).removeClass('highlight');
-			    $('.box-outline[card=\''+$(this).attr('card')+'\']:not(.faded)').css('opacity',0.2);}
-);
-
-$('.story-sidebar-block').hover(
-	function(){	$(this).addClass('highlight');},
-	function(){	$(this).removeClass('highlight');}
+	function(){	targetCard = $(this).attr('card');
+			    $('.box-outline:not([card=\''+targetCard+'\']):not(.faded)').css('opacity',0.2);
+				$('.box-outline[card=\''+targetCard+'\']:not(.faded)').css('opacity',1)},
+	function(){	}//$(this).removeClass('highlight');
+				//$('.box-outline[card=\''+$(this).attr('card')+'\']:not(.faded)').css('opacity',0.2);}
 );
 
 $('.legendbox').click(
@@ -88,8 +89,8 @@ $('.controlbox, .axislabel, .valuebox').hover(
 $('.controlbox').click(
 	function(){ $('.controlbox').addClass('faded');
 				$(this).removeClass('faded');
-				$('.graph-container').hide();
-				$('.graph-container[graphname=\''+$(this).attr('control')+'\']').show();}
+				$('.graph-container').css('display','none');
+				$('.graph-container[graphname=\''+$(this).attr('control')+'\']').css('display','flex');}
 );
 
 $('.valuebox').click(
