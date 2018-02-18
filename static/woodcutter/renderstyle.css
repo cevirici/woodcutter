@@ -134,7 +134,11 @@ body{
 	-o-transition: all .5 ease-in;
 	-webkit-transition: all .5s ease-in;
 	transition: all .5s ease-in;
-	transform: translate3d(0,0,0);
+	-webkit-transform: translateZ(0);
+	-moz-transform: translateZ(0);
+	-ms-transform: translateZ(0);
+	-o-transform: translateZ(0);
+	transform: translateZ(0);
 	width: 80%;
 	min-height: 14px;	
 	margin-top: 1px;
