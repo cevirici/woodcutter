@@ -57,16 +57,16 @@ def display(request,game_id):
 	legend = r.render_legend(involvedCards)
 
 	turn_decks = r.find_turn_decks(decisionLog[0],turnData[0],turnData[1])
-	graph_all_top = r.render_graph_row(turn_decks[0],0)
-	graph_all_bot = r.render_graph_row(turn_decks[1],1)
+	graph_all_top = r.render_graph_row(turn_decks[0],involvedCards,0)
+	graph_all_bot = r.render_graph_row(turn_decks[1],involvedCards,1)
 
 	turn_gained = r.find_gained_cards(decisionLog[0],turnData[0],turnData[1])
-	graph_gained_top = r.render_graph_row(turn_gained[0],0)
-	graph_gained_bot = r.render_graph_row(turn_gained[1],1)
+	graph_gained_top = r.render_graph_row(turn_gained[0],involvedCards,0)
+	graph_gained_bot = r.render_graph_row(turn_gained[1],involvedCards,1)
 
 	turn_shuffle = r.find_full(decisionLog[0],turnData[0],turnData[1])
-	graph_shuffle_top = r.render_graph_row(turn_shuffle[0],0)
-	graph_shuffle_bot = r.render_graph_row(turn_shuffle[1],1)
+	graph_shuffle_top = r.render_graph_row(turn_shuffle[0],involvedCards,0)
+	graph_shuffle_bot = r.render_graph_row(turn_shuffle[1],involvedCards,1)
 
 	players = log.players.split('~')
 

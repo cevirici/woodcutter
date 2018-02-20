@@ -365,7 +365,8 @@ class Renderer:
 		return '\n<div class = \'{}\' {}>{}</div>'.format(classes,otherTagString,innerHTML)
 
 	def render_graph_bg_row(self, turnOwners, stripe, side):
-		t = [self.makeDiv('col active' if turnOwners[i] == side else 'col',
+
+		t = [self.makeDiv('col' + (' active' if turnOwners[i] == side else ''),
 			self.makeDiv('leftstripe active' if stripe[i-1] else 'leftstripe')) for i in range(len(turnOwners))]
 		return ''.join(t)
 
@@ -381,37 +382,47 @@ class Renderer:
 
 		return axisLabelsString
 
-	def render_graph_row(self, cardList, side):
+	def render_graph_row(self, cardList, involvedCards, side):
 		innerText = ''
-		outStr = ''
-		for col in cardList:
-			colString = ''
-			i = 0			
-			for card in col:
-				index = card[0]
-				cardString = self.makeDiv('box ', otherTags={
-										 'style':'background: #{}'.format(self.cardcolors[card[0]])
-										 })
+		outString = ''
+		colHeight = [0 for i in range(len(cardList))]
+		direction = ['bottom','top'][side]
+		for layerCard in involvedCards:
+			layerString = ''
+			for index in range(len(cardList)):
+				for card in cardList[index]:
+					if card[0] == layerCard:
+						if len(card) ==2:
+							length = 0
+						else:
+							length = card[2]
 
-				cardString = self.makeDiv('box-outline ' + card[1],  cardString,
-										 {
-										 'style':'background:#{}; order: {{}}'.format(self.bordercolors[card[0]]),									 
-										 'card':index,
-										 'cost':self.costs[index],
-										 'side':2*(0.5-side)}
-										)
+						for j in range(length):
+							cardString = self.makeDiv('box ', otherTags={
+													 'style':'background: #{}'.format(self.cardcolors[card[0]])
+													 })
 
-				for j in range(card[2] if len(card)> 2 else 1):
-					colString += cardString.format(2*i)
-					i+=1
-					if (i%5)==4:
-						colString += self.makeDiv('spacer', otherTags={'style':'order: {}'.format(2*i+1),
-																  	   'order':2*i+1})
+							rightHeight = 2*(colHeight[index]) + 0.5*(colHeight[index]//5)
+							order = colHeight[index]
 
-			colString = self.makeDiv('boxstack reverse' if side ==1 else 'boxstack',colString)
+							cardString = self.makeDiv('box-outline'+card[1],  cardString,
+													 {
+													 'style':'background:#{}; {}:{}%; left:{}%;'.format(
+													 	self.bordercolors[card[0]],direction,rightHeight,3.5*(index)+0.6),
+													 'card':layerCard,
+													 'cost':self.costs[index],
+													 'side':2*(0.5-side),
+													 'ycoord':order,
+													 'currenty':order,
+													 'xcoord':index
+													 }
+													)
 
-			outStr += colString
-		return outStr
+							colHeight[index] += 1
+							layerString += cardString
+			layerString = self.makeDiv('graph-layer card'+str(layerCard),layerString)
+			outString+= layerString
+		return outString
 
 	def render_legend(self, involvedCards):
 		legendString = ''
