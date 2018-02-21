@@ -387,41 +387,42 @@ class Renderer:
 		outString = ''
 		colHeight = [0 for i in range(len(cardList))]
 		direction = ['bottom','top'][side]
-		for layerCard in involvedCards:
-			layerString = ''
-			for index in range(len(cardList)):
-				for card in cardList[index]:
-					if card[0] == layerCard:
-						if len(card) ==2:
-							length = 0
-						else:
-							length = card[2]
+		layerStrings = ['' for i in involvedCards]
 
-						for j in range(length):
-							cardString = self.makeDiv('box ', otherTags={
-													 'style':'background: #{}'.format(self.cardcolors[card[0]])
-													 })
+		for index in range(len(cardList)):
+			for card in cardList[index]:
+				layerIndex = involvedCards.index(card[0])
+				if len(card) ==2:
+					length = 1
+				else:
+					length = card[2]
 
-							rightHeight = 2*(colHeight[index]) + 0.5*(colHeight[index]//5)
-							order = colHeight[index]
+				for j in range(length):
+					cardString = self.makeDiv('box ', otherTags={
+											 'style':'background: #{}'.format(self.cardcolors[card[0]])
+											 })
 
-							cardString = self.makeDiv('box-outline'+card[1],  cardString,
-													 {
-													 'style':'background:#{}; {}:{}%; left:{}%;'.format(
-													 	self.bordercolors[card[0]],direction,rightHeight,3.5*(index)+0.6),
-													 'card':layerCard,
-													 'cost':self.costs[index],
-													 'side':2*(0.5-side),
-													 'ycoord':order,
-													 'currenty':order,
-													 'xcoord':index
-													 }
-													)
+					rightHeight = 2*(colHeight[index]) + 0.5*(colHeight[index]//5)
+					order = colHeight[index]
 
-							colHeight[index] += 1
-							layerString += cardString
-			layerString = self.makeDiv('graph-layer card'+str(layerCard),layerString)
-			outString+= layerString
+					cardString = self.makeDiv('box-outline '+card[1],  cardString,
+											 {
+											 'style':'background:#{}; {}:{}%; left:{}%;'.format(
+											 	self.bordercolors[card[0]],direction,rightHeight,3.5*(index)+0.6),
+											 'card':card[0],
+											 'cost':self.costs[index],
+											 'side':2*(0.5-side),
+											 'ycoord':order,
+											 'currenty':order,
+											 'xcoord':index
+											 }
+											)
+
+					colHeight[index] += 1
+					layerStrings[layerIndex] += cardString
+		layerStrings = [self.makeDiv('graph-layer card'+str(involvedCards[i]),layerStrings[i]) for 
+							i in range(len(layerStrings))]
+		outString = ''.join(layerStrings)
 		return outString
 
 	def render_legend(self, involvedCards):

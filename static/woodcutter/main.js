@@ -93,7 +93,7 @@ $('.controlbox').click(
 				$('.graph-container[graphname=\''+$(this).attr('control')+'\']').css('display','flex');}
 );
 
-$('.valuebox').click(
+/*$('.valuebox').click(
 	function(){ 
 		mode = $(this).attr('control');
 		switch(mode){
@@ -117,7 +117,7 @@ $('.valuebox').click(
 		$('.valuebox').addClass('faded');
 		$(this).removeClass('faded');
 	}
-);
+);*/
 
 $('.graph-control').click(
 	function(){	var i = $(this).index('.graph-control');
