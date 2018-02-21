@@ -11,17 +11,19 @@ function rehighlight(){
 $('.box-outline').hover(
 	function(){	targetCard = $(this).attr('card');
 				$(this).addClass('highlight');
-				$('.graph-layer').css('opacity',0.2);
+				$('.legendbox[card='+targetCard+']').addClass('highlight');
+				$('.graph-layer').css('opacity',0.4);
 			    $('.graph-layer.card'+targetCard).css('opacity',1);
 			    clearTimeout(highlightTimer)},
 	function(){	highlightTimer = setTimeout(rehighlight,500);
-				$(this).removeClass('highlight');}
+				$(this).removeClass('highlight');
+				$('.legendbox[card='+targetCard+']').removeClass('highlight');}
 );
 
 $('.legendbox').hover(
 	function(){	targetCard = $(this).attr('card');
 				$(this).addClass('highlight');
-				$('.graph-layer').css('opacity',0.2);
+				$('.graph-layer').css('opacity',0.4);
 			    $('.graph-layer.card'+targetCard).css('opacity',1);
 				clearTimeout(highlightTimer)},
 	function(){	highlightTimer = setTimeout(rehighlight,500);
