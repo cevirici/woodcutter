@@ -1,7 +1,7 @@
 {% load static %}
 <html>
 	<head>
-		<title>Test Render</title>
+		<title>{{ title_string|safe }}</title>
 		<meta name='viewport' content='width=device-width, initial-scale=1'>
 		<script src="{% static 'woodcutter/jquery-3.2.1.min.js' %}"></script>
 		<link rel='stylesheet' href="{% static 'woodcutter/renderstyle.css' %}">
