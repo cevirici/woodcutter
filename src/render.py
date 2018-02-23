@@ -47,6 +47,8 @@ class Renderer:
 		self.cardcolors = []
 		self.bordercolors = []
 		self.exceptions = []
+		self.supplytypes = []
+
 		for card in cards:
 			self.cards.append([card.single_name,card.multi_name,card.phrase_name])
 			self.cardPrimaries.append(card.single_name)
@@ -54,6 +56,7 @@ class Renderer:
 			self.cardcolors.append(card.color)
 			self.bordercolors.append(card.border_color)
 			self.exceptions.append(card.exceptions.all())
+			self.supplytypes.append(card.supply_type)
 
 
 		'''f = open(BASE_DIR+'/woodcutter/'+exceptionfilename,'r')
@@ -317,7 +320,7 @@ class Renderer:
 				else:
 					thisPhrase = '{} {}'.format(cardlist[item],rightC[1])
 
-				thisPhrase = self.makeDiv('story-color', self.makeDiv('wrap',thisPhrase), 
+				thisPhrase = self.makeDiv('story-color', thisPhrase, 
 					{'card': item,
 					 'style':'background:#{}; outline-color:#{};'.format(
 					 	self.cardcolors[item], self.bordercolors[item])
@@ -398,17 +401,17 @@ class Renderer:
 					length = card[2]
 
 				for j in range(length):
-					cardString = self.makeDiv('box ', otherTags={
+					cardString = self.makeDiv('box-inner ', otherTags={
 											 'style':'background: #{}'.format(self.cardcolors[card[0]])
 											 })
 
-					rightHeight = 2*(colHeight[index]) + 0.5*(colHeight[index]//5)
+					rightHeight = 1.75*(colHeight[index]) + 0.5*(colHeight[index]//5)
 					order = colHeight[index]
 
-					cardString = self.makeDiv('box-outline '+card[1],  cardString,
+					cardString = self.makeDiv('box '+card[1],  cardString,
 											 {
-											 'style':'background:#{}; {}:{}%; left:{}%;'.format(
-											 	self.bordercolors[card[0]],direction,rightHeight,3.5*(index)+0.6),
+											 'style':'background:#{}; {}:{}vh; left:{}vh;'.format(
+											 	self.bordercolors[card[0]],direction,rightHeight,2.5*(index)+0.4),
 											 'card':card[0],
 											 'cost':self.costs[index],
 											 'side':2*(0.5-side),
@@ -429,7 +432,7 @@ class Renderer:
 		legendString = ''
 		for card in involvedCards:
 			legendString += self.makeDiv(	'legendbox',
-									self.makeDiv('inner-color','\n<span class=\'wrap\'>'+self.cardPrimaries[card]+'</span>',
+									self.makeDiv('inner-color',self.cardPrimaries[card],
 										{'style': 'background: #{};'.format(self.cardcolors[card])
 										}),
 											{'style':
@@ -458,3 +461,17 @@ class Renderer:
 								  'turn':i})
 
 		return sidebarstr
+
+	def render_kingdom(self, supply):
+		outstrs = ['' for i in range(3)]
+		for card in supply:
+			supplytype = self.supplytypes[card]
+			if supplytype > -1:
+				outstrs[supplytype] += 	self.makeDiv('kingdom-card',
+								self.makeDiv('inner-color',self.cardPrimaries[card],
+									{'style': 'background: #{};'.format(self.cardcolors[card])
+									}),
+										{'style':
+										'background: #{};'.format(self.bordercolors[card]),
+										'card':card})
+		return outstrs

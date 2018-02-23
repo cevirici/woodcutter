@@ -75,6 +75,8 @@ def display(request,game_id):
 
 	titleString = 'Game #{}: {} - {}'.format(game_id, players[0],players[1])
 
+	kingdomStrings = r.render_kingdom(moveData[1])
+
 	context = {
 		'graph_all_toprow': graph_all_top,
 		'graph_all_botrow': graph_all_bot,
@@ -88,7 +90,10 @@ def display(request,game_id):
 		'legend': legend,
 		'story_main': story_main,
 		'story_sidebar': story_sidebar,
-		'title_string': titleString
+		'title_string': titleString,
+		'kingdom': kingdomStrings[0],
+		'nonsupply': kingdomStrings[1],
+		'augments': kingdomStrings[2]
 	}
 
 	return render(request,'woodcutter/display.html', context)

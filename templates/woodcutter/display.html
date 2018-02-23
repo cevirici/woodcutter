@@ -72,24 +72,46 @@
 							<span class='wrap'>All Cards</span>
 						</div>
 						<div class = 'controlbox' control = 'gained'>
-							<span class='wrap'>Gained / Trashed Cards</span>
+							<span class='wrap'>Gained or Trashed</span>
 						</div>
 						<div class = 'controlbox' control = 'shuffle'>
 							<span class='wrap'>Shuffle Progress</span>
 						</div>
 					</div>
+					<div class = 'controls'>
+						<div class = 'modalcontrolbox' control = 'kingdom-display'>
+							<span class='wrap'>Display Kingdom</span>
+						</div>						
+					</div>
 				</div>
 
-				<div class = 'story-container'>
-					{{ story_main|safe }}
-				</div>
-				
-				<div class = 'story-sidebar'>
-					{{ story_sidebar|safe }}
+				<div class = 'story'>
+					<div class = 'story-container'>
+						{{ story_main|safe }}
+					</div>
+					
+					<div class = 'story-sidebar'>
+						{{ story_sidebar|safe }}
+					</div>
 				</div>
 			</div>
 		</content>
 		<modals>
+			<div class = 'modal kingdom-display'>
+				<div class = 'title'>Kingdom</div>
+				<div class = 'kingdom-label'>Kingdom:</div>
+				<div class = 'kingdom-container longer'>
+					{{ kingdom|safe }}
+				</div>
+				<div class = 'kingdom-label'>Nonsupply:</div>
+				<div class = 'kingdom-container'>
+					{{ nonsupply|safe }}
+				</div>
+				<div class = 'kingdom-label'>Extras and Landscapes:</div>
+				<div class = 'kingdom-container'>
+					{{ augments|safe }}
+				</div>
+			</div>
 		</modals>
 	</body>
 	<script src="{% static 'woodcutter/main.js' %}"></script>

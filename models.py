@@ -32,6 +32,7 @@ class CardData(models.Model):
 	cost = models.IntegerField()
 	color = models.CharField(max_length=8)
 	border_color = models.CharField(max_length=8)
+	supply_type = models.IntegerField()
 
 	class Meta:
 		ordering = ['id']
