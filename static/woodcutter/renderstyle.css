@@ -420,6 +420,7 @@ modals{
 	flex-wrap: wrap;
 	justify-content: center;
 	align-items: center;
+	align-content: center;
 }
 .kingdom-container.longer{
 	height :30%;
