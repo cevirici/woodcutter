@@ -373,13 +373,15 @@ modals{
 /*********** Modals ***********/
 
 .title{
-	height: 15%;
+	height: 10%;
 	width: 100%;
+	margin-bottom: 4%;
 	background: #444444;
 
 	display: flex;
 	justify-content: center;
 	align-items: center;
+	align-self: flex-start;
 
 	font: 3vh Verdana;
 	color: #FFFFFF;
@@ -410,17 +412,17 @@ modals{
 .kingdom-container{
 	position: relative;
 	width: 90%;
-	min-height:20%;
+	height: 20%;
 	overflow: hidden;
 
 	display: flex;
+	flex-direction: column;
 	flex-wrap: wrap;
 	justify-content: center;
-	align-items: flex-start;
-	flex-grow: 1;
+	align-items: center;
 }
 .kingdom-container.longer{
-	min-height:40%;
+	height :30%;
 }
 
 .kingdom-card{
