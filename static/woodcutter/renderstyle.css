@@ -390,7 +390,7 @@ modals{
 
 .kingdom-display{
 	position: relative;
-	width: 60%;
+	width: 40%;
 	height: 60%;
 	overflow: hidden;
 	background: #666666;
@@ -416,7 +416,7 @@ modals{
 	overflow: hidden;
 
 	display: flex;
-	flex-direction: column;
+	flex-direction: row;
 	flex-wrap: wrap;
 	justify-content: center;
 	align-items: center;

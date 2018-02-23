@@ -464,6 +464,7 @@ class Renderer:
 
 	def render_kingdom(self, supply):
 		outstrs = ['' for i in range(3)]
+		supply = sorted(supply, key = lambda x: (self.costs[x], self.cardPrimaries[x]))
 		for card in supply:
 			supplytype = self.supplytypes[card]
 			if supplytype > -1:
