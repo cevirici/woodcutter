@@ -1,6 +1,6 @@
 /*********** Everything Animated ***********/
 
-.axis, .axislabel, .box-outline, .controlbox, .graph-layer, .kingdom-card, 
+.axis, .axislabel, .box, .controlbox, .graph-layer, .kingdom-card, 
 .legendbox, .modalcontrolbox, .row, .story-sidebar-block{
 	-moz-transition: all 0.5s;
 	-o-transition: all 0.5s;
