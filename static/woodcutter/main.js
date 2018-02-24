@@ -8,7 +8,7 @@ function rehighlight(){
 }
 
 function highlight_layer(targetCard){
-	$('.legendbox[card='+targetCard+']').addClass('highlight');
+	$('.legendbox[card="'+targetCard+'"]').addClass('highlight');
 	$('.graph-layer').css('opacity',0.4);
 	$('.graph-layer.card'+targetCard).css('opacity',1);
 	clearTimeout(highlightTimer);

@@ -1,6 +1,6 @@
 /*********** Everything Animated ***********/
 
-.axis, .axislabel, .box, .controlbox, .graph-layer, .kingdom-card, 
+.axis, .axislabel, .box, .controlbox, .graph-layer, .inner-color, .kingdom-card, 
 .legendbox, .modal, .modalcontrolbox, .row, .story-sidebar-block{
 	-moz-transition: all 0.5s;
 	-o-transition: all 0.5s;
@@ -69,7 +69,6 @@ modals{
 .container{
 	position: relative;
 	height: 95%;
-	min-height: 900px;
 
 	display: flex;
 	justify-content: space-between;
@@ -255,15 +254,15 @@ modals{
 .legendbox{
 	width: 7.5vh;
 	height: 5vh;
-	padding: 10px;
-	margin: 3px;
+	padding: 1vh;
+	margin: 0.4vh;
 	overflow: hidden;
 }
 .legendbox.faded{
 	opacity: 0.5;
 }
-.legendbox.highlight > .inner-color{
-	background-color: #FFFF80;
+.legendbox.highlight .inner-color{
+	background-color: #FFFF80 !important;
 }
 
 .inner-color{
@@ -442,8 +441,8 @@ modals{
 .kingdom-card{
 	width: 7.5vh;
 	height: 5vh;
-	padding: 10px;
-	margin: 3px;
+	padding: 1vh;
+	margin: 0.4vh;
 	overflow: hidden;
 
 	display: flex;
