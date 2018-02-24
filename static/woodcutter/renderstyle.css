@@ -1,7 +1,7 @@
 /*********** Everything Animated ***********/
 
 .axis, .axislabel, .box, .controlbox, .graph-layer, .kingdom-card, 
-.legendbox, .modalcontrolbox, .row, .story-sidebar-block{
+.legendbox, .modal, .modalcontrolbox, .row, .story-sidebar-block{
 	-moz-transition: all 0.5s;
 	-o-transition: all 0.5s;
 	-webkit-transition: all 0.5s;
@@ -27,6 +27,7 @@
 .story-color, .story-sidebar-block{
 	text-align: center;
 }
+
 
 /*********** Structure ***********/
 
@@ -126,6 +127,9 @@ modals{
 	z-index:1;
 	pointer-events:none;
 }
+.graph-container:not(:first-child){
+	display: none;
+}
 
 .graph-layer{
 	position: absolute;
@@ -174,7 +178,7 @@ modals{
 	font: 1.2vh Consolas;
 	text-align: center;
 }
-.axislabel.highlight{
+.axislabel:hover{
 	background: #CC9922!important;
 }
 
@@ -224,10 +228,6 @@ modals{
 	outline: #006699 solid 2px;
 }
 
-.highlight{
-	background-color:#FFFF99!important;
-}
-
 
 /*********** Middle Block ***********/
 
@@ -258,6 +258,12 @@ modals{
 	padding: 10px;
 	margin: 3px;
 	overflow: hidden;
+}
+.legendbox.faded{
+	opacity: 0.5;
+}
+.legendbox.highlight > .inner-color{
+	background-color: #FFFF80;
 }
 
 .inner-color{
@@ -298,6 +304,9 @@ modals{
 }
 .controlbox.faded, .modalcontrolbox.faded{
 	opacity: 0.3;
+}
+.controlbox:hover, .modalcontrolbox:hover{
+	background: #FFFF80;
 }
 
 
@@ -371,6 +380,10 @@ modals{
 
 
 /*********** Modals ***********/
+
+.modal{
+	opacity: 0;
+}
 
 .title{
 	height: 10%;
