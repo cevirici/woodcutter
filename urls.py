@@ -4,7 +4,7 @@ from . import views
 
 app_name = 'woodcutter'
 urlpatterns = [
-    path('', views.index, name='index'),
+    path('', views.main, name='index'),
     path('input', views.inputFields, name='inputform'),
     path('submit', views.submit, name='submit'),
     path('<int:game_id>/display/', views.display, name='display'),

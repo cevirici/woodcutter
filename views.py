@@ -13,6 +13,9 @@ def index(request):
 def inputFields(request):
 	return render(request,'woodcutter/inputform.html')
 
+def main(request):
+	return render(request,'woodcutter/main.html')
+
 @csrf_exempt
 def submit(request):
 	preds = PredData.objects.all()
