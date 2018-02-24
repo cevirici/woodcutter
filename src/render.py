@@ -115,7 +115,7 @@ class Renderer:
 			pred = line[2]
 			predData = self.preds[pred]
 			items = deepcopy(line[3])
-			
+
 			#Clear indentTree if it's the end of the turn.
 			if pred == 1:
 				indentTree = []
@@ -154,7 +154,7 @@ class Renderer:
 			if indent > 0:
 				#Exceptions
 				if len(indentTree[-2][3].cardList()) > 0:
-					activeExceptionsList = [self.exceptions[x] for x in indentTree[-2][3].cardList()]
+					activeExceptionsList = [self.exceptions[x] for x in indentTree[-2][3].cardList() if x !=4095]
 					activeExceptionsList.append(self.exceptions[0])
 					activeExceptions = []
 					for i in activeExceptionsList:
