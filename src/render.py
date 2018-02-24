@@ -115,6 +115,10 @@ class Renderer:
 			pred = line[2]
 			predData = self.preds[pred]
 			items = deepcopy(line[3])
+			
+			#Clear indentTree if it's the end of the turn.
+			if pred == 1:
+				indentTree = []
 
 			#Populate indentTree
 			indentTree = indentTree[:indent]
@@ -182,9 +186,6 @@ class Renderer:
 				if 4095 in items:
 					del items.val[4095]
 				gameState = self.move_stuff(gameState, source, destination, player, items)
-			#Clear indentTree if it's the end of the turn.
-			if pred == 1:
-				indentTree = []
 
 			completeState.append(deepcopy(gameState))
 
