@@ -62,8 +62,8 @@ $('.legendbox').click(
 
 					$(x).attr('currenty', currentY.toString());
 
-					actualHeight = (0.5*Math.floor(currentY/5)+currentY*2).toString();
-					$(x).css(dirString,actualHeight+'%');
+					actualHeight = (0.5*Math.floor(currentY/5)+currentY*1.75).toString();
+					$(x).css(dirString,actualHeight+'vh');
 				});
 			}
 		});

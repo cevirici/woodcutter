@@ -4,8 +4,8 @@ from django.conf import settings
 from django.urls import reverse
 from django.core.exceptions import ObjectDoesNotExist
 from django.views.decorators.csrf import csrf_exempt
-from .src import Parser, Renderer, unpack
-from .models import GameLog, CardData, PredData, ExceptionData
+from .src import *
+from .models import GameLog
 
 def index(request):
     return HttpResponse("Test.")
@@ -41,62 +41,73 @@ def submit(request):
 	return HttpResponseRedirect(reverse('woodcutter:display', args=(ret[1],)))
 
 def display(request,game_id):
-	preds = PredData.objects.all()
-	cards = CardData.objects.all()
-	r = Renderer(preds,cards)
-
 	log = get_object_or_404(GameLog, game_id=game_id)
 
 	moveData = unpack(log.log,log.supply)
-
-	decisionLog = r.parse_game(moveData[0],moveData[1],2) #Change playercount when you want to later on
-	turnData = r.get_turn_data(decisionLog[1],decisionLog[2], len(decisionLog[0]))
-	involvedCards = r.get_involved_cards(decisionLog[0], turnData[0])
-
-	bg_top_row = r.render_graph_bg_row(turnData[1],turnData[2][0],0)
-	bg_bot_row = r.render_graph_bg_row(turnData[1],turnData[2][1],1)
-	bg_axis = r.render_graph_axis(turnData[1])
-
-	legend = r.render_legend(involvedCards)
-
-	turn_decks = r.find_turn_decks(decisionLog[0],turnData[0],turnData[1])
-	graph_all_top = r.render_graph_row(turn_decks[0],involvedCards,0)
-	graph_all_bot = r.render_graph_row(turn_decks[1],involvedCards,1)
-
-	turn_gained = r.find_gained_cards(decisionLog[0],turnData[0],turnData[1])
-	graph_gained_top = r.render_graph_row(turn_gained[0],involvedCards,0)
-	graph_gained_bot = r.render_graph_row(turn_gained[1],involvedCards,1)
-
-	turn_shuffle = r.find_full(decisionLog[0],turnData[0],turnData[1])
-	graph_shuffle_top = r.render_graph_row(turn_shuffle[0],involvedCards,0)
-	graph_shuffle_bot = r.render_graph_row(turn_shuffle[1],involvedCards,1)
-
 	players = log.players.split('~')
 
-	story_main = r.render_story_main(r.elaborate_story(players,moveData[0]),turnData[0])
-	story_sidebar = r.render_story_sidebar(turnData[1],turnData[0])
+	moveTree = parse_game(moveData[0])
+	gameStates = get_decision_state(moveTree, moveData[1])
+	
+	turnPoints = get_turn_points(moveTree)
+	turnOwners = get_turn_owners(moveTree)
+	shuffledTurns = get_shuffled_turns(moveTree)
+
+	involvedCards = get_involved_cards(gameStates)
+
+	allCards = find_turn_decks(turnPoints, gameStates)
+	gainedCards = find_gained_cards(turnPoints, gameStates)
+
+	cleanupPoints = [x+y for x,y in zip(get_cleanup_points(moveTree), [-1] + turnPoints)]
+	cleanupPoints[0] = turnPoints[0] + 1
+	progressCards = find_shuffle_progress(turnPoints, cleanupPoints, gameStates)
+
+	graph_all_top = render_graph_row(allCards, [''], 0)
+	graph_all_bot = render_graph_row(allCards, [''], 1)
+
+	graph_gained_top = render_graph_row(gainedCards, ['redoutline', 'redoutline faded', ''], 0)
+	graph_gained_bot = render_graph_row(gainedCards, ['redoutline', 'redoutline faded', ''], 1)
+
+	graph_progress_top = render_graph_row(progressCards, ['faded', '', 'faded'], 0)
+	graph_progress_bot = render_graph_row(progressCards, ['faded', '', 'faded'], 1)
+
+	axisLabels = render_axis_labels(turnOwners)
+	bgData_top = render_graph_background(turnOwners, shuffledTurns, 0)
+	bgData_bot = render_graph_background(turnOwners, shuffledTurns, 1)
+	legendBoxes = render_legend_boxes(involvedCards)
+	sidebarLabels = render_story_sidebar_labels(turnOwners, turnPoints)
+	story = elaborate_story(players, moveTree)
+
+	#DEBUG BLOCK
+	outfile = open('log.txt','w')
+	for i in range(len(story)):
+		outfile.write(str(i))
+		outfile.write('\n')
+		outfile.write(story[i][1])
+		outfile.write('\n')
+		outfile.write(str(gameStates[i]))
+	outfile.close()
+
+	kingdom = render_kingdom(moveData[1])
 
 	titleString = 'Game #{}: {} - {}'.format(game_id, players[0],players[1])
 
-	kingdomStrings = r.render_kingdom(moveData[1])
-
 	context = {
-		'graph_all_toprow': graph_all_top,
-		'graph_all_botrow': graph_all_bot,
-		'graph_gained_toprow': graph_gained_top,
-		'graph_gained_botrow': graph_gained_bot,
-		'graph_shuffle_toprow': graph_shuffle_top,
-		'graph_shuffle_botrow': graph_shuffle_bot,
-		'graph_bg_top': bg_top_row,
-		'graph_bg_bot': bg_bot_row,
-		'graph_bg_axis': bg_axis,
-		'legend': legend,
-		'story_main': story_main,
-		'story_sidebar': story_sidebar,
-		'title_string': titleString,
-		'kingdom': kingdomStrings[0],
-		'nonsupply': kingdomStrings[1],
-		'augments': kingdomStrings[2]
+		'title_string' : titleString,
+		'graph_all_top' : graph_all_top,
+		'graph_all_bot' : graph_all_bot,
+		'graph_gained_top' : graph_gained_top,
+		'graph_gained_bot' : graph_gained_bot,
+		'graph_progress_top' : graph_progress_top,
+		'graph_progress_bot' : graph_progress_bot,
+		'turnOwners' : turnOwners,
+		'bgData_top' : bgData_top,
+		'bgData_bot' : bgData_bot,
+		'axisLabels' : axisLabels,
+		'legendBoxes' : legendBoxes,
+		'story_lines' : story,
+		'sidebar_labels' : sidebarLabels,
+		'kingdomCards' : kingdom
 	}
 
 	return render(request,'woodcutter/display.html', context)

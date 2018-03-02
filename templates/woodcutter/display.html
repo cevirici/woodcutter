@@ -21,50 +21,80 @@
 				<div class = 'graph' >
 					<div class = 'graph-container' graphname = 'all'>
 						<div class = 'row fullwidth'>
-							{{ graph_all_toprow|safe }}
+							{% for layerString in graph_all_top %}
+							{{ layerString | safe }}
+							{% endfor %}
 						</div>
 						<div class = 'axis'></div>
 						<div class = 'row fullwidth'>
-							{{ graph_all_botrow|safe }}
+							{% for layerString in graph_all_bot %}
+							{{ layerString | safe }}
+							{% endfor %}
 						</div>
 					</div>
 					
 					<div class = 'graph-container' graphname = 'gained'>
 						<div class = 'row fullwidth'>
-							{{ graph_gained_toprow|safe }}
+							{% for layerString in graph_gained_top %}
+							{{ layerString | safe }}
+							{% endfor %}
 						</div>
 						<div class = 'axis'></div>
 						<div class = 'row fullwidth'>
-							{{ graph_gained_botrow|safe }}
+							{% for layerString in graph_gained_bot %}
+							{{ layerString | safe }}
+							{% endfor %}
 						</div>
 					</div>
 
 					<div class = 'graph-container' graphname = 'shuffle'>
 						<div class = 'row fullwidth'>
-							{{ graph_shuffle_toprow|safe }}
+							{% for layerString in graph_progress_top %}
+							{{ layerString | safe }}
+							{% endfor %}
 						</div>
 						<div class = 'axis'></div>
 						<div class = 'row fullwidth'>
-							{{ graph_shuffle_botrow|safe }}
+							{% for layerString in graph_progress_bot %}
+							{{ layerString | safe }}
+							{% endfor %}
 						</div>
 					</div>
 
 					<div class = 'graph-background' >
 						<div class = 'row fullwidth'>
-							{{ graph_bg_top|safe }}
+							{% for data in bgData_top %}
+							<div class = 'col{% if data.0 %} active{% endif %}'>
+								<div class = 'leftstripe{% if data.1 %} active{% endif %}'></div>
+							</div>
+							{% endfor %}
 						</div>
 						<div class = 'axis'>
-							{{ graph_bg_axis|safe }}
+							{% for axisLabel in axisLabels %}
+							<div class = 'axislabel'>
+								{{ axisLabel | safe }}
+							</div>
+							{% endfor %}
 						</div>
 						<div class = 'row fullwidth'>
-							{{ graph_bg_bot|safe }}
+							{% for data in bgData_bot %}
+							<div class = 'col{% if data.0 %} active{% endif %}'>
+								<div class = 'leftstripe{% if data.1 %} active{% endif %}'></div>
+							</div>
+							{% endfor %}
 						</div>
 					</div>
 				</div>
 
 				<div class = 'middle-stack'>
 					<div class = 'legend'>
-						{{ legend|safe }}
+						{% for legendbox in legendBoxes %}
+						<div class = 'legendbox' style = 'background: #{{ legendbox.2 }};' card = {{ legendbox.3}}>
+							<div class = 'inner-color' style = 'background: #{{ legendbox.1 }};''>
+								{{ legendbox.0 }}
+							</div>
+						</div>
+						{% endfor %}
 					</div>
 
 					<div class = 'controls'>
@@ -87,11 +117,19 @@
 
 				<div class = 'story'>
 					<div class = 'story-container'>
-						{{ story_main|safe }}
+						{% for line in story_lines %}
+						<div class = 'story-line{% if line.2 == 0 %} alternate{% endif %}' style = 'padding-left:{{ line.0 }}%' turn = {{ line.3 }}>
+							{{ line.1 | safe }}
+						</div>
+						{% endfor %}
 					</div>
 					
 					<div class = 'story-sidebar'>
-						{{ story_sidebar|safe }}
+						{% for sidebar_label in sidebar_labels %}
+						<div class = 'story-sidebar-block{% if sidebar_label.2 == 0 %} alternate{% endif %}' style = 'flex-grow:{{ sidebar_label.3 }}' turn = {{ sidebar_label.0 }}>
+							{{ sidebar_label.1 }}
+						</div>
+						{% endfor %}
 					</div>
 				</div>
 			</div>
@@ -101,15 +139,33 @@
 				<div class = 'title'>Kingdom</div>
 				<div class = 'kingdom-label'>Kingdom:</div>
 				<div class = 'kingdom-container longer'>
-					{{ kingdom|safe }}
+					{% for card in kingdomCards.0 %}
+					<div class = 'kingdom-card' style = 'background: #{{ card.0.border_color }};' card = {{ card.1 }}>
+						<div class = 'inner-color' style = 'background: #{{ card.0.card_color }};'> 
+							{{ card.0.simple_name }} 
+						</div>
+					</div>
+					{% endfor %}
 				</div>
 				<div class = 'kingdom-label'>Nonsupply:</div>
 				<div class = 'kingdom-container'>
-					{{ nonsupply|safe }}
+					{% for card in kingdomCards.1 %}
+					<div class = 'kingdom-card' style = 'background: #{{ card.0.border_color }};' card = {{ card.1 }}>
+						<div class = 'inner-color' style = 'background: #{{ card.0.card_color }};'> 
+							{{ card.0.simple_name }} 
+						</div>
+					</div>
+					{% endfor %}
 				</div>
 				<div class = 'kingdom-label'>Extras and Landscapes:</div>
 				<div class = 'kingdom-container'>
-					{{ augments|safe }}
+					{% for card in kingdomCards.2 %}
+					<div class = 'kingdom-card' style = 'background: #{{ card.0.border_color }};' card = {{ card.1 }}>
+						<div class = 'inner-color' style = 'background: #{{ card.0.card_color }};'> 
+							{{ card.0.simple_name }} 
+						</div>
+					</div>
+					{% endfor %}
 				</div>
 			</div>
 		</modals>

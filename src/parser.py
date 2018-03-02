@@ -1,33 +1,27 @@
 import re
 from functools import reduce
-from ceviri_net.settings import BASE_DIR
-from .cardstack import Cardstack
-
+from .classes import *
+from .standards import *
 
 class Parser:
-	def __init__(self,preds,cards):
-		self.preds = []
-		for pred in preds:
-			self.preds.append([pred.regex,pred.source,pred.destination])
+	def __init__(self):
+		self.preds = standardPreds
+		self.cards = standardCards
 
-		self.cards = []
-		for card in cards:
-			self.cards.append([card.single_name,card.multi_name,card.phrase_name])
-
-
-	def get_indent(self,line):
+	def get_indent(self, line):
 		t = re.search('padding-left:(.*?)em;',line).group(1)
 		return int(float(t)//1.5)
 
-	def get_normalized_name(self,name):
-		for i in range(len(self.cards)):
-			if name in self.cards[i]:
-				return i
+	def get_card(self, name):
+		res = [i for i in range(len(self.cards)) if name in self.cards[i]]
 
-		print('Unknown card {} found'.format(name))
-		return 4095
+		if res:
+			return res[0]
+		else:
+			print('Unknown card {} found'.format(name))
+			return self.cards[-1]
 
-	def card_list_splitter(self,cardlist):
+	def parse_card_phrase(self, cardlist):
 		r = re.split(', | and ', cardlist)
 		a = Cardstack({})
 
@@ -43,12 +37,12 @@ class Parser:
 					item[1] = ' '.join(item)
 					item[0] = 0
 
-				item[1] = self.get_normalized_name(item[1])
+				item[1] = self.get_card(item[1])
 
 				a.insert(item[1],item[0])
 			else:
-				match = self.get_normalized_name(item[0])
-				if match == 4095:
+				match = self.get_card(item[0])
+				if match == self.cards[-1]:
 					if re.match('^\d+$',item[0]) != None:
 						item[0] = int(item[0])
 					a.insert(match,item[0])
@@ -57,19 +51,18 @@ class Parser:
 
 		return a
 
-
-	def get_arguments(self,line):
+	def parse_line(self, line):
 		indent = self.get_indent(line)
 
 		line = line.strip()
 		line = re.sub('<.*?>|&bull;|&sdot;','',line)
-		pred = 255
-		for x in range(len(self.preds)):
-			if re.match(self.preds[x][0],line) != None:
-				pred = x
+		pred = self.preds[-1]
+		for testPred in self.preds:
+			if re.match(testPred.regex,line) != None:
+				pred = testPred
 				break
 
-		m = re.match(self.preds[pred][0], line)
+		m = re.match(pred.regex, line)
 		player = -1
 		lowlim = 3
 		try:
@@ -80,14 +73,16 @@ class Parser:
 		cards = Cardstack({})
 		try:
 			c_raw = m.group('cards')
-			cards = self.card_list_splitter(c_raw)
+			cards = self.parse_card_phrase(c_raw)
 		except:
 			lowlim -= 1
 
 		for i in range(lowlim,len(m.groups())+1):
-			cards.insert(4095,m.group(i))
+			cards.insert(self.cards[-1],m.group(i))
 
-		return [player, indent, pred, cards]
+		parsedLine = ParsedLine(player, indent, pred, cards)
+
+		return parsedLine
 
 	def translate_file(self,inString):
 		f = inString.split('~')
@@ -95,24 +90,47 @@ class Parser:
 		player_list = []
 		backup_player = ''
 		for line in f:
-			t = self.get_arguments(line)
+			t = self.parse_line(line)
 
 			#Player handling - special exception for 'Turn n' pred, because that uses long names.
 			#gaaah some preds have no player.
-			if t[0] == -1:
-				t[0] = backup_player
+			if t.player == -1:
+				t.player = backup_player
 			else:
-				if t[2] != 1:
-					if t[0] not in player_list:
-						player_list.append(t[0])
+				if t.pred != self.preds[1]:
+					if t.player not in player_list:
+						player_list.append(t.player)
 				else:
-					match_names = list(filter(lambda x: re.match('^'+x,t[0])!=None,player_list))
-					t[0] = list(filter(lambda x: len(x) == max([len(y) for y in match_names]),match_names))[0]
+					match_names = [player for player in player_list if re.match('^'+player,t.player)!=None]
+					match_names.sort(key=lambda x: -len(x))
+					t.player = match_names[0]
 
-			backup_player = t[0]
-			t[0] = player_list.index(t[0])
+			backup_player = t.player
+			t.player = player_list.index(t.player)
 			a.append(t)
 		return [a,len(player_list)]
+
+	def combined_parse(self,inStrings):
+		raws = [self.translate_file(x) for x in inStrings]
+		a = []
+		logs = [x[0] for x in raws]
+		gameNum = int(logs[0][0].items[464].split('/')[0])
+
+		for i in range(min([len(log) for log in logs])):
+			t = [x[i] for x in logs]
+			combined = t[0][:]
+
+			for s_t in t:
+				if self.cards[1] not in s_t.items:
+					combined.items = s_t.items
+
+			combined.player = hex(combined.player)[2:]
+			combined.indent = hex(combined.indent)[2:]
+			combined.pred = '{:0>2}'.format(hex(self.preds.index(combined.pred))[2:])
+			a.append(str(combined))
+
+		outstr = '~'.join(a)
+		return [outstr,gameNum]
 
 	def parse_supply(self,inString):
 		f = inString.split('~')
@@ -126,34 +144,5 @@ class Parser:
 
 		outstr = '~'.join(cards)
 		return outstr
-
-	def combined_parse(self,inStrings):
-		raws = [self.translate_file(x) for x in inStrings]
-		a = []
-		logs = [x[0] for x in raws]
-		gameNum = int(logs[0][0][3][4095].split('/')[0])
-
-		for i in range(min([len(log) for log in logs])):
-			t = [x[i] for x in logs]
-			combined = t[0][:]
-
-			for s_t in t:
-				if s_t[0:3] != combined[0:3]:
-					self.files_dont_match('||'.join([str(s_t[0:3]),str(combined[0:3])]))
-					break
-
-				if 1 not in s_t[3]:
-					combined[3] = s_t[3]
-
-			combined[0] = hex(combined[0])[2:]
-			combined[1] = hex(combined[1])[2:]
-			combined[2] = '{:0>2}'.format(hex(combined[2])[2:])
-			a.append(''.join([str(x) for x in combined]))
-
-		outstr = '~'.join(a)
-		return [outstr,gameNum]
-
-	def files_dont_match(self,line):
-		print('uh oh!{}'.format(line))
 
 
