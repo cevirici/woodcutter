@@ -42,6 +42,7 @@ class gameState:
 		self.OTHERS = [Cardstack({}),Cardstack({})]
 		self.TRASH = [Cardstack({})]
 		self.coins = [0,0]
+		self.coinsLower = [0,0]
 
 	def __str__(self):
 		outstr = ''
@@ -105,28 +106,34 @@ def get_decision_state(moveTree, supply):
 	gameStates = [startState]
 
 	for turn in moveTree:
-		def parse_chunk(chunk, exceptions, persistents):
+		turnExceptions = []
+		def parse_chunk(chunk, exceptions, turnExceptions, persistents):
 			subexceptions = copy.copy(exceptions)
 			gameStates.append(deepcopy(gameStates[-1]))
 
 			passedExceptions = [exception for exception in exceptions + persistents 
 			                    if exception.condition(chunk) == True]
+			#One-time
+			passedTurnExceptions = [exception for exception in turnExceptions if exception.condition(chunk) == True]
 
-			if passedExceptions:
-				for exception in passedExceptions:
-					exception.action(chunk, gameStates, subexceptions, persistents)
+			if passedExceptions + passedTurnExceptions:
+				for exception in passedExceptions + passedTurnExceptions:
+					exception.action(chunk, gameStates, subexceptions, turnExceptions, persistents)
+					
+				for exception in passedTurnExceptions:
+					turnExceptions.remove(exception)
 			else:
-				standardPreds[chunk[0].pred].action(chunk, gameStates, subexceptions, persistents)
+				standardPreds[chunk[0].pred].action(chunk, gameStates, subexceptions, turnExceptions, persistents)
 
 				for card in chunk[0].items:
 					if card != ARGUMENT_CARD:
 						for i in range(chunk[0].items[card]):
-							standardCards[card].action(chunk, gameStates, subexceptions, persistents)
+							standardCards[card].action(chunk, gameStates, subexceptions, turnExceptions, persistents)
 
 			for subchunk in chunk[1:]:
-				parse_chunk(subchunk, subexceptions, persistents)
+				parse_chunk(subchunk, subexceptions, turnExceptions, persistents)
 
-		parse_chunk(turn, [], [])
+		parse_chunk(turn, [], turnExceptions, standardPersistents)
 
 	return gameStates
 

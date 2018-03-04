@@ -78,6 +78,8 @@ def display(request,game_id):
 	sidebarLabels = render_story_sidebar_labels(turnOwners, turnPoints)
 	story = elaborate_story(players, moveTree)
 
+	for pred in standardPreds:
+		print(pred.name)
 	#DEBUG BLOCK
 	outfile = open('log.txt','w')
 	for i in range(len(story)):
