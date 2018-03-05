@@ -55,11 +55,15 @@ class gameState:
 		return outstr
 
 	def move(self, player, src, dest, items):
-		if ARGUMENT_CARD in items:
-			del items.val[ARGUMENT_CARD]
+		for t in ARGUMENT_CARD:
+			if t in items:
+				del items.val[t]
 
-		if (items - getattr(self, src)[min(len(getattr(self, src))-1, player)]).cardList():
-			print("ILLEGAL MOVE MOVING {} FROM {}".format(items, src))
+		if (items - getattr(self, src)[min(len(getattr(self, src))-1, player)]).cardList():			
+			outfile = open('log.txt','w')
+			outfile.write("ILLEGAL MOVE MOVING {} FROM {}".format(items, src))
+			outfile.close()
+
 		getattr(self, src)[min(len(getattr(self, src))-1, player)] -= items
 		getattr(self, dest)[min(len(getattr(self, dest))-1, player)] += items
 
@@ -126,7 +130,7 @@ def get_decision_state(moveTree, supply):
 				standardPreds[chunk[0].pred].action(chunk, gameStates, subexceptions, turnExceptions, persistents)
 
 				for card in chunk[0].items:
-					if card != ARGUMENT_CARD:
+					if card not in ARGUMENT_CARD:
 						for i in range(chunk[0].items[card]):
 							standardCards[card].action(chunk, gameStates, subexceptions, turnExceptions, persistents)
 

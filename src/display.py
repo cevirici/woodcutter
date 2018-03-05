@@ -77,6 +77,8 @@ def render_axis_labels(turnOwners):
 			t += 1
 		axisLabels.append(str(t)+'<br>'+'abcdef'[turnOwners[turn]])
 
+
+
 	return axisLabels
 
 def render_legend_boxes(involvedCards):
@@ -108,7 +110,7 @@ def render_story_sidebar_labels(turnOwners, turnPoints):
 def elaborate_cards(cardlist):
 	phrases = []
 	for item in cardlist:
-		if item != ARGUMENT_CARD:
+		if item not in ARGUMENT_CARD:
 			thisCard = standardCards[item]
 			thisPhrase = ''
 
@@ -135,10 +137,11 @@ def elaborate_story(players, moveTree):
 	lines = []
 
 	def parseLine(entry):
-		if ARGUMENT_CARD in entry.items:
-			argumentsSplit = entry.items[ARGUMENT_CARD].split('/')
-		else:
-			argumentsSplit = []
+		argumentsSplit = []
+
+		for t in ARGUMENT_CARD:
+			if t in entry.items:
+				argumentsSplit = entry.items[t].split('/')
 
 		entryString = standardPreds[entry.pred].regex
 		entryString = re.sub(r'\^?\(\?P<player>\.\*\)',players[entry.player],entryString)
