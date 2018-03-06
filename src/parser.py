@@ -139,7 +139,7 @@ class Parser:
 
 		for line in f:
 			r = line.strip().rsplit("-",1)
-			card = self.get_normalized_name(r[0])
+			card = self.get_card(r[0])
 			quant = '{:0>2}'.format(r[1])
 			cards.append('{:0>3}'.format(hex(card)[2:])+quant)
 
