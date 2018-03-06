@@ -15,7 +15,7 @@ def unpack(logstring, supplystring):
 		if len(cardString)>0:
 			cards = [x.split(':') for x in cardString.split('|')]
 			for card in cards:
-				if int(card[1],16) != 4095:
+				if int(card[1],16) != ARGUMENT_CARD:
 					card[0] = int(card[0])
 			stack = Cardstack({int(x[1],16):x[0] for x in cards})
 		else:
