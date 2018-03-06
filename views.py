@@ -18,10 +18,7 @@ def main(request):
 
 @csrf_exempt
 def submit(request):
-	preds = PredData.objects.all()
-	cards = CardData.objects.all()
-
-	p = Parser(preds,cards)
+	p = Parser()
 	arr = [request.POST['fileone'],request.POST['filetwo']]
 	ret = p.combined_parse(arr)
 	sup = p.parse_supply(request.POST['supply'])
