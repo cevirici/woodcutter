@@ -13,6 +13,7 @@ from .classes import *
 
 #Constants
 ARGUMENT_CARD = 0
+CARD_CARD = 2
 GAMESTART_PRED = 0
 NEWTURN_PRED = 1
 SHUFFLE_PRED = 46

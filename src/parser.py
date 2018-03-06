@@ -42,7 +42,7 @@ class Parser:
 				a.insert(item[1],item[0])
 			else:
 				match = self.get_card(item[0])
-				if match == self.cards[-1]:
+				if match == ARGUMENT_CARD:
 					if re.match('^\d+$',item[0]) != None:
 						item[0] = int(item[0])
 					a.insert(match,item[0])
@@ -78,7 +78,7 @@ class Parser:
 			lowlim -= 1
 
 		for i in range(lowlim,len(m.groups())+1):
-			cards.insert(self.cards[-1],m.group(i))
+			cards.insert(ARGUMENT_CARD,m.group(i))
 
 		parsedLine = ParsedLine(player, indent, pred, cards)
 
@@ -121,7 +121,7 @@ class Parser:
 			combined = t[0][:]
 
 			for s_t in t:
-				if self.cards[1] not in s_t.items:
+				if CARD_CARD not in s_t.items:
 					combined.items = s_t.items
 
 			combined.player = hex(combined.player)[2:]
