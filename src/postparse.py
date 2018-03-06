@@ -55,11 +55,12 @@ class gameState:
 		return outstr
 
 	def move(self, player, src, dest, items):
+		itemsNoArgs = deepcopy(items)
 		if ARGUMENT_CARD in items:
-			del items.val[ARGUMENT_CARD]
+			del itemsNoArgs.val[ARGUMENT_CARD]
 
-		getattr(self, src)[min(len(getattr(self, src))-1, player)] -= items
-		getattr(self, dest)[min(len(getattr(self, dest))-1, player)] += items
+		getattr(self, src)[min(len(getattr(self, src))-1, player)] -= itemsNoArgs
+		getattr(self, dest)[min(len(getattr(self, dest))-1, player)] += itemsNoArgs
 
 	def add(self, player, dest, items):
 		getattr(self, dest)[min(len(getattr(self, dest))-1, player)] += items

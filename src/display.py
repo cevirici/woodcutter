@@ -135,7 +135,6 @@ def elaborate_cards(cardlist):
 def elaborate_story(players, moveTree):
 	# Indents | Line | Owner | Turn Number
 	lines = []
-
 	def parseLine(entry):
 		argumentsSplit = []
 
@@ -146,13 +145,13 @@ def elaborate_story(players, moveTree):
 		entryString = re.sub(r'\^?\(\?P<player>\.\*\)',players[entry.player],entryString)
 
 		elab = elaborate_cards(entry.items)
-		if elab != '':
-			entryString = re.sub(r'\(\?P<cards>(\.\*)\)',elab,entryString)
+		if elab:
+			entryString = re.sub(r'\(\?P<cards>(\.\*)\)', elab, entryString)
 		elif argumentsSplit:
-			if re.search(r'\(\?P<cards>(\.\*)\)',entryString) != None:
-				entryString = re.sub(r'\(\?P<cards>(\.\*)\)',argumentsSplit.pop(0),entryString)
+			if re.search(r'\(\?P<cards>(\.\*)\)', entryString) != None:
+				entryString = re.sub(r'\(\?P<cards>(\.\*)\)', argumentsSplit.pop(0), entryString)
 
-		entryString = reduce(lambda x,y: re.sub(r'\(\.\*\)',y,x,1),argumentsSplit,entryString)
+		entryString = reduce(lambda x,y: re.sub(r'\(\.\*\)',y,x,1), argumentsSplit,entryString)
 
 		entryString = re.sub(r'\\([\.\(\)])',r'\1',entryString)
 		entryString = re.sub('\^|\$|\*','',entryString)
