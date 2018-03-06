@@ -56,7 +56,7 @@ class gameState:
 
 	def move(self, player, src, dest, items):
 		if ARGUMENT_CARD in items:
-			del items.val[t]
+			del items.val[ARGUMENT_CARD]
 
 		getattr(self, src)[min(len(getattr(self, src))-1, player)] -= items
 		getattr(self, dest)[min(len(getattr(self, dest))-1, player)] += items

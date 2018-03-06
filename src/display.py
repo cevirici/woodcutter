@@ -140,7 +140,7 @@ def elaborate_story(players, moveTree):
 		argumentsSplit = []
 
 		if ARGUMENT_CARD in entry.items:
-			argumentsSplit = entry.items[t].split('/')
+			argumentsSplit = entry.items[ARGUMENT_CARD].split('/')
 
 		entryString = standardPreds[entry.pred].regex
 		entryString = re.sub(r'\^?\(\?P<player>\.\*\)',players[entry.player],entryString)
