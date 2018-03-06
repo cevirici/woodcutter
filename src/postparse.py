@@ -55,9 +55,8 @@ class gameState:
 		return outstr
 
 	def move(self, player, src, dest, items):
-		for t in ARGUMENT_CARD:
-			if t in items:
-				del items.val[t]
+		if ARGUMENT_CARD in items:
+			del items.val[t]
 
 		getattr(self, src)[min(len(getattr(self, src))-1, player)] -= items
 		getattr(self, dest)[min(len(getattr(self, dest))-1, player)] += items
@@ -125,7 +124,7 @@ def get_decision_state(moveTree, supply):
 				standardPreds[chunk[0].pred].action(chunk, gameStates, subexceptions, turnExceptions, persistents)
 
 				for card in chunk[0].items:
-					if card not in ARGUMENT_CARD:
+					if card != ARGUMENT_CARD:
 						for i in range(chunk[0].items[card]):
 							standardCards[card].action(chunk, gameStates, subexceptions, turnExceptions, persistents)
 

@@ -12,7 +12,7 @@ from .classes import *
 #Last Updated: Wine Merchant
 
 #Constants
-ARGUMENT_CARD = [464, 4095]
+ARGUMENT_CARD = 0
 GAMESTART_PRED = 0
 NEWTURN_PRED = 1
 SHUFFLE_PRED = 46
@@ -58,6 +58,10 @@ def standardOnGains(source):
 		exceptions.append(Exception(standard_condition(['TRASH']), moveException(source, 'TRASH')))
 
 	return out_function
+
+#First: Argument
+t = Card('Argument','Argument','Argument', 0, 0, '666666', '666666', empty)
+standardCards.append(t)
 
 #0: nothing
 t = Card('nothing','nothing','nothing', 0, -1, '666666', '666666', empty)
@@ -2620,9 +2624,6 @@ standardCards.append(t)
 t = Card('Debt','Debt','Debt', 0, 0, '666666', '666666', empty)
 standardCards.append(t)
 
-#Last: Argument
-t = Card('Argument','Argument','Argument', 0, 0, '666666', '666666', empty)
-standardCards.append(t)
 
 standardNames = [x.simple_name for x in standardCards]
 

@@ -19,7 +19,7 @@ class Parser:
 			return res[0]
 		else:
 			print('Unknown card {} found'.format(name))
-			return len(cards) - 1
+			return ARGUMENT_CARD
 
 	def parse_card_phrase(self, cardlist):
 		r = re.split(', | and ', cardlist)
@@ -114,7 +114,7 @@ class Parser:
 		raws = [self.translate_file(x) for x in inStrings]
 		a = []
 		logs = [x[0] for x in raws]
-		gameNum = int(logs[0][0].items[464].split('/')[0])
+		gameNum = int(logs[0][0].items[ARGUMENT_CARD].split('/')[0])
 
 		for i in range(min([len(log) for log in logs])):
 			t = [x[i] for x in logs]
