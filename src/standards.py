@@ -17,6 +17,7 @@ GAMESTART_PRED = 0
 NEWTURN_PRED = 1
 SHUFFLE_PRED = 46
 CLEANUP_PREDS = [21,46]
+BOONHEX = range(373, 404)
 standardCards = []
 
 def empty(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
@@ -2688,7 +2689,8 @@ standardPreds.append(t)
 
 #8
 def pred8Action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-	gameStates[-1].move(chunkMoves[0].player, 'HANDS', 'DISCARDS', chunkMoves[0].items)
+	if chunkMoves[0].items.cardList()[0] not in BOONHEX:
+		gameStates[-1].move(chunkMoves[0].player, 'HANDS', 'DISCARDS', chunkMoves[0].items)
 
 t = Pred("^(?P<player>.*) discards (?P<cards>.*)\.$", pred8Action, "DISCARD")
 standardPreds.append(t)
@@ -3291,3 +3293,5 @@ def urchin_trash_exception(chunkMoves, gameStates, exceptions, turnExceptions, p
 standardPersistents.append(Exception(urchin_trash_condition, urchin_trash_exception))
 standardPersistents.append(Exception(standard_condition(['SET ASIDE'], ['Horse Traders']), moveException('HANDS', 'OTHERS')))
 standardPersistents.append(Exception(standard_condition(['RETURN TO'], ['Encampment']), moveException('OTHERS', 'SUPPLY')))
+travellers = ['Page', 'Treasure Hunter', 'Warrior', 'Hero', 'Champion', 'Peasant', 'Soldier', 'Fugitive', 'Disciple', 'Teacher']
+standardPersistents.append(Exception(standard_condition(['RETURN'], travellers), moveException('INPLAYS', 'SUPPLY')))

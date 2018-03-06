@@ -59,11 +59,6 @@ class gameState:
 			if t in items:
 				del items.val[t]
 
-		if (items - getattr(self, src)[min(len(getattr(self, src))-1, player)]).cardList():			
-			outfile = open('log.txt','w')
-			outfile.write("ILLEGAL MOVE MOVING {} FROM {}".format(items, src))
-			outfile.close()
-
 		getattr(self, src)[min(len(getattr(self, src))-1, player)] -= items
 		getattr(self, dest)[min(len(getattr(self, dest))-1, player)] += items
 

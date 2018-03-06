@@ -80,9 +80,9 @@ def display(request,game_id):
 
 	for pred in standardPreds:
 		print(pred.name)
-		
+
 	#DEBUG BLOCK
-	outfile = open('log.txt','w')
+	outfile = open('log.txt','a')
 	for i in range(len(story)):
 		outfile.write(str(i))
 		outfile.write('\n')
