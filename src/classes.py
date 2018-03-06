@@ -1,5 +1,5 @@
 from copy import deepcopy
-from .standards import *
+from .standards import ARGUMENT_CARD
 
 class Card:
 	def __init__(self, simple_name, multi_name, phrase_name,
