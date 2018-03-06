@@ -87,7 +87,7 @@ class Parser:
 	def translate_file(self,inString):
 		f = inString.split('~')
 		a = []
-		player_list = []
+		player_list = ['GameStart']
 		backup_player = 'GameStart'
 		for line in f:
 			t = self.parse_line(line)
