@@ -19,7 +19,7 @@ class Parser:
 			return res[0]
 		else:
 			print('Unknown card {} found'.format(name))
-			return self.cards[-1]
+			return len(cards) - 1
 
 	def parse_card_phrase(self, cardlist):
 		r = re.split(', | and ', cardlist)
