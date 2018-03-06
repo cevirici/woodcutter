@@ -2,6 +2,7 @@ import re
 from functools import reduce
 from .classes import *
 from .standards import *
+import copy
 
 class Parser:
 	def __init__(self):
@@ -118,7 +119,7 @@ class Parser:
 
 		for i in range(min([len(log) for log in logs])):
 			t = [x[i] for x in logs]
-			combined = t[0][:]
+			combined = copy.copy(t[0])
 
 			for s_t in t:
 				if CARD_CARD not in s_t.items:
