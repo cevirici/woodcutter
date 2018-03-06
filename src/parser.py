@@ -88,7 +88,7 @@ class Parser:
 		f = inString.split('~')
 		a = []
 		player_list = []
-		backup_player = ''
+		backup_player = 'GameStart'
 		for line in f:
 			t = self.parse_line(line)
 
