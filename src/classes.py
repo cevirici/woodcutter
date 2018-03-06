@@ -1,5 +1,14 @@
 from copy import deepcopy
-from .standards import ARGUMENT_CARD
+
+#Constants
+ARGUMENT_CARD = 0
+CARD_CARD = 2
+GAMESTART_PRED = 0
+NEWTURN_PRED = 1
+SHUFFLE_PRED = 46
+CLEANUP_PREDS = [21,46]
+BOONHEX = range(373, 404)
+standardCards = []
 
 class Card:
 	def __init__(self, simple_name, multi_name, phrase_name,

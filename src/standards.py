@@ -11,16 +11,6 @@ from .classes import *
 #AND BOONS AND HEXES IN GENERAL
 #Last Updated: Wine Merchant
 
-#Constants
-ARGUMENT_CARD = 0
-CARD_CARD = 2
-GAMESTART_PRED = 0
-NEWTURN_PRED = 1
-SHUFFLE_PRED = 46
-CLEANUP_PREDS = [21,46]
-BOONHEX = range(373, 404)
-standardCards = []
-
 def empty(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
 	pass
 
