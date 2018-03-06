@@ -13,7 +13,7 @@ class Card:
 		self.border_color = border_color
 		self.card_color = card_color
 
-	def __iter__(self):
+	def names(self):
 		return [self.simple_name, self.multi_name, self.phrase_name]
 
 	def action(self, pred):

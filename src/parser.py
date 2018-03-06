@@ -13,7 +13,7 @@ class Parser:
 		return int(float(t)//1.5)
 
 	def get_card(self, name):
-		res = [i for i in range(len(self.cards)) if name in self.cards[i]]
+		res = [i for i in range(len(self.cards)) if name in self.cards[i].names()]
 
 		if res:
 			return res[0]
