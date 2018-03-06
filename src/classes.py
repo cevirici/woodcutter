@@ -1,4 +1,5 @@
 from copy import deepcopy
+from .standards import *
 
 class Card:
 	def __init__(self, simple_name, multi_name, phrase_name,
@@ -54,7 +55,7 @@ class Cardstack:
 	def __add__(self,other):
 		t = deepcopy(self.val)
 		for c in other:
-			if c != 4095:
+			if c != ARGUMENT_CARD:
 				if c in t:
 					t[c] += other.val[c]
 				else:
@@ -64,7 +65,7 @@ class Cardstack:
 	def __sub__(self,other):
 		t = deepcopy(self.val)
 		for c in other:
-			if c != 4095:
+			if c != ARGUMENT_CARD:
 				if c in t:
 					t[c] -= other.val[c]
 
@@ -77,7 +78,7 @@ class Cardstack:
 			yield card
 
 	def insert(self, item, number):
-		if item != 4095:
+		if item != ARGUMENT_CARD:
 			if item in self.val:
 				self.val[item] += number
 			else:
