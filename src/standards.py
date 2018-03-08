@@ -3211,7 +3211,9 @@ def newTurnAction(chunkMoves, gameStates, exceptions, turnExceptions, persistent
     for i in range(2):
         gameStates[-1].coins[i] = 0
         gameStates[-1].coinsLower[i] = 0
-t = Pred("^Turn (?P<cards>.*) - (?P<player>.*)$", empty, "NEW TURN")
+
+        
+t = Pred("^Turn (?P<cards>.*) - (?P<player>.*)$", newTurnAction, "NEW TURN")
 standardPreds.append(t)
 
 # 2

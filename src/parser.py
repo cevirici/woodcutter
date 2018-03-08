@@ -94,7 +94,7 @@ class Parser:
             t = self.parse_line(line)
 
             #Player handling - special exception for 'Turn n' pred, because that uses long names.
-            #gaaah some preds have no player.
+
             if t.player == -1:
                 t.player = backup_player
             else:

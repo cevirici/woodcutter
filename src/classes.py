@@ -46,6 +46,9 @@ class Pred:
         self.action = action
         self.name = name
 
+    def __repr__(self):
+        return self.regex
+
 class ParsedLine:
     def __init__(self, player, indent, pred, items):
         self.player = player
