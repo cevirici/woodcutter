@@ -2715,7 +2715,7 @@ standardCards.append(t)
 # 366: Wall
 def wall_worth(gameState, player):
     playerDeck = gameState.crunch(['DECKS', 'DISCARDS', 'HANDS', 'OTHERS', 'INPLAYS'], [player])
-    size = gamestate.crunch(['DECKS', 'HANDS', 'DISCARDS', 'OTHERS', 'INPLAYS'], [player]).count()
+    size = gameState.crunch(['DECKS', 'HANDS', 'DISCARDS', 'OTHERS', 'INPLAYS'], [player]).count()
     return 15 - max(15, size)
 
 t = Card('Wall','Walls','a Wall', 0, 2, '65ab6f', '5e4a54', empty, wall_worth)
