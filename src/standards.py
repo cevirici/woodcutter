@@ -2186,7 +2186,7 @@ standardCards.append(t)
 # 285: Save
 def save_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
     if standardPreds[chunkMoves[0].pred].name in ['BUY']:
-        exceptions.append(Exception(standard_condition(['SET ASIDE']), moveException('HANDS', 'OTHERS')))
+        exceptions.append(Exception(standard_condition(['SET ASIDE WITH']), moveException('HANDS', 'OTHERS')))
         turnExceptions.append(Exception(standard_condition(['PUT INHAND']), moveException('OTHERS', 'HANDS')))
 
 t = Card('Save','Saves','a Save', 1, 0, 'a9a39d', '814d3b', save_action)
@@ -2310,7 +2310,7 @@ standardCards.append(t)
 # 308: Gladiator
 def gladiator_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
     if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exceptions.append(Exception(standard_condition(['PUT INHAND']),moveException('SUPPLY', 'TRASH')))
+        exceptions.append(Exception(standard_condition(['TRASH'], ['Gladiator']), moveException('SUPPLY', 'TRASH')))
 
 t = Card('Gladiator','Gladiators','a Gladiator', 3, 0, 'c4c0b4', 'b28674', gladiator_action)
 standardCards.append(t)

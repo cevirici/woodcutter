@@ -155,6 +155,9 @@ class gameState:
         if ARGUMENT_CARD in items:
             del itemsNoArgs.val[ARGUMENT_CARD]
 
+        if len((itemsNoArgs - getattr(self, src)[min(len(getattr(self, src))-1, player)]).cardList()) > 0:
+            print('ILLEGAL MOVE {} from {} to {}'.format(items, src, dest))
+
         getattr(self, src)[min(len(getattr(self, src))-1, player)] -= itemsNoArgs
         getattr(self, dest)[min(len(getattr(self, dest))-1, player)] += itemsNoArgs
 
