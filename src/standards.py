@@ -2691,7 +2691,7 @@ def arch_worth(gameState, player):
     counts = sorted([playerDeck[card] for card in playerDeck if
                      standardCards[card].simple_name in actionList], reverse=True)
     counts = counts + [0,0]
-    
+
     return 3 * counts[1]
 
 
@@ -3203,7 +3203,7 @@ standardNames = [x.simple_name for x in standardCards]
 standardPreds = []
 
 # 0
-t = Pred("^Game # (.*), (.*)\.$", empty, "GAME START")
+t = Pred("^Game #(.*), (.*)\.$", empty, "GAME START")
 standardPreds.append(t)
 
 # 1
