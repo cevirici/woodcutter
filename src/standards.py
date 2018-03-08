@@ -3642,7 +3642,7 @@ standardPreds.append(t)
 
 # 73
 def generic_vp_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    gameStates[-1].vps[chunkMoves[0].player] += chunkMoves[0].items[ARGUMENT_CARD]
+    gameStates[-1].vps[chunkMoves[0].player] += int(chunkMoves[0].items[ARGUMENT_CARD])
 
 
 t = Pred("^(?P<player>.*) takes (?P<cards>.*) VP from (.*)\.$", generic_vp_action, "SHIELD GAIN")
