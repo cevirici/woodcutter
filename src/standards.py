@@ -2184,6 +2184,11 @@ t = Card('Royal Carriage','Royal Carriages','a Royal Carriage', 5, 0, 'c5af85', 
 standardCards.append(t)
 
 # 285: Save
+def save_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
+    if standardPreds[chunkMoves[0].pred].name in ['BUY']:
+        exceptions.append(Exception(standard_condition(['SET ASIDE']), moveException('HANDS', 'OTHERS')))
+        turnExceptions.append(Exception(standard_condition(['PUT INHAND']), moveException('OTHERS', 'HANDS')))
+
 t = Card('Save','Saves','a Save', 1, 0, 'a9a39d', '814d3b', empty)
 standardCards.append(t)
 
