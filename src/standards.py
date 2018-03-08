@@ -2573,11 +2573,11 @@ def keep_worth(gameState, player):
 
     return total
 
-t = Card('Keep','Keeps','a Keep', 0, 0, '65ab6f', '6f4f7d', empty, keep_worth)
+t = Card('Keep','Keeps','a Keep', 0, 2, '65ab6f', '6f4f7d', empty, keep_worth)
 standardCards.append(t)
 
 # 347: Labyrinth
-t = Card('Labyrinth','Labyrinths','a Labyrinth', 0, 0, '65ab6f', '5e884c', empty)
+t = Card('Labyrinth','Labyrinths','a Labyrinth', 0, 2, '65ab6f', '5e884c', empty)
 standardCards.append(t)
 
 # 348: Legionary
@@ -2585,7 +2585,7 @@ t = Card('Legionary','Legionaries','a Legionary', 5, 0, 'c4c0b4', '714b41', empt
 standardCards.append(t)
 
 # 349: Mountain Pass
-t = Card('Mountain Pass','Mountain Passes','a Mountain Pass', 0, 0, '65ab6f', '657d8d', empty)
+t = Card('Mountain Pass','Mountain Passes','a Mountain Pass', 0, 2, '65ab6f', '657d8d', empty)
 standardCards.append(t)
 
 
@@ -2594,7 +2594,7 @@ def museum_worth(gameState, player):
     playerDeck = gameState.crunch(['DECKS', 'DISCARDS', 'HANDS', 'OTHERS', 'INPLAYS'], [player])
     return 2 * len(playerDeck.cardList())
 
-t = Card('Museum','Museums','a Museum', 0, 0, '65ab6f', 'c47a00', empty, museum_worth)
+t = Card('Museum','Museums','a Museum', 0, 2, '65ab6f', 'c47a00', empty, museum_worth)
 standardCards.append(t)
 
 
@@ -2608,7 +2608,7 @@ def obelisk_worth(gameState, player):
         return 0
 
 
-t = Card('Obelisk','Obelisks','an Obelisk', 0, 0, '65ab6f', '774d29', empty, obelisk_worth)
+t = Card('Obelisk','Obelisks','an Obelisk', 0, 2, '65ab6f', '774d29', empty, obelisk_worth)
 standardCards.append(t)
 
 
@@ -2625,7 +2625,7 @@ def orchard_worth(gameState, player):
     return total
 
 
-t = Card('Orchard','Orchards','an Orchard', 0, 0, '65ab6f', '707c5c', empty, orchard_worth)
+t = Card('Orchard','Orchards','an Orchard', 0, 2, '65ab6f', '707c5c', empty, orchard_worth)
 standardCards.append(t)
 
 # 353: Overlord
