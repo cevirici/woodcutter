@@ -2189,7 +2189,7 @@ def save_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents)
         exceptions.append(Exception(standard_condition(['SET ASIDE']), moveException('HANDS', 'OTHERS')))
         turnExceptions.append(Exception(standard_condition(['PUT INHAND']), moveException('OTHERS', 'HANDS')))
 
-t = Card('Save','Saves','a Save', 1, 0, 'a9a39d', '814d3b', empty)
+t = Card('Save','Saves','a Save', 1, 0, 'a9a39d', '814d3b', save_action)
 standardCards.append(t)
 
 # 286: Scouting Party
