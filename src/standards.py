@@ -1490,6 +1490,7 @@ standardCards.append(t)
 def oracle_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
     if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
         exceptions.append(Exception(standard_condition(['DISCARD']),moveException('DECKS', 'DISCARDS')))
+        exceptions.append(Exception(standard_condition(['TOPDECK']),moveException('DECKS', 'DECKS')))
 
 t = Card('Oracle','Oracles','an Oracle', 3, 0, 'c4c0b4', '69491b', oracle_action)
 standardCards.append(t)
