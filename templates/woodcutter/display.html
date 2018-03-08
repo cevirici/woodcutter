@@ -61,6 +61,20 @@
 						</div>
 					</div>
 
+					<div class = 'graph-container' graphname = 'vp'>
+						<div class = 'row fullwidth'>
+							{% for layerString in graph_vps_top %}
+							{{ layerString | safe }}
+							{% endfor %}
+						</div>
+						<div class = 'axis'></div>
+						<div class = 'row fullwidth'>
+							{% for layerString in graph_vps_bot %}
+							{{ layerString | safe }}
+							{% endfor %}
+						</div>
+					</div>
+
 					<div class = 'graph-background' >
 						<div class = 'row fullwidth'>
 							{% for data in bgData_top %}
@@ -106,6 +120,9 @@
 						</div>
 						<div class = 'controlbox faded' control = 'shuffle'>
 							<span class='wrap'>Shuffle Progress</span>
+						</div>
+						<div class = 'controlbox faded' control = 'vp'>
+							<span class='wrap'>VP</span>
 						</div>
 					</div>
 					<div class = 'controls'>

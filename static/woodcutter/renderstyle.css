@@ -1,7 +1,7 @@
 /*********** Everything Animated ***********/
 
 .axis, .axislabel, .box, .controlbox, .graph-layer, .inner-color, .kingdom-card, 
-.legendbox, .modal, .modalcontrolbox, .row, .story-sidebar-block{
+.legendbox, .modal, .modalcontrolbox, .row, .story-sidebar-block, .vpbox{
 	-moz-transition: all 0.5s;
 	-o-transition: all 0.5s;
 	-webkit-transition: all 0.5s;
@@ -219,6 +219,18 @@ modals{
 	height: calc(100% - 4px);
 }
 
+.vpbox{
+	position: absolute;
+	width: 1.8vh;
+	height: 1.4vh;
+
+	display: flex;
+	justify-content: center;
+	align-items: center;
+
+	pointer-events: auto;
+}
+
 .redoutline{
 	outline: #FF0000 solid 2px;
 }
@@ -362,12 +374,13 @@ modals{
 }
 
 .story-sidebar-block{
-	height: 0.8em;
+	min-height: 0.8em;
 	background: #222222;
 
 	display: flex;
 	justify-content: center;
 	align-items: center;
+	border-top: 1px #999 dashed;
 }
 .story-sidebar-block:hover{
 	background: #CC9922!important;
