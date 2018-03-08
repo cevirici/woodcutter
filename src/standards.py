@@ -658,15 +658,19 @@ def tmap_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents)
     def tmap_one_tmap(chunkMoves):
         if standardPreds[chunkMoves[0].pred].name == 'TRASH' and \
         'Treasure Map' == standardCards[chunkMoves[0].items.cardList()[0]].simple_name:
-            if chunkMoves[0].items[standardCards[83]] == 1:
-                return True
+            for card in chunkMoves[0].items:
+                if standardCards[card].simple_name == 'Treasure Map':
+                    if chunkMoves[0].items[83] == 1:
+                        return True
         return False
 
     def tmap_two_tmap(chunkMoves):
         if standardPreds[chunkMoves[0].pred].name == 'TRASH' and \
         'Treasure Map' == standardCards[chunkMoves[0].items.cardList()[0]].simple_name:
-            if chunkMoves[0].items[standardCards[83]] == 1:
-                return True
+            for card in chunkMoves[0].items:
+                if standardCards[card].simple_name == 'Treasure Map':
+                    if chunkMoves[0].items[card] == 1:
+                        return True
         return False
 
     def tmap_double_trash(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
