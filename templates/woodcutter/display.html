@@ -66,12 +66,14 @@
 							{% for layerString in graph_vps_top %}
 							{{ layerString | safe }}
 							{% endfor %}
+							{{ graph_vps_labels_top | safe }}
 						</div>
 						<div class = 'axis'></div>
 						<div class = 'row fullwidth'>
 							{% for layerString in graph_vps_bot %}
 							{{ layerString | safe }}
 							{% endfor %}
+							{{ graph_vps_labels_bot | safe }}
 						</div>
 					</div>
 

@@ -76,6 +76,8 @@ def render_vp_row(vpCards, side):
     direction = ['bottom', 'top'][side]
     colHeights = [0 for i in range(len(stack[0]))]
 
+    labelStrings = ''
+
     halfside = stack[side]
     for xpos in range(len(halfside)):
         col = halfside[xpos]
@@ -148,10 +150,19 @@ def render_vp_row(vpCards, side):
                                               )
                 colHeights[xpos] -= 1
 
+        tot = sum([halfside[xpos][card] * worths[side][xpos][card] for card in
+                  halfside[xpos] if card != ARGUMENT_CARD])
+        labelStrings += makeDiv('vplabel',
+                                {direction: '{}vh'.format(1.3 * colHeights[xpos] + (colHeights[xpos]-1)//5 * 0.5),
+                                 'left': '{}vh'.format(2.5 * xpos)},
+                                {},
+                                str(tot))
+
     for layer in layerStrings:
         layerStrings[layer] = makeDiv('graph-layer card' + str(layer), innerHTML=layerStrings[layer])
 
-    return layerStrings.values()
+    labelStrings = makeDiv('graph-layer', innerHTML=labelStrings)
+    return [layerStrings.values(), labelStrings]
 
 
 def render_graph_background(turnOwners, stripes, player):

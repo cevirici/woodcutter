@@ -231,6 +231,19 @@ modals{
 	pointer-events: auto;
 }
 
+.vplabel{
+	width: 2.5vh;
+	position: absolute;
+
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+
+	color: #FFFFFF;
+	font: 1.2vh Consolas;
+	text-align: center;
+}
+
 .redoutline{
 	outline: #FF0000 solid 2px;
 }
