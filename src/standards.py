@@ -1536,7 +1536,7 @@ victoryCards = ['Estate',
                 'Pasture']
 # 167: Silk Road
 def silkroad_worth(gameState, player):
-    playerDeck = gameState.crunch(['DECKS', 'DISCARDS', 'HANDS', 'OTHERS', 'INPLAYS'])
+    playerDeck = gameState.crunch(['DECKS', 'DISCARDS', 'HANDS', 'OTHERS', 'INPLAYS'], [player])
     return sum([playerDeck[item] for item in playerDeck if
                 standardCards[item].simple_name in victoryCards])
 
@@ -2361,7 +2361,7 @@ standardCards.append(t)
 
 # 318: King\'s Castle
 def kingsCastle_worth(gameState, player):
-    playerDeck = gameState.crunch(['DECKS', 'DISCARDS', 'HANDS', 'OTHERS', 'INPLAYS'])
+    playerDeck = gameState.crunch(['DECKS', 'DISCARDS', 'HANDS', 'OTHERS', 'INPLAYS'], [player])
     return sum([2 * playerDeck[item] for item in playerDeck if
                 standardCards[item].simple_name in castles])
 
@@ -2390,7 +2390,7 @@ standardCards.append(t)
 
 # 324: Bandit Fort
 def banditfort_worth(gameState, player):
-    playerDeck = gameState.crunch(['DECKS', 'DISCARDS', 'HANDS', 'OTHERS', 'INPLAYS'])
+    playerDeck = gameState.crunch(['DECKS', 'DISCARDS', 'HANDS', 'OTHERS', 'INPLAYS'], [player])
     return sum([-2 * playerDeck[item] for item in playerDeck if
                 standardCards[item].simple_name in ['Silver', 'Gold']])
 
