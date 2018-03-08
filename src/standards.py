@@ -657,15 +657,15 @@ standardCards.append(t)
 def tmap_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
     def tmap_one_tmap(chunkMoves):
         if standardPreds[chunkMoves[0].pred].name == 'TRASH' and \
-        'Treasure Map' == standardCards[chunkmoves[0].items.cardList()[0]].simple_name:
-            if chunkmoves[0].items[standardCards[83]] == 1:
+        'Treasure Map' == standardCards[chunkMoves[0].items.cardList()[0]].simple_name:
+            if chunkMoves[0].items[standardCards[83]] == 1:
                 return True
         return False
 
     def tmap_two_tmap(chunkMoves):
         if standardPreds[chunkMoves[0].pred].name == 'TRASH' and \
-        'Treasure Map' == standardCards[chunkmoves[0].items.cardList()[0]].simple_name:
-            if chunkmoves[0].items[standardCards[83]] == 1:
+        'Treasure Map' == standardCards[chunkMoves[0].items.cardList()[0]].simple_name:
+            if chunkMoves[0].items[standardCards[83]] == 1:
                 return True
         return False
 
@@ -3212,7 +3212,7 @@ def newTurnAction(chunkMoves, gameStates, exceptions, turnExceptions, persistent
         gameStates[-1].coins[i] = 0
         gameStates[-1].coinsLower[i] = 0
 
-        
+
 t = Pred("^Turn (?P<cards>.*) - (?P<player>.*)$", newTurnAction, "NEW TURN")
 standardPreds.append(t)
 
