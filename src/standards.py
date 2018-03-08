@@ -3521,7 +3521,7 @@ standardPreds.append(t)
 
 # 47
 def pred47Action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    gameStates[-1].move(chunkMoves[0].player, 'DECKS', 'HANDS', chunkMoves[0].items)
+    gameStates[-1].move(chunkMoves[0].player, 'DECKS', 'HANDS', Cardstack({chunkMoves[0].items.cardList()[0]: 1}))
 
 t = Pred("^(?P<player>.*) wishes for (?P<cards>.*) and finds it\.$", pred47Action, "WISH SUCCESS")
 standardPreds.append(t)
