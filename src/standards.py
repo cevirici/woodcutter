@@ -385,8 +385,8 @@ standardCards.append(t)
 # 46: Masquerade
 def masquerade_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
     def passAction(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-        gameStates[-1].HANDS[chunkMoves[0].player] -= items
-        gameStates[-1].HANDS[1 - chunkMoves[0].player] += items
+        gameStates[-1].HANDS[chunkMoves[0].player] -= chunkMoves[0].items
+        gameStates[-1].HANDS[1 - chunkMoves[0].player] += chunkMoves[0].items
 
     if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
         exceptions.append(Exception(standard_condition(['PASS']), passAction))
