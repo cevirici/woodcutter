@@ -660,7 +660,7 @@ def tmap_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents)
         'Treasure Map' == standardCards[chunkMoves[0].items.cardList()[0]].simple_name:
             for card in chunkMoves[0].items:
                 if standardCards[card].simple_name == 'Treasure Map':
-                    if chunkMoves[0].items[83] == 1:
+                    if chunkMoves[0].items[card] == 1:
                         return True
         return False
 
