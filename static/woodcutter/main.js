@@ -24,6 +24,11 @@ $('.box').hover(
 	function() {dehighlight_layer($(this).attr('card'))}
 );
 
+$('.vpbox').hover(
+	function() {highlight_layer($(this).attr('card'))},
+	function() {dehighlight_layer($(this).attr('card'))}
+);
+
 $('.legendbox').hover(
 	function() {highlight_layer($(this).attr('card'))},
 	function() {dehighlight_layer($(this).attr('card'))}

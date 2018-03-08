@@ -1865,7 +1865,12 @@ t = Card('Squire','Squires','a Squire', 2, 0, 'c4c0b4', '937b4b', empty)
 standardCards.append(t)
 
 # 225: Survivors
-t = Card('Survivors','Survivors','a Survivors', 0, 0, 'b29462', '706a46', empty)
+def survivors_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
+    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        exceptions.append(Exception(standard_condition(['TOPDECK']),moveException('DECKS', 'DECKS')))
+        exceptions.append(Exception(standard_condition(['DISCARD']),moveException('DECKS', 'DISCARDS')))
+
+t = Card('Survivors','Survivors','a Survivors', 0, 0, 'b29462', '706a46', survivors_action)
 standardCards.append(t)
 
 # 226: Urchin
