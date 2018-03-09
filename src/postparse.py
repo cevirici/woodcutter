@@ -54,6 +54,7 @@ def parse_game(parsedLog):
 
     return moveTree
 
+
 def get_decision_state(moveTree, supply):
     startState = gameState()
     startState.add(0, 'SUPPLY', supply)
@@ -73,7 +74,7 @@ def get_decision_state(moveTree, supply):
             if passedExceptions + passedTurnExceptions:
                 for exception in passedExceptions + passedTurnExceptions:
                     exception.action(chunk, gameStates, subexceptions, turnExceptions, persistents)
-                    
+
                 for exception in passedTurnExceptions:
                     turnExceptions.remove(exception)
             else:

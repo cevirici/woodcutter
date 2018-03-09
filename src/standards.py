@@ -1628,10 +1628,16 @@ def knights_trash_condition(knightPlayer):
         return standardPreds[chunkMoves[0].pred].name == 'TRASH' and chunkMoves[0].player != knightPlayer
     return out_function
 
+def knights_suicide_condition(knightPlayer):
+    def out_function(chunkMoves):
+        return standardPreds[chunkMoves[0].pred].name == 'TRASH' and chunkMoves[0].player == knightPlayer
+    return out_function
+
 def standard_knights_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
     if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exceptions.append(Exception(standard_condition(['DISCARD']),moveException('DECKS', 'DISCARDS')))
+        exceptions.append(Exception(standard_condition(['DISCARD']), moveException('DECKS', 'DISCARDS')))
         exceptions.append(Exception(knights_trash_condition(chunkMoves[0].player), moveException('DECKS', 'TRASH')))
+        exceptions.append(Exception(knights_suicide_condition(chunkMoves[0].player), moveException('INPLAYS', 'TRASH')))
 
 # 184: Dame Anna
 def anna_trash_condition(knightPlayer):
@@ -1643,6 +1649,7 @@ def anna_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents)
     if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
         exceptions.append(Exception(standard_condition(['DISCARD']),moveException('DECKS', 'DISCARDS')))
         exceptions.append(Exception(knights_trash_condition(chunkMoves[0].player), moveException('DECKS', 'TRASH')))
+        exceptions.append(Exception(knights_suicide_condition(chunkMoves[0].player), moveException('INPLAYS', 'TRASH')))
         exceptions.append(Exception(anna_trash_condition(chunkMoves[0].player), moveException('HANDS', 'TRASH')))
 
 t = Card('Dame Anna','Dame Annas','a Dame Anna', 5, -1, 'c4c0b4', '775f35', anna_action)
@@ -1856,6 +1863,7 @@ def michael_action(chunkMoves, gameStates, exceptions, turnExceptions, persisten
     if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
         exceptions.append(Exception(standard_condition(['TRASH']), moveException('DECKS', 'TRASH')))
         exceptions.append(Exception(standard_condition(['REVEAL']), michael_reveal_exception(exceptions)))
+        exceptions.append(Exception(knights_suicide_condition(chunkMoves[0].player), moveException('INPLAYS', 'TRASH')))
 
 
 t = Card('Sir Michael','Sir Michaels','a Sir Michael', 5, -1, 'c4c0b4', '47454b', michael_action)
@@ -2939,8 +2947,8 @@ standardCards.append(t)
 # 412: Den Of Sin
 def den_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
     if standardPreds[chunkMoves[0].pred].name in ['BUY AND GAIN', 'GAIN TOPDECK', 'GAIN TRASH', 'GAIN']:
-        moveException('DISCARDS', 'DECKS')(chunkMoves, gameStates, exceptions, turnExceptions, persistents)
-        standardOnGains('DECKS')(chunkMoves, gameStates, exceptions, turnExceptions, persistents)
+        moveException('DISCARDS', 'HANDS')(chunkMoves, gameStates, exceptions, turnExceptions, persistents)
+        standardOnGains('HANDS')(chunkMoves, gameStates, exceptions, turnExceptions, persistents)
 
 t = Card('Den Of Sin','Dens Of Sin','a Den Of Sin', 5, 0, '7a5622', '2c2226', den_action)
 standardCards.append(t)
@@ -2973,8 +2981,8 @@ standardCards.append(t)
 # 418: Ghost Town
 def ghosttown_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
     if standardPreds[chunkMoves[0].pred].name in ['BUY AND GAIN', 'GAIN TOPDECK', 'GAIN TRASH', 'GAIN']:
-        moveException('DISCARDS', 'DECKS')(chunkMoves, gameStates, exceptions, turnExceptions, persistents)
-        standardOnGains('DECKS')(chunkMoves, gameStates, exceptions, turnExceptions, persistents)
+        moveException('DISCARDS', 'HANDS')(chunkMoves, gameStates, exceptions, turnExceptions, persistents)
+        standardOnGains('HANDS')(chunkMoves, gameStates, exceptions, turnExceptions, persistents)
 
 t = Card('Ghost Town','Ghost Towns','a Ghost Town', 3, 0, '7a5622', '173b57', ghosttown_action)
 standardCards.append(t)
@@ -2982,8 +2990,8 @@ standardCards.append(t)
 # 419: Guardian
 def guardian_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
     if standardPreds[chunkMoves[0].pred].name in ['BUY AND GAIN', 'GAIN TOPDECK', 'GAIN TRASH', 'GAIN']:
-        moveException('DISCARDS', 'DECKS')(chunkMoves, gameStates, exceptions, turnExceptions, persistents)
-        standardOnGains('DECKS')(chunkMoves, gameStates, exceptions, turnExceptions, persistents)
+        moveException('DISCARDS', 'HANDS')(chunkMoves, gameStates, exceptions, turnExceptions, persistents)
+        standardOnGains('HANDS')(chunkMoves, gameStates, exceptions, turnExceptions, persistents)
 
 t = Card('Guardian','Guardians','a Guardian', 2, 0, '7a5622', '376db9', guardian_action)
 standardCards.append(t)
@@ -3017,6 +3025,10 @@ def watchman_action(chunkMoves, gameStates, exceptions, turnExceptions, persiste
     if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
         exceptions.append(Exception(standard_condition(['DISCARD']), moveException('DECKS', 'DISCARDS')))
         exceptions.append(Exception(standard_condition(['TOPDECK']), moveException('DECKS', 'DECKS')))
+
+    if standardPreds[chunkMoves[0].pred].name in ['BUY AND GAIN', 'GAIN TOPDECK', 'GAIN TRASH', 'GAIN']:
+        moveException('DISCARDS', 'HANDS')(chunkMoves, gameStates, exceptions, turnExceptions, persistents)
+        standardOnGains('HANDS')(chunkMoves, gameStates, exceptions, turnExceptions, persistents)
 
 t = Card('Night Watchman','Night Watchmen','a Night Watchman', 3, 0, '30484e', '464266', watchman_action)
 standardCards.append(t)
@@ -3181,7 +3193,11 @@ t = Card('Black Market','Black Markets','a Black Market', 3, 0, 'c4c0b4', 'b5b5b
 standardCards.append(t)
 
 # 454: Envoy
-t = Card('Envoy','Envoys','an Envoy', 4, 0, 'c4c0b4', '425064', empty)
+def envoy_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
+    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        exceptions.append(Exception(standard_condition(['DISCARD']), moveException('DECKS', 'DISCARDS')))
+
+t = Card('Envoy','Envoys','an Envoy', 4, 0, 'c4c0b4', '425064', envoy_action)
 standardCards.append(t)
 
 # 455: Governor

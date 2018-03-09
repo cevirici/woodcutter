@@ -148,7 +148,7 @@ class gameState:
             for part in getattr(self, zone):
                 outstr += '\n    '+str(part)
 
-        outstr += '\n------\n'
+        outstr += '\n    ------\n'
         return outstr
 
     def move(self, player, src, dest, items):
