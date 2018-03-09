@@ -3098,7 +3098,7 @@ def pasture_worth(gameState, player):
 
     return 0
 
-t = Card('Pasture','Pastures','a Pasture', 2, 2, 'a9c35d', '666666', empty, pasture_worth)
+t = Card('Pasture','Pastures','a Pasture', 2, 2, 'a9c35d', '959D8D', empty, pasture_worth)
 standardCards.append(t)
 
 # 443: Pouch
