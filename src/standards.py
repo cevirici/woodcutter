@@ -2,7 +2,6 @@ from .classes import *
 
 '''GAAAAH FUCK HERMIT
 AND BOM
-AND MICHAEL
 AND DURATIONS
 AND INHERITANCE
 AND ROCKS
@@ -1631,7 +1630,7 @@ def knights_trash_condition(knightPlayer):
 def standard_knights_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
     if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
         exceptions.append(Exception(standard_condition(['DISCARD']),moveException('DECKS', 'DISCARDS')))
-        exceptions.append(Exception(knight_trash_condition(chunkMoves[0].player), moveException('DECKS', 'TRASH')))
+        exceptions.append(Exception(knights_trash_condition(chunkMoves[0].player), moveException('DECKS', 'TRASH')))
 
 # 184: Dame Anna
 def anna_trash_condition(knightPlayer):
@@ -1641,7 +1640,7 @@ def anna_trash_condition(knightPlayer):
 def anna_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
     if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
         exceptions.append(Exception(standard_condition(['DISCARD']),moveException('DECKS', 'DISCARDS')))
-        exceptions.append(Exception(knight_trash_condition(chunkMoves[0].player), moveException('DECKS', 'TRASH')))
+        exceptions.append(Exception(knights_trash_condition(chunkMoves[0].player), moveException('DECKS', 'TRASH')))
         exceptions.append(Exception(anna_trash_condition(chunkMoves[0].player), moveException('HANDS', 'TRASH')))
 
 t = Card('Dame Anna','Dame Annas','a Dame Anna', 5, -1, 'c4c0b4', '775f35', anna_action)
@@ -1846,7 +1845,18 @@ t = Card('Sir Martin','Sir Martins','a Sir Martin', 4, -1, 'c4c0b4', 'cc9e60', s
 standardCards.append(t)
 
 # 220: Sir Michael
-t = Card('Sir Michael','Sir Michaels','a Sir Michael', 5, -1, 'c4c0b4', '47454b', empty)
+def michael_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
+    def michael_reveal_exception(outerExceptions):
+        def out_function(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
+            outerExceptions.append(Exception(standard_condition(['DISCARD']),moveException('DECKS', 'DISCARDS')))
+        return out_function
+
+    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        exceptions.append(Exception(standard_condition(['TRASH']), moveException('DECKS', 'TRASH')))
+        exceptions.append(Exception(standard_condition(['REVEAL']), michael_reveal_exception(exceptions)))
+
+
+t = Card('Sir Michael','Sir Michaels','a Sir Michael', 5, -1, 'c4c0b4', '47454b', michael_action)
 standardCards.append(t)
 
 # 221: Sir Vander
