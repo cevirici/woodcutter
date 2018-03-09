@@ -2,6 +2,7 @@ from copy import deepcopy
 
 #Constants
 ARGUMENT_CARD = 0
+NOTHING_CARD = 1
 CARD_CARD = 2
 GAMESTART_PRED = 0
 NEWTURN_PRED = 1
@@ -153,6 +154,8 @@ class gameState:
     def move(self, player, src, dest, items):
         itemsNoArgs = deepcopy(items)
         if ARGUMENT_CARD in items:
+            del itemsNoArgs.val[ARGUMENT_CARD]
+        if NOTHING_CARD in items:
             del itemsNoArgs.val[ARGUMENT_CARD]
 
         if len((itemsNoArgs - getattr(self, src)[min(len(getattr(self, src))-1, player)]).cardList()) > 0:
