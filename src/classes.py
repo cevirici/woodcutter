@@ -156,7 +156,7 @@ class gameState:
         if ARGUMENT_CARD in items:
             del itemsNoArgs.val[ARGUMENT_CARD]
         if NOTHING_CARD in items:
-            del itemsNoArgs.val[ARGUMENT_CARD]
+            del itemsNoArgs.val[NOTHING_CARD]
 
         if len((itemsNoArgs - getattr(self, src)[min(len(getattr(self, src))-1, player)]).cardList()) > 0:
             print('ILLEGAL MOVE {} from {} to {}'.format(items, src, dest))
