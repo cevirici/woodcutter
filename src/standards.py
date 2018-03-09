@@ -1973,7 +1973,7 @@ t = Card('Stonemason','Stonemasons','a Stonemason', 2, 0, 'c4c0b4', '915d23', em
 standardCards.append(t)
 
 # 242: Alms
-t = Card('Alms','Alms','an Alms', 0, 0, 'a9a39d', '9f793f', empty)
+t = Card('Alms','Alms','an Alms', 0, 2, 'a9a39d', '9f793f', empty)
 standardCards.append(t)
 
 # 243: Amulet
@@ -1989,7 +1989,7 @@ t = Card('Artificer','Artificers','an Artificer', 5, 0, 'c4c0b4', '754f2b', arti
 standardCards.append(t)
 
 # 245: Ball
-t = Card('Ball','Balls','a Ball', 5, 0, 'a9a39d', '8b6323', empty)
+t = Card('Ball','Balls','a Ball', 5, 2, 'a9a39d', '8b6323', empty)
 standardCards.append(t)
 
 # 246: Bonfire
@@ -2001,7 +2001,7 @@ t = Card('Bonfire','Bonfires','a Bonfire', 3, 2, 'a9a39d', '844e52', bonfire_act
 standardCards.append(t)
 
 # 247: Borrow
-t = Card('Borrow','Borrows','a Borrow', 0, 0, 'a9a39d', '8a3620', empty)
+t = Card('Borrow','Borrows','a Borrow', 0, 2, 'a9a39d', '8a3620', empty)
 standardCards.append(t)
 
 # 248: Bridge Troll
@@ -2061,11 +2061,11 @@ t = Card('Duplicate','Duplicates','a Duplicate', 4, 0, 'c5af85', '8a887c', empty
 standardCards.append(t)
 
 # 256: Expedition
-t = Card('Expedition','Expeditions','an Expedition', 3, 0, 'a9a39d', 'ca8c28', empty)
+t = Card('Expedition','Expeditions','an Expedition', 3, 2, 'a9a39d', 'ca8c28', empty)
 standardCards.append(t)
 
 # 257: Ferry
-t = Card('Ferry','Ferries','a Ferry', 3, 0, 'a9a39d', '798593', empty)
+t = Card('Ferry','Ferries','a Ferry', 3, 2, 'a9a39d', '798593', empty)
 standardCards.append(t)
 
 # 258: Fugitive
@@ -2130,7 +2130,7 @@ t = Card('Miser','Misers','a Miser', 4, 0, 'c4c0b4', '726a60', empty)
 standardCards.append(t)
 
 # 271: Mission
-t = Card('Mission','Missions','a Mission', 4, 0, 'a9a39d', '7e767c', empty)
+t = Card('Mission','Missions','a Mission', 4, 2, 'a9a39d', '7e767c', empty)
 standardCards.append(t)
 
 # 272: Pathfinding
@@ -2146,11 +2146,11 @@ t = Card('Peasant','Peasants','a Peasant', 2, 0, 'c2bfba', 'cab026', empty)
 standardCards.append(t)
 
 # 275: Pilgrimage
-t = Card('Pilgrimage','Pilgrimages','a Pilgrimage', 4, 0, 'a9a39d', '6e4e28', empty)
+t = Card('Pilgrimage','Pilgrimages','a Pilgrimage', 4, 2, 'a9a39d', '6e4e28', empty)
 standardCards.append(t)
 
 # 276: Plan
-t = Card('Plan','Plans','a Plan', 3, 0, 'a9a39d', '6c4630', empty)
+t = Card('Plan','Plans','a Plan', 3, 2, 'a9a39d', '6c4630', empty)
 standardCards.append(t)
 
 # 277: Port
@@ -2158,7 +2158,7 @@ t = Card('Port','Ports','a Port', 4, 0, 'c4c0b4', '586c6e', empty)
 standardCards.append(t)
 
 # 278: Quest
-t = Card('Quest','Quests','a Quest', 0, 0, 'a9a39d', '685456', empty)
+t = Card('Quest','Quests','a Quest', 0, 2, 'a9a39d', '685456', empty)
 standardCards.append(t)
 
 # 279: Ranger
@@ -2195,7 +2195,7 @@ def save_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents)
         exceptions.append(Exception(standard_condition(['SET ASIDE WITH']), moveException('HANDS', 'OTHERS')))
         turnExceptions.append(Exception(standard_condition(['PUT INHAND']), moveException('OTHERS', 'HANDS')))
 
-t = Card('Save','Saves','a Save', 1, 0, 'a9a39d', '814d3b', save_action)
+t = Card('Save','Saves','a Save', 1, 2, 'a9a39d', '814d3b', save_action)
 standardCards.append(t)
 
 # 286: Scouting Party
@@ -2228,11 +2228,11 @@ t = Card('Teacher','Teachers','a Teacher', 6, 1, 'c5af85', 'bb7937', empty)
 standardCards.append(t)
 
 # 292: Travelling Fair
-t = Card('Travelling Fair','Travelling Fairs','a Travelling Fair', 2, 0, 'a9a39d', 'd2942c', empty)
+t = Card('Travelling Fair','Travelling Fairs','a Travelling Fair', 2, 2, 'a9a39d', 'd2942c', empty)
 standardCards.append(t)
 
 # 293: Trade
-t = Card('Trade','Trades','a Trade', 5, 0, 'a9a39d', '735941', empty)
+t = Card('Trade','Trades','a Trade', 5, 2, 'a9a39d', '735941', empty)
 standardCards.append(t)
 
 # 294: Training
@@ -2339,7 +2339,7 @@ def humbleCastle_worth(gameState, player):
     return sum([playerDeck[item] for item in playerDeck if
                 standardCards[item].simple_name in castles])
 
-t = Card('Humble Castle','Humble Castles','a Humble Castle', 3, 0, 'a9c35d', '63af7f', empty, humbleCastle_worth)
+t = Card('Humble Castle','Humble Castles','a Humble Castle', 3, -1, 'a9c35d', '63af7f', empty, humbleCastle_worth)
 standardCards.append(t)
 
 # 312: Crumbling Castle
@@ -2380,11 +2380,11 @@ t = Card('King\'s Castle','King\'s Castles','a King\'s Castle', 10, -1, '9cbe8a'
 standardCards.append(t)
 
 # 319: Advance
-t = Card('Advance','Advances','an Advance', 0, 0, 'a9a39d', '714d41', empty)
+t = Card('Advance','Advances','an Advance', 0, 2, 'a9a39d', '714d41', empty)
 standardCards.append(t)
 
 # 320: Annex
-t = Card('Annex','Annexes','an Annex', 8, 0, 'a9a39d', '7a5a36', empty)
+t = Card('Annex','Annexes','an Annex', 8, 2, 'a9a39d', '7a5a36', empty)
 standardCards.append(t)
 
 # 321: Archive
@@ -2409,7 +2409,7 @@ t = Card('Bandit Fort','Bandit Forts','a Bandit Fort', 0, 2, '65ab6f', 'b0a66e',
 standardCards.append(t)
 
 # 325: Banquet
-t = Card('Banquet','Banquets','a Banquet', 3, 0, 'a9a39d', '6f5735', empty)
+t = Card('Banquet','Banquets','a Banquet', 3, 2, 'a9a39d', '6f5735', empty)
 standardCards.append(t)
 
 # 326: Basilica
@@ -2421,7 +2421,7 @@ t = Card('Baths','Baths','a Baths', 0, 2, '65ab6f', '746c44', empty)
 standardCards.append(t)
 
 # 328: Battlefield
-t = Card('Battlefield','Battlefields','a Battlefield', 0, 0, '65ab6f', '528ec6', empty)
+t = Card('Battlefield','Battlefields','a Battlefield', 0, 2, '65ab6f', '528ec6', empty)
 standardCards.append(t)
 
 # 329: Capital
@@ -2449,7 +2449,7 @@ t = Card('Colonnade','Colonnades','a Colonnade', 0, 2, '65ab6f', '9f7b27', empty
 standardCards.append(t)
 
 # 334: Conquest
-t = Card('Conquest','Conquests','a Conquest', 6, 0, 'a9a39d', '7c9692', empty)
+t = Card('Conquest','Conquests','a Conquest', 6, 2, 'a9a39d', '7c9692', empty)
 standardCards.append(t)
 
 # 335: Crown
@@ -2457,19 +2457,19 @@ t = Card('Crown','Crowns','a Crown', 5, 0, 'cec28a', '7b4b33', empty)
 standardCards.append(t)
 
 # 336: Delve
-t = Card('Delve','Delves','a Delve', 2, 0, 'a9a39d', '716149', empty)
+t = Card('Delve','Delves','a Delve', 2, 2, 'a9a39d', '716149', empty)
 standardCards.append(t)
 
 # 337: Defiled Shrine
-t = Card('Defiled Shrine','Defiled Shrines','a Defiled Shrine', 0, 0, '65ab6f', '5a746e', empty)
+t = Card('Defiled Shrine','Defiled Shrines','a Defiled Shrine', 0, 2, '65ab6f', '5a746e', empty)
 standardCards.append(t)
 
 # 338: Dominate
-t = Card('Dominate','Dominates','a Dominate', 14, 0, 'a9a39d', '896b71', empty)
+t = Card('Dominate','Dominates','a Dominate', 14, 2, 'a9a39d', '896b71', empty)
 standardCards.append(t)
 
 # 339: Donate
-t = Card('Donate','Donates','a Donate', 8, 0, 'a9a39d', '886c7a', empty)
+t = Card('Donate','Donates','a Donate', 8, 2, 'a9a39d', '886c7a', empty)
 standardCards.append(t)
 
 # 340: Enchantress
