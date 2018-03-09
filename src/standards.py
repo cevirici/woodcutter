@@ -1626,6 +1626,7 @@ standardCards.append(t)
 def knights_trash_condition(knightPlayer):
     def out_function(chunkMoves):
         return standardPreds[chunkMoves[0].pred].name == 'TRASH' and chunkMoves[0].player != knightPlayer
+    return out_function
 
 def standard_knights_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
     if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
@@ -1636,6 +1637,7 @@ def standard_knights_action(chunkMoves, gameStates, exceptions, turnExceptions, 
 def anna_trash_condition(knightPlayer):
     def out_function(chunkMoves):
         return standardPreds[chunkMoves[0].pred].name == 'TRASH' and chunkMoves[0].player == knightPlayer
+    return out_function
 
 def anna_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
     if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
