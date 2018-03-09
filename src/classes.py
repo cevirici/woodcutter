@@ -136,6 +136,8 @@ class gameState:
         self.DISCARDS = [Cardstack({}), Cardstack({})]
         self.OTHERS = [Cardstack({}), Cardstack({})]
         self.TRASH = [Cardstack({})]
+        self.dontdiscard = [Cardstack({}), Cardstack({})]
+        self.neverdiscard = [Cardstack({}), Cardstack({})]
         self.coins = [0, 0]
         self.coinsLower = [0, 0]
         self.vps = [0, 0]

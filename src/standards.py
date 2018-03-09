@@ -64,6 +64,10 @@ def staticWorth(val):
     return out_function
 
 
+def durationDontDiscard(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
+    gameState.dontdiscard[player].insert(chunkMoves[0].items.cardList()[0], 1)
+
+
 # First: Argument
 t = Card('Argument', 'Argument', 'Argument', 0, 0, '666666', '666666', empty)
 standardCards.append(t)
@@ -2639,7 +2643,7 @@ def orchard_worth(gameState, player):
 
     for card in playerDeck:
         if standardCards[card].simple_name in actionList:
-            if standardCards[card] >= 3:
+            if playerDeck[card] >= 3:
                 total += 4
 
     return total
