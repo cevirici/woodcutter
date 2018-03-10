@@ -59,7 +59,7 @@ def get_decision_state(moveTree, supply):
     startState = gameState()
     startState.add(0, 'SUPPLY', supply)
     # Zombies
-    if ZOMBIES[0] in startState:
+    if ZOMBIES[0] in supply:
         startState.move([0], 'SUPPLY', 'TRASH',
                         Cardstack({zombie: 1 for zombie in ZOMBIES}))
 
