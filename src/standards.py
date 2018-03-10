@@ -1279,7 +1279,7 @@ standardCards.append(t)
 
 # 130: Fairgrounds
 def fairgrounds_worth(gameState, player):
-    playerDeck = gameState.crunch(['DECKS', 'DISCARDS', 'HANDS', 'OTHERS', 'INPLAYS'])
+    playerDeck = gameState.crunch(['DECKS', 'DISCARDS', 'HANDS', 'OTHERS', 'INPLAYS'], [player])
     return len(playerDeck.cardList()) // 5
 
 

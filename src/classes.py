@@ -1,14 +1,15 @@
 from copy import deepcopy
 
-#Constants
+# Constants
 ARGUMENT_CARD = 0
 NOTHING_CARD = 1
 CARD_CARD = 2
 GAMESTART_PRED = 0
 NEWTURN_PRED = 1
 SHUFFLE_PRED = 46
-CLEANUP_PREDS = [21,46]
+CLEANUP_PREDS = [21, 46]
 BOONHEX = range(373, 404)
+ZOMBIES = [450, 451, 452]
 standardCards = []
 
 class Card:
