@@ -357,7 +357,7 @@ def duke_worth(gameState, player):
                                   [player])
     for card in playerDeck:
         if standardCards[card].simple_name == 'Duchy':
-            return playerDec[card]
+            return playerDeck[card]
 
     return 0
 
