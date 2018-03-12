@@ -356,7 +356,7 @@ def duke_worth(gameState, player):
     playerDeck = gameState.crunch(['DECKS', 'HANDS', 'DISCARDS', 'OTHERS'],
                                   [player])
     for card in playerDeck:
-        if card.simple_name == 'Duke':
+        if standardCards[card].simple_name == 'Duchy':
             return playerDec[card]
 
     return 0
