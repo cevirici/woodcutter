@@ -176,7 +176,7 @@ standardCards.append(t)
 
 # 16: Gardens
 def gardens_worth(gameState, player):
-    return gamestate.crunch(['DECKS', 'HANDS', 'DISCARDS', 'OTHERS', 'INPLAYS'],
+    return gameState.crunch(['DECKS', 'HANDS', 'DISCARDS', 'OTHERS', 'INPLAYS'],
                             [player]).count()//10
 
 
@@ -353,7 +353,7 @@ standardCards.append(t)
 
 # 41: Duke
 def duke_worth(gameState, player):
-    playerDeck = gamestate.crunch(['DECKS', 'HANDS', 'DISCARDS', 'OTHERS'],
+    playerDeck = gameState.crunch(['DECKS', 'HANDS', 'DISCARDS', 'OTHERS'],
                                   [player])
     for card in playerDeck:
         if card.simple_name == 'Duke':
@@ -2337,10 +2337,10 @@ standardCards.append(t)
 # 307: Rocks
 def rocks_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
     if standardPreds[chunkMoves[0].pred].name in ['BUY AND GAIN', 'GAIN TOPDECK', 'GAIN TRASH', 'GAIN']:
-        exceptions.append(Exception(standard_condition(['GAIN']),moveException('SUPPLY', 'DECKS')))
-        exceptions.append(Exception(standard_condition(['GAIN']),standardOnGains('DECKS', chunkMoves[0].items)))
+        exceptions.append(Exception(standard_condition(['GAIN']), moveException('SUPPLY', 'DECKS')))
+        exceptions.append(Exception(standard_condition(['GAIN']), standardOnGains('DECKS', chunkMoves[0].items)))
 
-t = Card('Rocks','Rocks','a Rocks', 4, 0, 'd8c280', '80963a', rocks_action)
+t = Card('Rocks', 'Rocks', 'a Rocks', 4, 0, 'd8c280', '80963a', rocks_action)
 standardCards.append(t)
 
 # 308: Gladiator
