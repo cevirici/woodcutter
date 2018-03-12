@@ -2670,7 +2670,7 @@ def palace_worth(gameState, player):
 
     for card in playerDeck:
         if standardCards[card].simple_name in treasures:
-            counts[treasures.index[standardCards[card].simple_name]] += playerDeck[card]
+            counts[treasures.index(standardCards[card].simple_name)] += playerDeck[card]
 
     return 3 * min(counts)
 
@@ -3016,6 +3016,7 @@ standardCards.append(t)
 
 # 422: Monastery
 def monastery_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
+    #Possible conflicts: Exorcist - hence, trash inplay first.
     if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
         exceptions.append(Exception(standard_condition(['TRASH'], ['Copper']), moveException('INPLAYS', 'TRASH')))
 
