@@ -1689,7 +1689,7 @@ standardCards.append(t)
 
 # 190: Feodum
 def feodum_worth(gameState, player):
-    playerDeck = gameState.crunch(['DECKS', 'DISCARDS', 'HANDS', 'OTHERS', 'INPLAYS'])
+    playerDeck = gameState.crunch(['DECKS', 'DISCARDS', 'HANDS', 'OTHERS', 'INPLAYS'], [player])
 
     for card in playerDeck:
         if standardCards[card].simple_name == 'Silver':
