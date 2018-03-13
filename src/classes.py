@@ -128,6 +128,14 @@ class Cardstack:
     def getval(self):
         return self.val
 
+    def strip(self):
+        newItems = {}
+        for item in self.val:
+            if item not in [ARGUMENT_CARD, NOTHING_CARD, CARD_CARD]:
+                newItems[item] = self.val[item]
+
+        return Cardstack(newItems)
+
 class gameState:
     def __init__(self):
         self.SUPPLY = [Cardstack({})]
@@ -155,11 +163,7 @@ class gameState:
         return outstr
 
     def move(self, player, src, dest, items):
-        itemsNoArgs = deepcopy(items)
-        if ARGUMENT_CARD in items:
-            del itemsNoArgs.val[ARGUMENT_CARD]
-        if NOTHING_CARD in items:
-            del itemsNoArgs.val[NOTHING_CARD]
+        itemsNoArgs = items.strip()
 
         if len((itemsNoArgs - getattr(self, src)[min(len(getattr(self, src))-1, player)]).cardList()) > 0:
             print('ILLEGAL MOVE {} from {} to {}'.format(items, src, dest))
