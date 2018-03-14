@@ -1566,7 +1566,7 @@ t = Card('Trader','Traders','a Trader', 4, 0, '8ca2be', '988a34', empty)
 standardCards.append(t)
 
 # 171: Tunnel
-t = Card('Tunnel','Tunnels','a Tunnel', 3, 0, '666666', '545258', empty, staticWorth(2))
+t = Card('Tunnel','Tunnels','a Tunnel', 3, 0, '879E96', '545258', empty, staticWorth(2))
 standardCards.append(t)
 
 # 172: Ruins
@@ -2079,7 +2079,7 @@ def distantlands_worth(gameState, player):
 
     return 0
 
-t = Card('Distant Lands','Distant Lands','a Distant Lands', 5, 0, '666666', 'c49e8c', empty, distantlands_worth)
+t = Card('Distant Lands','Distant Lands','a Distant Lands', 5, 0, ' 9DA97D', 'c49e8c', empty, distantlands_worth)
 standardCards.append(t)
 
 # 254: Dungeon
@@ -2299,7 +2299,7 @@ t = Card('Encampment','Encampments','an Encampment', 2, 0, 'c4c0b4', '6d4527', e
 standardCards.append(t)
 
 # 301: Plunder
-t = Card('Plunder','Plunders','a Plunder', 5, 0, 'd8c280', '666666', empty)
+t = Card('Plunder','Plunders','a Plunder', 5, 0, 'd8c280', '573E30', empty)
 standardCards.append(t)
 
 # 302: Patrician
@@ -2311,7 +2311,7 @@ t = Card('Patrician','Patricians','a Patrician', 2, 0, 'c4c0b4', '6a80a0', patri
 standardCards.append(t)
 
 # 303: Emporium
-t = Card('Emporium','Emporia','an Emporium', 5, 0, 'c4c0b4', '666666', empty)
+t = Card('Emporium','Emporia','an Emporium', 5, 0, 'c4c0b4', '50ABDF', empty)
 standardCards.append(t)
 
 # 304: Settlers
@@ -2327,7 +2327,7 @@ def bustvillage_action(chunkMoves, gameStates, exceptions, turnExceptions, persi
     if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
         exceptions.append(Exception(standard_condition(['PUT INHAND']),moveException('DISCARDS', 'HANDS')))
 
-t = Card('Bustling Village','Bustling Villages','a Bustling Village', 5, 0, 'c4c0b4', '666666', bustvillage_action)
+t = Card('Bustling Village','Bustling Villages','a Bustling Village', 5, 0, 'c4c0b4', '745E4D', bustvillage_action)
 standardCards.append(t)
 
 # 306: Catapult
@@ -2352,7 +2352,7 @@ t = Card('Gladiator','Gladiators','a Gladiator', 3, 0, 'c4c0b4', 'b28674', gladi
 standardCards.append(t)
 
 # 309: Fortune
-t = Card('Fortune','Fortunes','a Fortune', 16, 0, 'd8c280', '666666', empty)
+t = Card('Fortune','Fortunes','a Fortune', 16, 0, 'd8c280', '94794F', empty)
 standardCards.append(t)
 
 # 310: Castles
@@ -3101,7 +3101,7 @@ t = Card('Werewolf','Werewolves','a Werewolf', 5, 0, '30484e', '9f8193', empty)
 standardCards.append(t)
 
 # 437: Cursed Gold
-t = Card('Cursed Gold','Cursed Golds','a Cursed Gold', 4, 2, 'd8c280', '666666', empty)
+t = Card('Cursed Gold','Cursed Golds','a Cursed Gold', 4, 2, 'd8c280', '7D4D22', empty)
 standardCards.append(t)
 
 # 438: Goat
@@ -3109,7 +3109,7 @@ t = Card('Goat','Goats','a Goat', 2, 2, 'd8c280', 'a1e15d', empty)
 standardCards.append(t)
 
 # 439: Haunted Mirror
-t = Card('Haunted Mirror','Haunted Mirrors','a Haunted Mirror', 0, 2, 'd8c280', '666666', empty)
+t = Card('Haunted Mirror','Haunted Mirrors','a Haunted Mirror', 0, 2, 'd8c280', '4F302B', empty)
 standardCards.append(t)
 
 # 440: Lucky Coin
@@ -3137,11 +3137,11 @@ t = Card('Pasture','Pastures','a Pasture', 2, 2, 'a9c35d', '959D8D', empty, past
 standardCards.append(t)
 
 # 443: Pouch
-t = Card('Pouch','Pouches','a Pouch', 2, 2, 'd8c280', '666666', empty)
+t = Card('Pouch','Pouches','a Pouch', 2, 2, 'd8c280', '4A4A55', empty)
 standardCards.append(t)
 
 # 444: Bat
-t = Card('Bat','Bats','a Bat', 2, 1, '30484e', '666666', empty)
+t = Card('Bat','Bats','a Bat', 2, 1, '30484e', '475B5D', empty)
 standardCards.append(t)
 
 # 445: Ghost
@@ -3244,7 +3244,7 @@ t = Card('Black Market Deck','Black Market Decks','a Black Market Deck', 0, 0, '
 standardCards.append(t)
 
 # 462: Dismantle
-t = Card('Dismantle','Dismantles','a Dismantle', 4, 0, 'c4c0b4', '666666', empty)
+t = Card('Dismantle','Dismantles','a Dismantle', 4, 0, 'c4c0b4', '8DAEB6', empty)
 standardCards.append(t)
 
 # 463: Debt
