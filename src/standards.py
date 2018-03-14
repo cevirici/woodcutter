@@ -3920,7 +3920,22 @@ t = Pred("^(?P<cards>.*) is enchanted by (.*)$", empty, "ENCHANTED")
 standardPreds.append(t)
 
 # 123
-t = Pred("^Between Turns$", empty, "BETWEEN TURNS")
+def predDonateAction(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
+    def moveEverything(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
+        gameStates[-1].move(chunkMoves[0].player, 'DECKS', 'HANDS',
+                            gameStates[-1].DECKS[chunkMoves[0].player])
+        gameStates[-1].move(chunkMoves[0].player, 'DISCARDS', 'HANDS',
+                            gameStates[-1].DISCARDS[chunkMoves[0].player])
+
+    def shuffleBack(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
+        gameStates[-1].move(chunkMoves[0].player, 'HANDS', 'DECKS',
+                            gameStates[-1].HANDS[chunkMoves[0].player])
+
+    exceptions.append(Exception(standard_condition(['PUT INHAND']), moveEverything))
+    exceptions.append(Exception(standard_condition(['SHUFFLE INTO']), shuffleBack))
+
+
+t = Pred("^Between Turns$", predDonateAction, "BETWEEN TURNS")
 standardPreds.append(t)
 
 # Last - catchall
