@@ -2079,7 +2079,7 @@ def distantlands_worth(gameState, player):
 
     return 0
 
-t = Card('Distant Lands','Distant Lands','a Distant Lands', 5, 0, ' 9DA97D', 'c49e8c', empty, distantlands_worth)
+t = Card('Distant Lands','Distant Lands','a Distant Lands', 5, 0, '9DA97D', 'c49e8c', empty, distantlands_worth)
 standardCards.append(t)
 
 # 254: Dungeon
