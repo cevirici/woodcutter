@@ -2956,14 +2956,14 @@ standardCards.append(t)
 t = Card('Lost In The Woods','Lost In The Woods','Lost In The Woods', 0, -1, 'ceb0a4', '527052', empty)
 standardCards.append(t)
 
-def playing_boonhexes(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
+def playing_boonhex(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
     if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        standard_boonhex()
+        standard_boonhex(chunkMoves, gameStates, exceptions, turnExceptions, persistents)
 
 
 def gaining_boonhex(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
     if standardPreds[chunkMoves[0].pred].name in ['BUY AND GAIN', 'GAIN TOPDECK', 'GAIN TRASH', 'GAIN']:
-        standard_boonhex()
+        standard_boonhex(chunkMoves, gameStates, exceptions, turnExceptions, persistents)
         standardOnGains('DISCARDS', chunkMoves[0].items)
 
 
@@ -3014,7 +3014,7 @@ t = Card('Devil\'s Workshop','Devil\'s Workshops','a Devil\'s Workshop', 4, 0, '
 standardCards.append(t)
 
 # 414: Druid
-t = Card('Druid','Druids','a Druid', 2, 0, 'c4c0b4', '49b921', standard_boonhex)
+t = Card('Druid','Druids','a Druid', 2, 0, 'c4c0b4', '49b921', playing_boonhex)
 standardCards.append(t)
 
 # 415: Exorcist
@@ -3053,11 +3053,11 @@ t = Card('Guardian','Guardians','a Guardian', 2, 0, '7a5622', '376db9', guardian
 standardCards.append(t)
 
 # 420: Idol
-t = Card('Idol','Idols','a Idol', 5, 0, 'd8c280', 'b13700', standard_boonhex)
+t = Card('Idol','Idols','a Idol', 5, 0, 'd8c280', 'b13700', playing_boonhex)
 standardCards.append(t)
 
 # 421: Leprechaun
-t = Card('Leprechaun','Leprechauns','a Leprechaun', 3, 0, 'c4c0b4', '5e7c04', standard_boonhex)
+t = Card('Leprechaun','Leprechauns','a Leprechaun', 3, 0, 'c4c0b4', '5e7c04', playing_boonhex)
 standardCards.append(t)
 
 # 422: Monastery
@@ -3108,7 +3108,7 @@ t = Card('Raider','Raiders','a Raider', 6, 0, '7a5622', '00238b', empty)
 standardCards.append(t)
 
 # 428: Sacred Grove
-t = Card('Sacred Grove','Sacred Groves','a Sacred Grove', 5, 0, 'c4c0b4', '5e7632', standard_boonhex)
+t = Card('Sacred Grove','Sacred Groves','a Sacred Grove', 5, 0, 'c4c0b4', '5e7632', playing_boonhex)
 standardCards.append(t)
 
 # 429: Secret Cave
@@ -3120,11 +3120,11 @@ t = Card('Shepherd','Shepherds','a Shepherd', 4, 0, 'c4c0b4', '9caa90', empty)
 standardCards.append(t)
 
 # 431: Skulk
-t = Card('Skulk','Skulks','a Skulk', 4, 0, 'c4c0b4', '7e6060', standard_boonhex)
+t = Card('Skulk','Skulks','a Skulk', 4, 0, 'c4c0b4', '7e6060', playing_boonhex)
 standardCards.append(t)
 
 # 432: Tormentor
-t = Card('Tormentor','Tormentors','a Tormentor', 5, 0, 'c4c0b4', '884c6a', standard_boonhex)
+t = Card('Tormentor','Tormentors','a Tormentor', 5, 0, 'c4c0b4', '884c6a', playing_boonhex)
 standardCards.append(t)
 
 # 433: Tragic Hero
@@ -3136,15 +3136,15 @@ t = Card('Tragic Hero','Tragic Heroes','a Tragic Hero', 5, 0, 'c4c0b4', '5c88a4'
 standardCards.append(t)
 
 # 434: Tracker
-t = Card('Tracker','Trackers','a Tracker', 2, 0, 'c4c0b4', '87c7d9', standard_boonhex)
+t = Card('Tracker','Trackers','a Tracker', 2, 0, 'c4c0b4', '87c7d9', playing_boonhex)
 standardCards.append(t)
 
 # 435: Vampire
-t = Card('Vampire','Vampires','a Vampire', 5, 0, '30484e', '523a4c', standard_boonhex)
+t = Card('Vampire','Vampires','a Vampire', 5, 0, '30484e', '523a4c', playing_boonhex)
 standardCards.append(t)
 
 # 436: Werewolf
-t = Card('Werewolf','Werewolves','a Werewolf', 5, 0, '30484e', '9f8193', standard_boonhex)
+t = Card('Werewolf','Werewolves','a Werewolf', 5, 0, '30484e', '9f8193', playing_boonhex)
 standardCards.append(t)
 
 # 437: Cursed Gold
