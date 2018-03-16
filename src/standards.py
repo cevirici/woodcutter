@@ -3789,7 +3789,7 @@ def obelisk_choice(chunkMoves, gameStates, exceptions, turnExceptions, persisten
              ['Sauna', 'Avanto']]
 
     target = chunkMoves[0].items
-    gameState[-1].obelisk = target
+    gameStates[-1].obelisk = target
     for pair in pairs:
         if target in pair:
             gameStates[-1].obelisk = pair
