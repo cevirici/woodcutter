@@ -9,6 +9,7 @@ AND ENCHANTRESS
 AND MOONS GIFT
 AND BOONS AND HEXES IN GENERAL'''
 
+pred_parse_order = list(range(26)) + [119] + list(range(26,125))
 
 def empty(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
     pass

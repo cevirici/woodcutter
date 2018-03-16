@@ -58,9 +58,9 @@ class Parser:
         line = line.strip()
         line = re.sub('<.*?>|&bull;|&sdot;','',line)
         pred = self.preds[-1]
-        for testPred in self.preds:
-            if re.match(testPred.regex,line) != None:
-                pred = testPred
+        for predIndex in pred_parse_order:
+            if re.match(standardPreds[predIndex].regex, line) is not None:
+                pred = standardPreds[predIndex]
                 break
 
         m = re.match(pred.regex, line)
