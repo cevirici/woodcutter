@@ -66,7 +66,7 @@ def standardOnGains(source, gainedCard):
 def standard_boonhex(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
     for subchunk in chunkMoves[1:]:
         if standardPreds[subchunk[0].pred].name == 'RECEIVE BOONHEX':
-            whichBoon = subchunk[0].items.cardList()[0]
+            whichBoon = standardCards[subchunk[0].items.cardList()[0]]
             break
 
     if whichBoon.simple_name == 'The Sun\'s Gift':
