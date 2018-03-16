@@ -65,7 +65,7 @@ def standardOnGains(source, gainedCard):
 
 def standard_boonhex(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
     for subchunk in chunkMoves[1:]:
-        if standardPreds[subchunk[0].pred].name == 'RECEIVE BOONHEX':
+        if standardPreds[subchunk[0].pred].name in ['RECEIVE BOONHEX', 'TAKES BOONHEX']:
             whichBoon = standardCards[subchunk[0].items.cardList()[0]]
             break
 
@@ -2240,7 +2240,8 @@ standardCards.append(t)
 # 282: Raze
 def raze_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
     if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exceptions.append(Exception(standard_condition(['TRASH'], ['Raid']),moveException('INPLAYS', 'TRASH')))
+        exceptions.append(Exception(standard_condition(['TRASH'], ['Raze']),moveException('INPLAYS', 'TRASH')))
+        exceptions.append(Exception(standard_condition(['DISCARD']),moveException('DECKS', 'DISCARDS')))
 
 t = Card('Raze','Razes','a Raze', 2, 0, 'c4c0b4', '6b5949', raze_action)
 standardCards.append(t)
@@ -3121,10 +3122,40 @@ standardCards.append(t)
 # 425: Pixie
 def pixie_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
     if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exceptions.append(Exception(standard_condition(['TRASH'], ['Pixie']), moveException('INPLAYS', 'TRASH')))
-        standard_boonhex(chunkMoves, gameStates, exceptions, turnExceptions, persistents)
+        for subchunk in chunkMoves[1:]:
+            if standardPreds[subchunk[0].pred].name in ['RECEIVE BOONHEX', 'TAKES BOONHEX']:
+                whichBoon = standardCards[subchunk[0].items.cardList()[0]]
+                break
 
-t = Card('Pixie','Pixies','a Pixie', 2, 0, 'c4c0b4', 'a9db75', pixie_action)
+        if whichBoon.simple_name == 'The Flame\'s Gift':
+            itemsSansPixie = Cardstack({})
+            for item in chunkMoves[0].items:
+                if standardCards[item].simple_name != 'Pixie':
+                    itemsSansPixie.insert(item, chunkMOves[0].items[item])
+                else:
+                    pixieId = item
+
+            def pixieTrash(pixieId, itemsSansPixie):
+                def out_function(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
+                    gameStates[-1].move(chunkMoves[0].player, 'INPLAYS', 'TRASH',
+                                        Cardstack({pixieId: 1}))
+                    gameStates[-1].move(chunkMoves[0].player, 'HANDS', 'TRASH',
+                                        itemsSansPixie)
+                return out_function
+
+            exceptions.append(Exception(standard_condition(['TRASH']), pixieTrash(pixieId, itemsSansPixie)))
+        else:
+            exceptions.append(Exception(standard_condition(['TRASH']), moveException('INPLAYS', 'TRASH')))
+
+            if whichBoon.simple_name == 'The Sun\'s Gift':
+                exceptions.append(Exception(standard_condition(['TOPDECK']), moveException('DECKS', 'DECKS')))
+                exceptions.append(Exception(standard_condition(['DISCARD']), moveException('DECKS', 'DISCARDS')))
+
+            elif whichBoon.simple_name == 'The Moon\'s Gift':
+                exceptions.append(Exception(standard_condition(['TOPDECK']), moveException('DISCARDS', 'DECKS')))
+
+
+t = Card('Pixie', 'Pixies', 'a Pixie', 2, 0, 'c4c0b4', 'a9db75', pixie_action)
 standardCards.append(t)
 
 # 426: Pooka
@@ -3237,7 +3268,7 @@ def wisp_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents)
     if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
         exceptions.append(Exception(standard_condition(['TOPDECK']), moveException('DECKS', 'DECKS')))
 
-t = Card('Will-o\'-wisp','Will-o\'-wisps','a Will-o\'-wisp', 0, 1, 'c4c0b4', '1d593f', empty)
+t = Card('Will-o\'-wisp','Will-o\'-wisps','a Will-o\'-wisp', 0, 1, 'c4c0b4', '1d593f', wisp_action)
 standardCards.append(t)
 
 # 448: Wish

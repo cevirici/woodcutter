@@ -260,6 +260,7 @@ def full_printout(moveTree, gameStates):
     def print_chunk(chunk):
         global index
         outfile.write(str(index))
+        outfile.write('{}>'.format('-'*chunk[0].indent))
         outfile.write(standardPreds[chunk[0].pred].regex)
         outfile.write(chunk[0].items.debugstr())
         outfile.write(str(gameStates[index]))
