@@ -113,11 +113,11 @@ t = Card('Argument', 'Argument', 'Argument', 0, 0, '666666', '666666', empty)
 standardCards.append(t)
 
 # 0: nothing
-t = Card('nothing','nothing','nothing', 0, -1, '666666', '666666', empty)
+t = Card('nothing', 'other cards', 'nothing', 0, -1, '666666', '666666', empty)
 standardCards.append(t)
 
 # 1: card
-t = Card('other cards', 'cards', 'a card', 0, -1, '666666', '666666', empty)
+t = Card('card', 'cards', 'a card', 0, -1, '666666', '666666', empty)
 standardCards.append(t)
 
 # 2: Curse
