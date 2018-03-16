@@ -6,7 +6,6 @@ AND DURATIONS
 AND INHERITANCE
 AND ROCKS
 AND ENCHANTRESS
-AND MONASTERY
 AND MOONS GIFT
 AND BOONS AND HEXES IN GENERAL'''
 
@@ -3064,7 +3063,35 @@ standardCards.append(t)
 def monastery_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
     #Possible conflicts: Exorcist - hence, trash inplay first.
     if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exceptions.append(Exception(standard_condition(['TRASH'], ['Copper']), moveException('INPLAYS', 'TRASH')))
+        def monastery_trash(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
+            coppersToKill = 0
+            for item in chunkMoves[0].items:
+                if standardCards[item].simple_name == 'Copper':
+                    coppersToKill = chunkMoves[0].items[item]
+                    copperId = item
+                    break
+
+            inPlayCoppers = 0
+            for item in gameStates[-1].INPLAYS[chunkMoves[0].player]:
+                if standardCards[item].simple_name == 'Copper':
+                    inPlayCoppers = gameStates[-1].INPLAYS[chunkMoves[0].player][item]
+                    break
+
+            coppersToKill = min(coppersToKill, inPlayCoppers)
+
+            if coppersToKill > 0:
+                copperStack = Cardstack({copperId: coppersToKill})
+                itemsSansCoppers = chunkMoves[0].items - copperStack
+
+                gameStates[-1].move(chunkMoves[0].player, 'HANDS', 'TRASH',
+                                    itemsSansCoppers)
+                gameStates[-1].move(chunkMoves[0].player, 'INPLAYS', 'TRASH',
+                                    copperStack)
+            else:
+                gameStates[-1].move(chunkMoves[0].player, 'HANDS', 'TRASH',
+                                    chunkMoves[0].items)
+
+        exceptions.append(Exception(standard_condition(['TRASH'], ['Copper']), monastery_trash))
 
 t = Card('Monastery','Monasteries','a Monastery', 2, 0, '30484e', '02268a', monastery_action)
 standardCards.append(t)
@@ -3752,14 +3779,14 @@ standardPreds.append(t)
 # 75
 def obelisk_choice(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
     pairs = [['Encampment', 'Plunder'],
-    ['Patrician', 'Emporium'],
-    ['Settlers', 'Bustling Village'],
-    ['Catapult', 'Rocks'],
-    ['Gladiator', 'Fortune'],
-    ['Dame Anna', 'Dame Josephine', 'Dame Molly', 'Dame Natalie', 'Dame Sylvia'
-     , 'Sir Bailey', 'Sir Destry', 'Sir Martin', 'Sir Michael', 'Sir Vander'],
-    ['Ruined Library', 'Ruined Village', 'Abandoned Mine', 'Ruined Market', 'Survivors']
-    ['Sauna', 'Avanto']]
+             ['Patrician', 'Emporium'],
+             ['Settlers', 'Bustling Village'],
+             ['Catapult', 'Rocks'],
+             ['Gladiator', 'Fortune'],
+             ['Dame Anna', 'Dame Josephine', 'Dame Molly', 'Dame Natalie', 'Dame Sylvia'
+              , 'Sir Bailey', 'Sir Destry', 'Sir Martin', 'Sir Michael', 'Sir Vander'],
+             ['Ruined Library', 'Ruined Village', 'Abandoned Mine', 'Ruined Market', 'Survivors'],
+             ['Sauna', 'Avanto']]
 
     target = chunkMoves[0].items
     gameState[-1].obelisk = target
