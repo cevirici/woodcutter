@@ -57,6 +57,9 @@ def parse_game(parsedLog):
 
 index = 0
 def get_decision_state(moveTree, supply):
+    global index
+    index = 0
+
     startState = gameState()
     startState.add(0, 'SUPPLY', supply)
     # Zombies
@@ -72,7 +75,7 @@ def get_decision_state(moveTree, supply):
             index = index + 1
             print(index)
 
-            subexceptions = copy.copy(exceptions)
+            subexceptions = []
             gameStates.append(deepcopy(gameStates[-1]))
 
             passedExceptions = [exception for exception in exceptions + persistents

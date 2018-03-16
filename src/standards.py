@@ -3541,7 +3541,11 @@ standardPreds.append(t)
 
 # 25
 def pred25Action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    gameStates[-1].move(chunkMoves[0].player, 'DECKS', 'HANDS', chunkMoves[0].items)
+    if chunkMoves[0].indent == 0 and \
+       standardCards[chunkMoves[0].items.cardList()[0]].simple_name == 'Faithful Hound':
+        gameStates[-1].move(chunkMoves[0].player, 'OTHERS', 'HANDS', chunkMoves[0].items)
+    else:
+        gameStates[-1].move(chunkMoves[0].player, 'DECKS', 'HANDS', chunkMoves[0].items)
 
 t = Pred("^(?P<player>.*) puts (?P<cards>.*) into their hand\.$", pred25Action, "PUT INHAND")
 standardPreds.append(t)
