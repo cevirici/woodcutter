@@ -3792,7 +3792,7 @@ def obelisk_choice(chunkMoves, gameStates, exceptions, turnExceptions, persisten
     gameState[-1].obelisk = target
     for pair in pairs:
         if target in pair:
-            gameState[-1].obelisk = pair
+            gameStates[-1].obelisk = pair
             break
 
 
