@@ -122,7 +122,7 @@ class Parser:
             combined = copy.copy(t[0])
 
             for s_t in t:
-                if CARD_CARD not in s_t.items:
+                if CARD_CARD not in s_t.items and NOTHING_CARD not in s_t.items:
                     combined.items = s_t.items
 
             combined.player = hex(combined.player)[2:]
