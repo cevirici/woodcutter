@@ -6,8 +6,8 @@ NOTHING_CARD = 1
 CARD_CARD = 2
 GAMESTART_PRED = 0
 NEWTURN_PRED = 1
-SHUFFLE_PRED = 46
-CLEANUP_PREDS = [21, 46]
+SHUFFLE_PRED = 47
+CLEANUP_PREDS = [21, 47]
 BOONHEX = range(373, 404)
 ZOMBIES = [450, 451, 452]
 standardCards = []
@@ -154,7 +154,7 @@ class gameState:
 
     def __str__(self):
         outstr = ''
-        for zone in ['SUPPLY','DECKS','HANDS','INPLAYS','DISCARDS','OTHERS','TRASH']:
+        for zone in ['SUPPLY', 'DECKS', 'HANDS', 'INPLAYS', 'DISCARDS', 'OTHERS', 'TRASH']:
             outstr +='\n    '+zone
             for part in getattr(self, zone):
                 outstr += '\n    '+str(part)

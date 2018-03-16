@@ -63,6 +63,40 @@ def standardOnGains(source, gainedCard):
 
     return out_function
 
+def standard_boonhex(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
+    for subchunk in chunkMoves[1:]:
+        if standardPreds[subchunk[0].pred].name == 'RECEIVE BOONHEX':
+            whichBoon = subchunk[0].items.cardList()[0]
+            break
+
+    if whichBoon.simple_name == 'The Sun\'s Gift':
+        exceptions.append(Exception(standard_condition(['TOPDECK']), moveException('DECKS', 'DECKS')))
+        exceptions.append(Exception(standard_condition(['DISCARD']), moveException('DECKS', 'DISCARDS')))
+
+    elif whichBoon.simple_name == 'The Moon\'s Gift':
+        exceptions.append(Exception(standard_condition(['TOPDECK']), moveException('DISCARDS', 'DECKS')))
+
+    elif whichBoon.simple_name == 'Locusts':
+        exceptions.append(Exception(standard_condition(['TRASH']), moveException('DECKS', 'TRASH')))
+
+    elif whichBoon.simple_name == 'War':
+        exceptions.append(Exception(standard_condition(['TRASH']), moveException('DECKS', 'TRASH')))
+        exceptions.append(Exception(standard_condition(['DISCARD']), moveException('DECKS', 'DISCARDS')))
+
+    elif whichBoon.simple_name == 'Greed':
+        exceptions.append(Exception(standard_condition(['GAIN'], ['Copper']),
+                                    moveException('SUPPLY', 'DECKS')))
+        exceptions.append(Exception(standard_condition(['GAIN'], ['Copper']),
+                                    standardOnGains('DECKS', chunkMoves[0].items)))
+
+    elif whichBoon.simple_name == 'Bad Omens':
+        exceptions.append(Exception(standard_condition(['DISCARD']), moveException('DECKS', 'DISCARDS')))
+        exceptions.append(Exception(standard_condition(['TOPDECK']), moveException('DISCARDS', 'DECKS')))
+
+    elif whichBoon.simple_name == 'Famine':
+        exceptions.append(Exception(standard_condition(['DISCARD']), moveException('DECKS', 'DISCARDS')))
+        exceptions.append(Exception(standard_condition(['SHUFFLE INTO']), moveException('DECKS', 'DECKS')))
+
 
 def staticWorth(val):
     def out_function(gameState, player):
@@ -2922,12 +2956,24 @@ standardCards.append(t)
 t = Card('Lost In The Woods','Lost In The Woods','Lost In The Woods', 0, -1, 'ceb0a4', '527052', empty)
 standardCards.append(t)
 
+def playing_boonhexes(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
+    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        standard_boonhex()
+
+
+def gaining_boonhex(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
+    if standardPreds[chunkMoves[0].pred].name in ['BUY AND GAIN', 'GAIN TOPDECK', 'GAIN TRASH', 'GAIN']:
+        standard_boonhex()
+        standardOnGains('DISCARDS', chunkMoves[0].items)
+
+
 # 404: Bard
-t = Card('Bard','Bards','a Bard', 4, 0, 'c4c0b4', '57932f', empty)
+t = Card('Bard','Bards','a Bard', 4, 0, 'c4c0b4', '57932f', playing_boonhex)
 standardCards.append(t)
 
+
 # 405: Blessed Village
-t = Card('Blessed Village','Blessed Villages','a Blessed Village', 4, 0, 'c4c0b4', '8f7737', empty)
+t = Card('Blessed Village','Blessed Villages','a Blessed Village', 4, 0, 'c4c0b4', '8f7737', gaining_boonhex)
 standardCards.append(t)
 
 # 406: Changeling
@@ -2951,7 +2997,7 @@ t = Card('Crypt','Crypts','a Crypt', 5, 0, '7a5622', '0d494f', empty)
 standardCards.append(t)
 
 # 411: Cursed Village
-t = Card('Cursed Village','Cursed Villages','a Cursed Village', 5, 0, 'c4c0b4', '265ea6', empty)
+t = Card('Cursed Village','Cursed Villages','a Cursed Village', 5, 0, 'c4c0b4', '265ea6', gaining_boonhex)
 standardCards.append(t)
 
 # 412: Den Of Sin
@@ -2968,7 +3014,7 @@ t = Card('Devil\'s Workshop','Devil\'s Workshops','a Devil\'s Workshop', 4, 0, '
 standardCards.append(t)
 
 # 414: Druid
-t = Card('Druid','Druids','a Druid', 2, 0, 'c4c0b4', '49b921', empty)
+t = Card('Druid','Druids','a Druid', 2, 0, 'c4c0b4', '49b921', standard_boonhex)
 standardCards.append(t)
 
 # 415: Exorcist
@@ -3007,11 +3053,11 @@ t = Card('Guardian','Guardians','a Guardian', 2, 0, '7a5622', '376db9', guardian
 standardCards.append(t)
 
 # 420: Idol
-t = Card('Idol','Idols','a Idol', 5, 0, 'd8c280', 'b13700', empty)
+t = Card('Idol','Idols','a Idol', 5, 0, 'd8c280', 'b13700', standard_boonhex)
 standardCards.append(t)
 
 # 421: Leprechaun
-t = Card('Leprechaun','Leprechauns','a Leprechaun', 3, 0, 'c4c0b4', '5e7c04', empty)
+t = Card('Leprechaun','Leprechauns','a Leprechaun', 3, 0, 'c4c0b4', '5e7c04', standard_boonhex)
 standardCards.append(t)
 
 # 422: Monastery
@@ -3048,6 +3094,7 @@ standardCards.append(t)
 def pixie_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
     if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
         exceptions.append(Exception(standard_condition(['TRASH'], ['Pixie']), moveException('INPLAYS', 'TRASH')))
+        standard_boonhex(chunkMoves, gameStates, exceptions, turnExceptions, persistents)
 
 t = Card('Pixie','Pixies','a Pixie', 2, 0, 'c4c0b4', 'a9db75', pixie_action)
 standardCards.append(t)
@@ -3061,7 +3108,7 @@ t = Card('Raider','Raiders','a Raider', 6, 0, '7a5622', '00238b', empty)
 standardCards.append(t)
 
 # 428: Sacred Grove
-t = Card('Sacred Grove','Sacred Groves','a Sacred Grove', 5, 0, 'c4c0b4', '5e7632', empty)
+t = Card('Sacred Grove','Sacred Groves','a Sacred Grove', 5, 0, 'c4c0b4', '5e7632', standard_boonhex)
 standardCards.append(t)
 
 # 429: Secret Cave
@@ -3073,11 +3120,11 @@ t = Card('Shepherd','Shepherds','a Shepherd', 4, 0, 'c4c0b4', '9caa90', empty)
 standardCards.append(t)
 
 # 431: Skulk
-t = Card('Skulk','Skulks','a Skulk', 4, 0, 'c4c0b4', '7e6060', empty)
+t = Card('Skulk','Skulks','a Skulk', 4, 0, 'c4c0b4', '7e6060', standard_boonhex)
 standardCards.append(t)
 
 # 432: Tormentor
-t = Card('Tormentor','Tormentors','a Tormentor', 5, 0, 'c4c0b4', '884c6a', empty)
+t = Card('Tormentor','Tormentors','a Tormentor', 5, 0, 'c4c0b4', '884c6a', standard_boonhex)
 standardCards.append(t)
 
 # 433: Tragic Hero
@@ -3089,15 +3136,15 @@ t = Card('Tragic Hero','Tragic Heroes','a Tragic Hero', 5, 0, 'c4c0b4', '5c88a4'
 standardCards.append(t)
 
 # 434: Tracker
-t = Card('Tracker','Trackers','a Tracker', 2, 0, 'c4c0b4', '87c7d9', empty)
+t = Card('Tracker','Trackers','a Tracker', 2, 0, 'c4c0b4', '87c7d9', standard_boonhex)
 standardCards.append(t)
 
 # 435: Vampire
-t = Card('Vampire','Vampires','a Vampire', 5, 0, '30484e', '523a4c', empty)
+t = Card('Vampire','Vampires','a Vampire', 5, 0, '30484e', '523a4c', standard_boonhex)
 standardCards.append(t)
 
 # 436: Werewolf
-t = Card('Werewolf','Werewolves','a Werewolf', 5, 0, '30484e', '9f8193', empty)
+t = Card('Werewolf','Werewolves','a Werewolf', 5, 0, '30484e', '9f8193', standard_boonhex)
 standardCards.append(t)
 
 # 437: Cursed Gold
@@ -3343,7 +3390,7 @@ standardPreds.append(t)
 # 12
 def pred12Action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
     if chunkMoves[0].indent == 0:
-        # Probably Scheme (or walled village)
+        # Probably Scheme (or walled village / alch / treasury)
         gameStates[-1].move(chunkMoves[0].player, 'INPLAYS', 'DECKS', chunkMoves[0].items)
 
     else:
@@ -3438,6 +3485,10 @@ def pred25Action(chunkMoves, gameStates, exceptions, turnExceptions, persistents
     gameStates[-1].move(chunkMoves[0].player, 'DECKS', 'HANDS', chunkMoves[0].items)
 
 t = Pred("^(?P<player>.*) puts (?P<cards>.*) into their hand\.$", pred25Action, "PUT INHAND")
+standardPreds.append(t)
+
+# 119
+t = Pred("^Druid sets (?P<cards>.*) aside\.$", empty, "DRUID BOONS")
 standardPreds.append(t)
 
 # 26
@@ -3901,10 +3952,6 @@ standardPreds.append(t)
 
 # 118
 t = Pred("^The Sun's Gift has nothing to discard\.$", empty, "SUN GIFT FAIL")
-standardPreds.append(t)
-
-# 119
-t = Pred("^Druid sets (?P<cards>.*) aside\.$", empty, "DRUID BOONS")
 standardPreds.append(t)
 
 # 120

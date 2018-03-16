@@ -55,6 +55,7 @@ def parse_game(parsedLog):
     return moveTree
 
 
+index = 0
 def get_decision_state(moveTree, supply):
     startState = gameState()
     startState.add(0, 'SUPPLY', supply)
@@ -63,12 +64,16 @@ def get_decision_state(moveTree, supply):
         startState.move(0, 'SUPPLY', 'TRASH',
                         Cardstack({zombie: 1 for zombie in ZOMBIES}))
 
-
     gameStates = [startState]
-
     for turn in moveTree:
         turnExceptions = []
         def parse_chunk(chunk, exceptions, turnExceptions, persistents):
+            global index
+            index = index + 1
+            if index < 200:
+                print(index)
+                print(str(gameStates[-1]))
+
             subexceptions = copy.copy(exceptions)
             gameStates.append(deepcopy(gameStates[-1]))
 
