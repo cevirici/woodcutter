@@ -6,8 +6,8 @@ NOTHING_CARD = 1
 CARD_CARD = 2
 GAMESTART_PRED = 0
 NEWTURN_PRED = 1
-SHUFFLE_PRED = 47
-CLEANUP_PREDS = [21, 47]
+SHUFFLE_PRED = 48
+CLEANUP_PREDS = [21, 48]
 BOONHEX = range(373, 404)
 ZOMBIES = [450, 451, 452]
 standardCards = []
@@ -107,17 +107,22 @@ class Cardstack:
 
 
     def __str__(self):
-        t = ['{}:{}'.format(self.val[i],hex(i)[2:]) for i in self.val]
+        t = ['{}:{}'.format(self.val[i], hex(i)[2:]) for i in self.val]
         outstr = '|'.join(t)
         return outstr
 
     def __repr__(self):
-        t = ['{}:{}'.format(self.val[i],hex(i)[2:]) for i in self.val]
+        t = ['{}:{}'.format(self.val[i], hex(i)[2:]) for i in self.val]
         outstr = '|'.join(t)
         return outstr
 
     def __getitem__(self,item):
         return self.val[item]
+
+    def debugstr(self):
+        t = ['{}:{}'.format(self.val[i], standardCards[i].simple_name) for i in self.val]
+        outstr = '|'.join(t)
+        return outstr
 
     def count(self):
         return sum([self.val[item] for item in self.val])
@@ -157,7 +162,7 @@ class gameState:
         for zone in ['SUPPLY', 'DECKS', 'HANDS', 'INPLAYS', 'DISCARDS', 'OTHERS', 'TRASH']:
             outstr +='\n    '+zone
             for part in getattr(self, zone):
-                outstr += '\n    '+str(part)
+                outstr += '\n    ' + part.debugstr()
 
         outstr += '\n    ------\n'
         return outstr

@@ -30,9 +30,6 @@ class Parser:
             item = item.split(' ',1)
             if len(item) == 2:
                 if re.match('^\d+$|^an?$',item[0]) != None:
-                    if item[0] in ['a','an']:
-                        item[0] = 1
-
                     item[0] = int(item[0])
                 else:
                     item[1] = ' '.join(item)
@@ -145,5 +142,3 @@ class Parser:
 
         outstr = '~'.join(cards)
         return outstr
-
-

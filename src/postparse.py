@@ -70,9 +70,7 @@ def get_decision_state(moveTree, supply):
         def parse_chunk(chunk, exceptions, turnExceptions, persistents):
             global index
             index = index + 1
-            if index < 200:
-                print(index)
-                print(str(gameStates[-1]))
+            print(index)
 
             subexceptions = copy.copy(exceptions)
             gameStates.append(deepcopy(gameStates[-1]))
@@ -251,3 +249,25 @@ def find_vp(turnPoints, gameStates):
             vpWorths[p].append(currWorths)
 
     return [vpCounts, vpWorths]
+
+
+def full_printout(moveTree, gameStates):
+    global index
+    index = 0
+
+    outfile = open('log.txt', 'w')
+
+    def print_chunk(chunk):
+        global index
+        outfile.write(str(index))
+        outfile.write(standardPreds[chunk[0].pred].regex)
+        outfile.write(chunk[0].items.debugstr())
+        outfile.write(str(gameStates[index]))
+        index += 1
+        for subchunk in chunk[1:]:
+            print_chunk(subchunk)
+
+    for chunk in moveTree:
+        print_chunk(chunk)
+    outfile.close()
+

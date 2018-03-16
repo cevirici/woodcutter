@@ -81,14 +81,7 @@ def display(request,game_id):
     story = elaborate_story(players, moveTree)
 
     #DEBUG BLOCK
-    outfile = open('log.txt','a')
-    for i in range(len(story)):
-        outfile.write(str(i))
-        outfile.write('\n')
-        outfile.write(story[i][1])
-        outfile.write('\n')
-        outfile.write(str(gameStates[i]))
-    outfile.close()
+    full_printout(moveTree, gameStates)
 
     kingdom = render_kingdom(moveData[1])
 

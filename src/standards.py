@@ -117,7 +117,7 @@ t = Card('nothing','nothing','nothing', 0, -1, '666666', '666666', empty)
 standardCards.append(t)
 
 # 1: card
-t = Card('other cards','cards','a card', 0, -1, '666666', '666666', empty)
+t = Card('other cards', 'cards', 'a card', 0, -1, '666666', '666666', empty)
 standardCards.append(t)
 
 # 2: Curse
@@ -3487,10 +3487,6 @@ def pred25Action(chunkMoves, gameStates, exceptions, turnExceptions, persistents
 t = Pred("^(?P<player>.*) puts (?P<cards>.*) into their hand\.$", pred25Action, "PUT INHAND")
 standardPreds.append(t)
 
-# 119
-t = Pred("^Druid sets (?P<cards>.*) aside\.$", empty, "DRUID BOONS")
-standardPreds.append(t)
-
 # 26
 def pred26Action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
     gameStates[-1].move(chunkMoves[0].player, 'INPLAYS', 'OTHERS', chunkMoves[0].items)
@@ -3952,6 +3948,10 @@ standardPreds.append(t)
 
 # 118
 t = Pred("^The Sun's Gift has nothing to discard\.$", empty, "SUN GIFT FAIL")
+standardPreds.append(t)
+
+# 119
+t = Pred("^Druid sets (?P<cards>.*) aside\.$", empty, "DRUID BOONS")
 standardPreds.append(t)
 
 # 120
