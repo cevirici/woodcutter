@@ -100,6 +100,7 @@ def get_decision_state(moveTree, supply):
             for subchunk in chunk[1:]:
                 parse_chunk(subchunk, subexceptions, turnExceptions, persistents)
 
+
         parse_chunk(turn, [], turnExceptions, standardPersistents)
 
     return gameStates

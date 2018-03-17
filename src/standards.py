@@ -98,6 +98,13 @@ def standard_boonhex(chunkMoves, gameStates, exceptions, turnExceptions, persist
         exceptions.append(Exception(standard_condition(['SHUFFLE INTO']), moveException('DECKS', 'DECKS')))
 
 
+def standard_play(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
+    for card in chunkMoves[0].items:
+        if card != ARGUMENT_CARD:
+            for i in range(chunkMoves[0].items[card]):
+                standardCards[card].action(chunkMoves, gameStates, exceptions, turnExceptions, persistents)
+
+
 def staticWorth(val):
     def out_function(gameState, player):
         return val
@@ -328,10 +335,20 @@ standardCards.append(t)
 def vassal_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
     if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
         gainCash(2)(chunkMoves, gameStates, exceptions, turnExceptions, persistents)
-        exceptions.append(Exception(standard_condition(['DISCARD']),moveException('DECKS', 'DISCARDS')))
-        exceptions.append(Exception(standard_condition(['PLAY']),moveException('DISCARDS', 'INPLAYS')))
+        exceptions.append(Exception(standard_condition(['DISCARD']), moveException('DECKS', 'DISCARDS')))
+        for subchunk in chunkMoves[1:]:
+            if standardPreds[subchunk[0].pred].name == 'DISCARD':
+                discardedCard = subchunk[0].items.cardList()[0]
+                break
 
-t = Card('Vassal','Vassals','a Vassal', 3, 0, 'c4c0b4', 'ba6816', vassal_action)
+        discardedCardName = standardCards[discardedCard].simple_name
+        #You're fucked up, vassal.
+        turnExceptions.append(Exception(standard_condition(['PLAY'], [discardedCardName]),
+                              moveException('DISCARDS', 'INPLAYS')))
+        turnExceptions.append(Exception(standard_condition(['PLAY'], [discardedCardName]),
+                              standard_play))
+
+t = Card('Vassal', 'Vassals', 'a Vassal', 3, 0, 'c4c0b4', 'ba6816', vassal_action)
 standardCards.append(t)
 
 # 32: Village
@@ -770,6 +787,7 @@ standardCards.append(t)
 def golem_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
     if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
         exceptions.append(Exception(standard_condition(['PLAY']), moveException('DECKS', 'INPLAYS')))
+        exceptions.append(Exception(standard_condition(['PLAY']), standard_play))
         exceptions.append(Exception(standard_condition(['DISCARD']), moveException('DECKS', 'DISCARDS')))
 
 t = Card('Golem','Golems','a Golem', 6, 0, 'c4c0b4', '5e6c80', golem_action)
@@ -1286,9 +1304,10 @@ def venture_action(chunkMoves, gameStates, exceptions, turnExceptions, persisten
     if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
         gainCash(1)(chunkMoves, gameStates, exceptions, turnExceptions, persistents)
         exceptions.append(Exception(standard_condition(['PLAY']), moveException('DECKS', 'INPLAYS')))
+        exceptions.append(Exception(standard_condition(['PLAY']), standard_play))
         exceptions.append(Exception(standard_condition(['DISCARD']), moveException('DECKS', 'DISCARDS')))
 
-t = Card('Venture','Ventures','a Venture', 5, 0, 'd8c280', '624e36', venture_action)
+t = Card('Venture', 'Ventures', 'a Venture', 5, 0, 'd8c280', '624e36', venture_action)
 standardCards.append(t)
 
 # 125: Watchtower
@@ -1364,7 +1383,12 @@ t = Card('Horse Traders','Horse Traders','a Horse Traders', 4, 0, '8ca2be', '595
 standardCards.append(t)
 
 # 137: Horn of Plenty
-t = Card('Horn of Plenty','Horns of Plenty','a Horn of Plenty', 5, 0, 'd8c280', '7b4d27', empty)
+def hop_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
+    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        exceptions.append(Exception(standard_condition(['TRASH'], ['Horn of Plenty']),
+                                    moveException('INPLAYS', 'TRASH')))
+
+t = Card('Horn of Plenty','Horns of Plenty','a Horn of Plenty', 5, 0, 'd8c280', '7b4d27', hop_action)
 standardCards.append(t)
 
 # 138: Hunting Party
@@ -1992,7 +2016,8 @@ standardCards.append(t)
 # 234: Herald
 def herald_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
     if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exceptions.append(Exception(standard_condition(['PLAY']),moveException('DECKS', 'INPLAYS')))
+        exceptions.append(Exception(standard_condition(['PLAY']), moveException('DECKS', 'INPLAYS')))
+        exceptions.append(Exception(standard_condition(['PLAY']), standard_play))
 
     if standardPreds[chunkMoves[0].pred].name in ['BUY']:
         exceptions.append(Exception(standard_condition(['TOPDECK']),moveException('DISCARDS', 'DECKS')))
