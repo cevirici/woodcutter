@@ -810,7 +810,7 @@ t = Card('Possession','Possessions','a Possession', 8, 0, 'c4c0b4', '736157', em
 standardCards.append(t)
 
 # 95: Potion
-t = Card('Potion','Potions','a Potion', 4, 1, 'f1d14d', '90563c', empty)
+t = Card('Potion','Potions','a Potion', 4, 1, 'f1d14d', '1768C4', empty)
 standardCards.append(t)
 
 # 96: Scrying Pool

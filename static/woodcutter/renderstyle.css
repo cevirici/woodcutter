@@ -1,7 +1,8 @@
 /*********** Everything Animated ***********/
 
-.axis, .axislabel, .box, .controlbox, .graph-layer, .inner-color, .kingdom-card, 
-.legendbox, .modal, .modalcontrolbox, .row, .settingsbox, .story-sidebar-block, .vpbox{
+.axis, .axislabel, .box, .controlbox, .graph-control, .graph-layer, .inner-color,
+.kingdom-card, .legendbox, .modal, .modalcontrolbox, .scale-bar, .settingsbox,
+.story-sidebar-block, .vpbox{
 	-moz-transition: all 0.5s;
 	-o-transition: all 0.5s;
 	-webkit-transition: all 0.5s;
@@ -110,7 +111,10 @@ modals{
 	pointer-events: auto;
 }
 .graph-control.highlight{
-	background: #99AACC!important;
+	background: #0092C3!important;
+}
+.graph-control:hover{
+	background: #59B6FE!important;	
 }
 
 .graph-container, .graph-background{
@@ -138,16 +142,28 @@ modals{
 
 .row{
 	position: relative;
-	min-height: 94%;
+	min-height: 96%;
 	width: 100%;
+	top: 0;
 
 	display: flex;
+
+	transition: top 0.5s;
+	-moz-transition: top 0.5s;
+	-o-transition: top 0.5s;
+	-webkit-transition: top 0.5s;
 }
 .row.downshifted{
-	transform: translateY(50%);
+	top: 47%;
 }
 .row.topshifted{
-	transform: translateY(-50%);
+	top: -47%;
+}
+.row:nth-child(1){
+	transform-origin: bottom;
+}
+.row:nth-child(3){
+	transform-origin: top;
 }
 
 .axis{
@@ -254,6 +270,39 @@ modals{
 
 
 /*********** Middle Block ***********/
+
+.scale-bar{
+	width: 1.5%;
+	height: 80%;
+	border-radius: 2vh;
+	position: relative;
+
+	background: #262626;
+	opacity: 0.6;
+}
+.scale-bar:hover{
+	opacity: 1;
+}
+
+.scale-bg{
+	width: 10%;
+	height: 96%;
+	top: 2%;
+	left: 45%;
+	position: absolute;
+
+	background: #A76E00;
+}
+
+.scale-nub{
+	width: 3vh;
+	height: 3vh;
+	left: calc(50% - 1.5vh);
+	border-radius: 3vh;
+	position: absolute;
+
+	background-color: #0C67E4;
+}
 
 .middle-stack{
 	width: 20%;

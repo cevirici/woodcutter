@@ -63,16 +63,18 @@ function toggleVisibility(dir, targetCard){
 				$(x).attr('currenty', currentY.toString());
 
 				actualHeight = (0.5*Math.floor(currentY/5)+currentY*1.75).toString();
-				$(x).css(dirString,actualHeight+'vh');
+				$(x).css(dirString, actualHeight+'vh');
 			});
 		}
 	});
 }
 
 $('.legendbox').on('mousedown',
-	function(){
+	function(e){
 		var targetCard = $(this).attr('card');
 		longClick = false;
+		e.preventDefault()
+
 		longClickTimer = setTimeout(function(){
 				longClick = true;
 				$(".legendbox[card='" + targetCard + "']").addClass('glow');
@@ -187,3 +189,35 @@ const psg = new PerfectScrollbar('.graph', {useBothWheelAxes:true, suppressScrol
 const psleg = new PerfectScrollbar('.legend');
 const psc = new PerfectScrollbar('.controls');
 const pslog = new PerfectScrollbar('.story-container', {suppressScrollX:true});
+
+
+/*********** Graph Scaling ***********/
+
+var scaling = false;
+var clickStart = 0;
+var startY = 0;
+
+var minY = $('.scale-nub').offset().top;
+var maxY = $('.scale-nub').offset().top + $('.scale-bg').height();
+
+$('.scale-nub')
+	.on('mousedown', function(e){
+		scaling = true;
+		clickStart = e.pageY;
+		startY = $(this).offset().top;
+		e.preventDefault()
+	});
+
+$('body')
+	.on('mousemove', function(e){
+		if (scaling){
+			pos = Math.min(maxY, Math.max(minY,startY + e.pageY - clickStart));
+			val = (pos - minY)/(maxY - minY);
+			$('.scale-nub').offset({top: pos});
+			$('.graph-container > .row').css('transform', 'scaleY(' + (1/(1+val)) + ')');
+			$('.vplabel').css('transform', 'scaleY(' + (1+val) + ')');
+		}
+	})
+	.on('mouseup', function(){
+		scaling = false;
+	});
