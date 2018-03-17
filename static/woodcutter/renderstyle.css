@@ -1,7 +1,7 @@
 /*********** Everything Animated ***********/
 
 .axis, .axislabel, .box, .controlbox, .graph-layer, .inner-color, .kingdom-card, 
-.legendbox, .modal, .modalcontrolbox, .row, .story-sidebar-block, .vpbox{
+.legendbox, .modal, .modalcontrolbox, .row, .settingsbox, .story-sidebar-block, .vpbox{
 	-moz-transition: all 0.5s;
 	-o-transition: all 0.5s;
 	-webkit-transition: all 0.5s;
@@ -16,8 +16,8 @@
 
 /*********** Everything Fonty ***********/
 
-.inner-color, .controlbox, .kingdom-card, .kingdom-label, .modalcontrolbox, 
-.story-color, .story-line, .story-sidebar-block{
+.inner-color, .controlbox, .kingdom-card, .kingdom-label, .modalcontrolbox,
+.settingsbox, .story-color, .story-line, .story-sidebar-block{
 	color: #FFFFFF;
 	font: 1.5vh Segoe UI;
 	text-shadow: 1px 1px 0 #000;
@@ -286,6 +286,9 @@ modals{
 .legendbox.faded{
 	opacity: 0.5;
 }
+.legendbox.glow{
+    box-shadow: 0px 0px 5px #fff;
+}
 .legendbox.highlight .inner-color{
 	background-color: #FFFF80 !important;
 }
@@ -303,14 +306,15 @@ modals{
 .controls{
 	position:relative;
 	width: 95%;
-	min-height: 13%;
+	min-height: 10%;
 	margin-left: 1%;
 
 	display: flex;
 	justify-content: center;
 	align-items: flex-start;
 }
-.controlbox, .modalcontrolbox{
+
+.controlbox, .modalcontrolbox, .settingsbox{
 	height: 5vh;
 	padding: 0 5%;
 	margin: 4px 0;
@@ -323,13 +327,13 @@ modals{
 	border-top: 4px solid #DDDDDD;
 	border-bottom: 4px solid #DDDDDD;
 }
-.controlbox:not(.faded),.modalcontrolbox:not(.faded){
+.controlbox:not(.faded), .modalcontrolbox:not(.faded), .settingsbox:hover{
 	background: linear-gradient(to right, rgba(0, 0, 0, 0) 10%, rgba(255, 255, 80, 0.4), rgba(0, 0, 0, 0) 90%);
 }
 .controlbox.faded, .modalcontrolbox.faded{
 	opacity: 0.3;
 }
-.controlbox:hover, .modalcontrolbox:hover{
+.controlbox:hover, .modalcontrolbox:hover,{
 	background: #FFFF80;
 }
 

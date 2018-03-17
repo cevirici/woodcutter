@@ -16,7 +16,7 @@ function highlight_layer(targetCard){
 
 function dehighlight_layer(targetCard){
 	$('.legendbox[card='+targetCard+']').removeClass('highlight');
-	highlightTimer = setTimeout(rehighlight,500);
+	highlightTimer = setTimeout(rehighlight, 500);
 }
 
 $('.box').hover(
@@ -37,43 +37,101 @@ $('.legendbox').hover(
 
 /*********** Card Hiding ***********/
 
-$('.legendbox').click(
+function toggleVisibility(dir, targetCard){
+	let length = $('.axislabel').length;
+
+	$('.graph-container').each((i,graph) => {
+		for (let side=0; side<2; ++side){
+			let row = $(graph).children('.row:eq('+side+')');
+			let dirString = ['bottom','top'][side];
+
+			let killedCount = [];
+			for(let i=0; i<length; ++i) killedCount.push([]);
+
+			row.find('.graph-layer.card'+targetCard+' .box').each((i,x) => {
+					killedCount[$(x).attr('xcoord')].push(parseInt($(x).attr('ycoord')));
+			});
+
+			row.find('.graph-layer.card'+targetCard).toggle();
+
+			row.find('.box').each((i,x) => {
+				let currentY = parseInt($(x).attr('currenty'));
+				let rootY = parseInt($(x).attr('ycoord'));
+				let	columnKills = killedCount[$(x).attr('xcoord')];
+				currentY += dir * columnKills.filter(x => x <rootY).length;
+
+				$(x).attr('currenty', currentY.toString());
+
+				actualHeight = (0.5*Math.floor(currentY/5)+currentY*1.75).toString();
+				$(x).css(dirString,actualHeight+'vh');
+			});
+		}
+	});
+}
+
+$('.legendbox').on('mousedown',
 	function(){
-		$(this).toggleClass('faded');
+		var targetCard = $(this).attr('card');
+		longClick = false;
+		longClickTimer = setTimeout(function(){
+				longClick = true;
+				$(".legendbox[card='" + targetCard + "']").addClass('glow');
+			},
+			500
+		)
+	}
+).on('mouseup',
+	function(){
+		clearTimeout(longClickTimer);
+		$(this).removeClass('glow');
 
-		let dir = ($(this).hasClass('faded') ? -1 : 1)
-		let targetCard = $(this).attr('card');
-		let length = $('.axislabel').length;
+		if (longClick){
+			var targetCard = $(this).attr('card');
+			$('.legendbox').each((i, legend)=>{
+				if ($(legend).attr('card') == targetCard){
+					if ($(legend).hasClass('faded')){
+						$(legend).toggleClass('faded');
 
-		$('.graph-container').each((i,graph) => {
-			for (let side=0; side<2; ++side){
-				let row = $(graph).children('.row:eq('+side+')');
-				let dirString = ['bottom','top'][side];
+						let thisCard = $(legend).attr('card');
+						toggleVisibility(1, thisCard);
+					}
+				} else {
+					if (!($(legend).hasClass('faded'))){
+						$(legend).toggleClass('faded');
 
-				let killedCount = [];
-				for(let i=0; i<length; ++i) killedCount.push([]);
+						let thisCard = $(legend).attr('card');
+						toggleVisibility(-1, thisCard);
+					}						
+				}
+			});
+		} else {
+			$(this).toggleClass('faded');
+			$(this).removeClass('glow');
 
-				row.find('.graph-layer.card'+targetCard+' .box').each((i,x) => {
-						killedCount[$(x).attr('xcoord')].push(parseInt($(x).attr('ycoord')));
-				});
-
-				row.find('.graph-layer.card'+targetCard).toggle();
-
-				row.find('.box').each((i,x) => {
-					let currentY = parseInt($(x).attr('currenty'));
-					let rootY = parseInt($(x).attr('ycoord'));
-					let	columnKills = killedCount[$(x).attr('xcoord')];
-					currentY += dir * columnKills.filter(x => x <rootY).length;
-
-					$(x).attr('currenty', currentY.toString());
-
-					actualHeight = (0.5*Math.floor(currentY/5)+currentY*1.75).toString();
-					$(x).css(dirString,actualHeight+'vh');
-				});
-			}
-		});
+			let dir = ($(this).hasClass('faded') ? -1 : 1);
+			let targetCard = $(this).attr('card');
+			toggleVisibility(dir, targetCard);
+		}
+	}
+).on('mouseout',
+	function(){
+		clearTimeout(longClickTimer);
+		longClick = false;
+		$(this).removeClass('glow');
 	}
 );
+
+
+$('.settingsbox.visibility').click(	function(){
+	$('.legendbox').each((i, legend)=>{
+		if ($(legend).hasClass('faded')){
+			$(legend).toggleClass('faded');
+
+			let thisCard = $(legend).attr('card');
+			toggleVisibility(1, thisCard);
+		}
+	});
+});
 
 
 /*********** Scrolling ***********/
