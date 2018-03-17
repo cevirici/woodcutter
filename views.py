@@ -7,8 +7,6 @@ from django.views.decorators.csrf import csrf_exempt
 from .src import *
 from .models import GameLog
 
-import os
-
 def index(request):
     return HttpResponse("Test.")
 
