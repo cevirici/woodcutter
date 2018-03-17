@@ -111,3 +111,10 @@ def display(request,game_id):
 
     return render(request,'woodcutter/display.html', context)
 
+def error_404(request):
+        data = {}
+        return render(request, 'woodcutter/error_404.html', data)
+ 
+def error_500(request):
+        data = {}
+        return render(request, 'woodcutter/error_500.html', data)
