@@ -18,14 +18,14 @@
 /*********** Everything Fonty ***********/
 
 .inner-color, .controlbox, .kingdom-card, .kingdom-label, .modalcontrolbox,
-.settingsbox, .story-color, .story-line, .story-sidebar-block{
+.settingsbox, .story-color, .story-line, .story-sidebar-block, .wrap{
 	color: #FFFFFF;
 	font: 1.5vh Segoe UI;
 	text-shadow: 1px 1px 0 #000;
 }
 
 .inner-color, .controlbox, .kingdom-card, .modalcontrolbox, 
-.story-color, .story-sidebar-block{
+.story-color, .story-sidebar-block, .wrap{
 	text-align: center;
 }
 
@@ -360,6 +360,11 @@ modals{
 	display:flex;
 	justify-content:center;
 	align-items:center;
+}
+
+.wrap{
+	width: 100%;
+	overflow-wrap: break-word;
 }
 
 .controls{

@@ -112,7 +112,7 @@
 						{% for legendbox in legendBoxes %}
 						<div class = 'legendbox' style = 'background: #{{ legendbox.2 }};' card = {{ legendbox.3}}>
 							<div class = 'inner-color' style = 'background: #{{ legendbox.1 }};''>
-								{{ legendbox.0 }}
+								<span class = 'wrap'>{{ legendbox.0 }}</span>
 							</div>
 						</div>
 						{% endfor %}
