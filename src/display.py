@@ -37,25 +37,36 @@ def render_graph_row(stacks, styles, side):
         for xpos in range(len(halfside)):
             col = halfside[xpos]
             colCards = sorted(col.cardList())
+
             for card in colCards:
+                cardName = standardCards[card].simple_name
+                cardColor = standardCards[card].card_color
+                cardColorRGB = [int(cardColor[i:i+2], 16) for i in range(0, 6, 2)]
+                cardLabel = ''.join([word[0] for word in cardName.split(' ')[:2]])
+                isDark = sum(cardColorRGB) > 383
+
                 for j in range(col[card]):
                     cardData = standardCards[card]
-                    layerStrings[card] += makeDiv('box'+(' ' + styles[i] if styles[i] else ''),
-                                            {'background': '#{}'.format(cardData.border_color),
-                                             direction: '{}vh'.format(1.75 * colHeights[xpos] + 0.5 * (colHeights[xpos]//5)),
-                                             'left': '{}vh'.format(2.5 * xpos + 0.4)},
-                                            {'card': card,
-                                             'side': 2 * (0.5 - side),
-                                             'xcoord': xpos,
-                                             'ycoord': colHeights[xpos],
-                                             'currenty': colHeights[xpos]
-                                             },
-                                             makeDiv('box-inner', styles = {'background' : '#{}'.format(cardData.card_color)})
-                                             )
+                    layerStrings[card] += \
+                        makeDiv('box' + (' ' + styles[i] if styles[i] else ''),
+                                {'background': '#{}'.format(cardData.border_color),
+                                 direction: '{}vh'.format(1.75 * colHeights[xpos] + 0.5 * (colHeights[xpos]//5)),
+                                 'left': '{}vh'.format(2.5 * xpos + 0.4)},
+                                {'card': card,
+                                 'side': 2 * (0.5 - side),
+                                 'xcoord': xpos,
+                                 'ycoord': colHeights[xpos],
+                                 'currenty': colHeights[xpos]
+                                 },
+                                makeDiv('box-inner dark' if isDark else 'box-inner',
+                                        styles={'background': '#{}'.format(cardData.card_color)},
+                                        innerHTML=cardLabel
+                                        )
+                                )
                     colHeights[xpos] += 1
 
     for layer in layerStrings:
-        layerStrings[layer] = makeDiv('graph-layer card' + str(layer), innerHTML = layerStrings[layer])
+        layerStrings[layer] = makeDiv('graph-layer card' + str(layer), innerHTML=layerStrings[layer])
 
     return layerStrings.values()
 

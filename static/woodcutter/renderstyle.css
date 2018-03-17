@@ -33,7 +33,7 @@
 /*********** Structure ***********/
 
 body{
-	background: #202020;
+	background: #141411;
 	overflow: hidden;
 }
 
@@ -56,7 +56,7 @@ modals{
 .topbar{
 	height: 5%;
 	padding: 0 0 0 2%;
-	background: #444444;
+	background: #595959;
 
 	display: flex;
 	flex-direction: column;
@@ -106,15 +106,15 @@ modals{
 
 .graph-control{
 	height: 2%;
-	background: #444444;
+	background: #595959;
 
 	pointer-events: auto;
 }
 .graph-control.highlight{
-	background: #0092C3!important;
+	background: #66D9EF!important;
 }
 .graph-control:hover{
-	background: #59B6FE!important;	
+	background: #90E2F2!important;	
 }
 
 .graph-container, .graph-background{
@@ -200,10 +200,10 @@ modals{
 .col{
 	min-width: 2.5vh;
 	height: 200%;
-	background: #222525;
+	background: #272827;
 }
 .col.active{
-	background: #333535;
+	background: #383838;
 }
 
 .leftstripe{
@@ -233,6 +233,16 @@ modals{
 	background:#120462;
 	width: calc(100% - 4px);
 	height: calc(100% - 4px);
+
+	display: flex;
+	justify-content: center;
+	align-items: center;
+
+	color: #FFFFFF;
+	font: 1.1vh Consolas;
+}
+.box-inner.dark{
+	color: #000000;
 }
 
 .vpbox{
@@ -277,7 +287,7 @@ modals{
 	border-radius: 2vh;
 	position: relative;
 
-	background: #262626;
+	background: #383830;
 	opacity: 0.6;
 }
 .scale-bar:hover{
@@ -291,7 +301,7 @@ modals{
 	left: 45%;
 	position: absolute;
 
-	background: #A76E00;
+	background: #FD971F;
 }
 
 .scale-nub{
@@ -301,7 +311,7 @@ modals{
 	border-radius: 3vh;
 	position: absolute;
 
-	background-color: #0C67E4;
+	background-color: #66D9EF;
 }
 
 .middle-stack{
@@ -382,8 +392,8 @@ modals{
 .controlbox.faded, .modalcontrolbox.faded{
 	opacity: 0.3;
 }
-.controlbox:hover, .modalcontrolbox:hover,{
-	background: #FFFF80;
+.controlbox:hover, .modalcontrolbox:hover{
+	opacity: 1;
 }
 
 
@@ -408,7 +418,7 @@ modals{
 
 .story-line{
 	width: 100%;
-	background: #222222;
+	background: #272822;
 	padding: 0.2vh 0;
 	box-sizing: border-box;
 
@@ -418,7 +428,7 @@ modals{
 	align-items: center;
 }
 .story-line.alternate{
-	background: #444444;
+	background: #595959;
 }
 
 .story-color{
@@ -441,7 +451,7 @@ modals{
 
 .story-sidebar-block{
 	min-height: 0.8em;
-	background: #222222;
+	background: #272822;
 
 	display: flex;
 	justify-content: center;
@@ -453,7 +463,7 @@ modals{
 	transform: translateX(-10px);
 }
 .story-sidebar-block.alternate{
-	background: #444444;
+	background: #595959;
 }
 
 
@@ -467,7 +477,7 @@ modals{
 	height: 10%;
 	width: 100%;
 	margin-bottom: 4%;
-	background: #444444;
+	background: #272822;
 
 	display: flex;
 	justify-content: center;
@@ -484,7 +494,7 @@ modals{
 	width: 40%;
 	height: 60%;
 	overflow: hidden;
-	background: #666666;
+	background: #595959;
     box-shadow: 5px 5px rgba(0,0,0,0.3);
 
 	display: flex;

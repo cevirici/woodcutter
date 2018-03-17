@@ -588,7 +588,7 @@ def explorer_action(chunkMoves, gameStates, exceptions, turnExceptions, persiste
         exceptions.append(Exception(standard_condition(['GAIN'], ['Silver', 'Gold']), moveException('SUPPLY', 'HANDS')))
         exceptions.append(Exception(standard_condition(['GAIN']), standardOnGains('HANDS', chunkMoves[0].items)))
 
-t = Card('Explorer','Explorers','an Explorer', 5, 0, 'c4c0b4', '92887a', explorer_action)
+t = Card('Explorer','Explorers','an Explorer', 5, 0, 'c4c0b4', '74D0F6', explorer_action)
 standardCards.append(t)
 
 # 67: Fishing Village
@@ -764,7 +764,7 @@ t = Card('Wharf','Wharves','a Wharf', 5, 0, 'dda561', '7b778f', empty)
 standardCards.append(t)
 
 # 87: Alchemist
-t = Card('Alchemist','Alchemists','an Alchemist', 5, 0, 'c4c0b4', '898573', empty)
+t = Card('Alchemist','Alchemists','an Alchemist', 5, 0, 'c4c0b4', '49A4E4', empty)
 standardCards.append(t)
 
 # 88: Apothecary
