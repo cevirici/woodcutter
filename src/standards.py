@@ -1751,7 +1751,7 @@ def feodum_worth(gameState, player):
 
     for card in playerDeck:
         if standardCards[card].simple_name == 'Silver':
-            return playerDeck[card]
+            return playerDeck[card] // 3
 
     return 0
 
