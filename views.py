@@ -118,14 +118,6 @@ def display(request, game_id):
     return render(request, 'woodcutter/display.html', context)
 
 def error_list(request):
-    for log in GameLog.objects.all():
-        moveData = unpack(log.log, log.supply)
-        moveTree = parse_game(moveData[0])
-        gameStates = get_decision_state(moveTree, moveData[1])
-
-        log.valid = gameStates[-1].valid
-        log.save()
-
     rawLogs = GameLog.objects.filter(valid=False).all()
     errorLogs = []
     for rawLog in rawLogs:
