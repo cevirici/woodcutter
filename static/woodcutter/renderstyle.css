@@ -1,6 +1,6 @@
 /*********** Everything Animated ***********/
 
-.axis, .axislabel, .box, .controlbox, .graph-background, .graph-container, .graph-control, 
+.axis, .axislabel, .box, .controlbox, .graph, .graph-control, 
 .graph-layer, .inner-color, .kingdom-card, .legendbox, .modal, 
 .modalcontrolbox, .scale-bar, .settingsbox,
 .story-sidebar-block, .vpbox{
@@ -93,7 +93,7 @@ modals{
 	pointer-events: none;
 }
 
-.graph{
+.graph-window{
 	position: relative;
 	width: 35%;
 	height: 90%;
@@ -103,6 +103,24 @@ modals{
 	flex-direction: column;
 	justify-content: center;
 	align-items: center;
+}
+
+
+.graph{
+	width: 100%;
+	height: 200%;
+
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+
+}
+.graph.downshifted{
+	transform: translateY(44%);
+}
+.graph.topshifted{
+	transform: translateY(-44%);
 }
 
 .graph-control{
@@ -133,13 +151,6 @@ modals{
 }
 .graph-container:not(:first-child){
 	display: none;
-}
-
-.graph-container.downshifted, .graph-background.downshifted{
-	transform: translateY(47%);
-}
-.graph-container.topshifted, .graph-background.topshifted{
-	transform: translateY(-47%);
 }
 
 .graph-layer{

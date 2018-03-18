@@ -18,86 +18,88 @@
 					<div class = 'graph-control' ></div>
 					<div class = 'graph-control' ></div>
 				</div>
-				<div class = 'graph' >
-					<div class = 'graph-container' graphname = 'all'>
-						<div class = 'row fullwidth'>
-							{% for layerString in graph_all_top %}
-							{{ layerString | safe }}
-							{% endfor %}
-						</div>
-						<div class = 'axis'></div>
-						<div class = 'row fullwidth'>
-							{% for layerString in graph_all_bot %}
-							{{ layerString | safe }}
-							{% endfor %}
-						</div>
-					</div>
-					
-					<div class = 'graph-container' graphname = 'gained'>
-						<div class = 'row fullwidth'>
-							{% for layerString in graph_gained_top %}
-							{{ layerString | safe }}
-							{% endfor %}
-						</div>
-						<div class = 'axis'></div>
-						<div class = 'row fullwidth'>
-							{% for layerString in graph_gained_bot %}
-							{{ layerString | safe }}
-							{% endfor %}
-						</div>
-					</div>
-
-					<div class = 'graph-container' graphname = 'shuffle'>
-						<div class = 'row fullwidth'>
-							{% for layerString in graph_progress_top %}
-							{{ layerString | safe }}
-							{% endfor %}
-						</div>
-						<div class = 'axis'></div>
-						<div class = 'row fullwidth'>
-							{% for layerString in graph_progress_bot %}
-							{{ layerString | safe }}
-							{% endfor %}
-						</div>
-					</div>
-
-					<div class = 'graph-container' graphname = 'vp'>
-						<div class = 'row fullwidth'>
-							{% for layerString in graph_vps_top %}
-							{{ layerString | safe }}
-							{% endfor %}
-							{{ graph_vps_labels_top | safe }}
-						</div>
-						<div class = 'axis'></div>
-						<div class = 'row fullwidth'>
-							{% for layerString in graph_vps_bot %}
-							{{ layerString | safe }}
-							{% endfor %}
-							{{ graph_vps_labels_bot | safe }}
-						</div>
-					</div>
-
-					<div class = 'graph-background' >
-						<div class = 'row fullwidth'>
-							{% for data in bgData_top %}
-							<div class = 'col{% if data.0 %} active{% endif %}'>
-								<div class = 'leftstripe{% if data.1 %} active{% endif %}'></div>
+				<div class = 'graph-window'>
+					<div class = 'graph' >
+						<div class = 'graph-container' graphname = 'all'>
+							<div class = 'row fullwidth'>
+								{% for layerString in graph_all_top %}
+								{{ layerString | safe }}
+								{% endfor %}
 							</div>
-							{% endfor %}
-						</div>
-						<div class = 'axis' style = 'visibility: visible'>
-							{% for axisLabel in axisLabels %}
-							<div class = 'axislabel'>
-								{{ axisLabel | safe }}
+							<div class = 'axis'></div>
+							<div class = 'row fullwidth'>
+								{% for layerString in graph_all_bot %}
+								{{ layerString | safe }}
+								{% endfor %}
 							</div>
-							{% endfor %}
 						</div>
-						<div class = 'row fullwidth'>
-							{% for data in bgData_bot %}
-							<div class = 'col{% if data.0 %} active{% endif %}'>
-								<div class = 'leftstripe{% if data.1 %} active{% endif %}'></div>
+						
+						<div class = 'graph-container' graphname = 'gained'>
+							<div class = 'row fullwidth'>
+								{% for layerString in graph_gained_top %}
+								{{ layerString | safe }}
+								{% endfor %}
 							</div>
-							{% endfor %}
+							<div class = 'axis'></div>
+							<div class = 'row fullwidth'>
+								{% for layerString in graph_gained_bot %}
+								{{ layerString | safe }}
+								{% endfor %}
+							</div>
+						</div>
+
+						<div class = 'graph-container' graphname = 'shuffle'>
+							<div class = 'row fullwidth'>
+								{% for layerString in graph_progress_top %}
+								{{ layerString | safe }}
+								{% endfor %}
+							</div>
+							<div class = 'axis'></div>
+							<div class = 'row fullwidth'>
+								{% for layerString in graph_progress_bot %}
+								{{ layerString | safe }}
+								{% endfor %}
+							</div>
+						</div>
+
+						<div class = 'graph-container' graphname = 'vp'>
+							<div class = 'row fullwidth'>
+								{% for layerString in graph_vps_top %}
+								{{ layerString | safe }}
+								{% endfor %}
+								{{ graph_vps_labels_top | safe }}
+							</div>
+							<div class = 'axis'></div>
+							<div class = 'row fullwidth'>
+								{% for layerString in graph_vps_bot %}
+								{{ layerString | safe }}
+								{% endfor %}
+								{{ graph_vps_labels_bot | safe }}
+							</div>
+						</div>
+
+						<div class = 'graph-background' >
+							<div class = 'row fullwidth'>
+								{% for data in bgData_top %}
+								<div class = 'col{% if data.0 %} active{% endif %}'>
+									<div class = 'leftstripe{% if data.1 %} active{% endif %}'></div>
+								</div>
+								{% endfor %}
+							</div>
+							<div class = 'axis' style = 'visibility: visible'>
+								{% for axisLabel in axisLabels %}
+								<div class = 'axislabel'>
+									{{ axisLabel | safe }}
+								</div>
+								{% endfor %}
+							</div>
+							<div class = 'row fullwidth'>
+								{% for data in bgData_bot %}
+								<div class = 'col{% if data.0 %} active{% endif %}'>
+									<div class = 'leftstripe{% if data.1 %} active{% endif %}'></div>
+								</div>
+								{% endfor %}
+							</div>
 						</div>
 					</div>
 				</div>

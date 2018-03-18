@@ -170,16 +170,12 @@ $('.modalcontrolbox').click(function(){
 
 $('.graph-control').click(function(){		
 	if ($(this).index('.graph-control')==0){
-		$('.graph-container').toggleClass('topshifted');
-		$('.graph-background').toggleClass('topshifted');
-		$('.graph-container').removeClass('downshifted');
-		$('.graph-background').removeClass('downshifted');
+		$('.graph').toggleClass('topshifted');
+		$('.graph').removeClass('downshifted');
 	}
 	else{
-		$('.graph-container').toggleClass('downshifted');
-		$('.graph-container').removeClass('topshifted');
-		$('.graph-background').toggleClass('downshifted');
-		$('.graph-background').removeClass('topshifted');
+		$('.graph').toggleClass('downshifted');
+		$('.graph').removeClass('topshifted');
 	}
 
 	$('.graph-control').not(this).removeClass('highlight');
@@ -187,7 +183,9 @@ $('.graph-control').click(function(){
 );
 
 
-const psg = new PerfectScrollbar('.graph', {useBothWheelAxes:true, suppressScrollY:true});
+/*********** Scrollbars ***********/
+
+const psg = new PerfectScrollbar('.graph-window', {useBothWheelAxes:true, suppressScrollY:true});
 const psleg = new PerfectScrollbar('.legend');
 const psc = new PerfectScrollbar('.controls');
 const pslog = new PerfectScrollbar('.story-container', {suppressScrollX:true});
