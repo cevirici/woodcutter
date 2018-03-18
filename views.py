@@ -28,7 +28,10 @@ def submit(request):
     try:
         existinglog = GameLog.objects.get(game_id=gameid)
     except ObjectDoesNotExist:
-        newLog = GameLog.objects.create(game_id=ret[1],log=ret[0],supply=sup,players=players)
+        newLog = GameLog.objects.create(game_id=ret[1],
+                                        log=ret[0],
+                                        supply=sup,
+                                        players=players)
     else:
         existinglog.log = ret[0]
         existinglog.supply = sup
@@ -37,14 +40,17 @@ def submit(request):
 
     return HttpResponseRedirect(reverse('woodcutter:display', args=(ret[1],)))
 
-def display(request,game_id):
+def display(request, game_id):
     log = get_object_or_404(GameLog, game_id=game_id)
 
     moveData = unpack(log.log,log.supply)
     players = log.players.split('~')
 
     moveTree = parse_game(moveData[0])
-    gameStates = get_decision_state(moveTree, moveData[1])
+    statesRaw = get_decision_state(moveTree, moveData[1])
+    gameStates = statesRaw[0]
+    parseSuccess = statesRaw[1]
+    log.valid = parseSuccess
 
     turnPoints = get_turn_points(moveTree)
     turnOwners = get_turn_owners(moveTree)

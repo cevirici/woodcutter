@@ -21,3 +21,6 @@ class GameLog(models.Model):
                     max_length=100,
                     default='',
                     blank=True)
+
+    valid = models.BooleanField(default=True)
+    

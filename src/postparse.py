@@ -105,9 +105,8 @@ def get_decision_state(moveTree, supply):
         parse_chunk(turn, [], turnExceptions, standardPersistents)
 
     global parseOK
-    print('parse ok?')
-    print(parseOK)
-    return gameStates
+
+    return [gameStates, parseOK]
 
 def get_turn_points(moveTree):
     #Position of last decision in each turn, including the pregame turn

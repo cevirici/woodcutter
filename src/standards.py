@@ -5,9 +5,7 @@ AND BOM
 AND DURATIONS
 AND INHERITANCE
 AND ROCKS
-AND ENCHANTRESS
-AND MOONS GIFT
-AND BOONS AND HEXES IN GENERAL'''
+AND ENCHANTRESS'''
 
 pred_parse_order = list(range(26)) + [119] + list(range(26,125))
 
@@ -1130,7 +1128,7 @@ actionList = ['Artisan',
 def vineyard_worth(gameState, player):
     playerDeck = gameState.crunch(['DECKS', 'DISCARDS', 'HANDS', 'OTHERS', 'INPLAYS'])
     return sum([playerDeck[item] for item in playerDeck if
-                standardCards[item].simple_name in actionList])
+                standardCards[item].simple_name in actionList]) // 3
 
 
 t = Card('Vineyard', 'Vineyards', 'a Vineyard', 2, 0, '9cbe8a', '8c9652', empty, vineyard_worth)
