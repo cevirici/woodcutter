@@ -56,6 +56,7 @@ def parse_game(parsedLog):
 
 
 index = 0
+parseOK = True
 def get_decision_state(moveTree, supply):
     global index
     index = 0
@@ -103,6 +104,9 @@ def get_decision_state(moveTree, supply):
 
         parse_chunk(turn, [], turnExceptions, standardPersistents)
 
+    global parseOK
+    print('parse ok?')
+    print(parseOK)
     return gameStates
 
 def get_turn_points(moveTree):

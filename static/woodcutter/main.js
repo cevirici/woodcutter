@@ -41,30 +41,32 @@ function toggleVisibility(dir, targetCard){
 	let length = $('.axislabel').length;
 
 	$('.graph-container').each((i,graph) => {
-		for (let side=0; side<2; ++side){
-			let row = $(graph).children('.row:eq('+side+')');
-			let dirString = ['bottom','top'][side];
+		if ($(graph).attr('graphname') != 'vp'){
+			for (let side=0; side<2; ++side){
+				let row = $(graph).children('.row:eq('+side+')');
+				let dirString = ['bottom','top'][side];
 
-			let killedCount = [];
-			for(let i=0; i<length; ++i) killedCount.push([]);
+				let killedCount = [];
+				for(let i=0; i<length; ++i) killedCount.push([]);
 
-			row.find('.graph-layer.card'+targetCard+' .box').each((i,x) => {
-					killedCount[$(x).attr('xcoord')].push(parseInt($(x).attr('ycoord')));
-			});
+				row.find('.graph-layer.card'+targetCard+' .box').each((i,x) => {
+						killedCount[$(x).attr('xcoord')].push(parseInt($(x).attr('ycoord')));
+				});
 
-			row.find('.graph-layer.card'+targetCard).toggle();
+				row.find('.graph-layer.card'+targetCard).toggle();
 
-			row.find('.box').each((i,x) => {
-				let currentY = parseInt($(x).attr('currenty'));
-				let rootY = parseInt($(x).attr('ycoord'));
-				let	columnKills = killedCount[$(x).attr('xcoord')];
-				currentY += dir * columnKills.filter(x => x <rootY).length;
+				row.find('.box').each((i,x) => {
+					let currentY = parseInt($(x).attr('currenty'));
+					let rootY = parseInt($(x).attr('ycoord'));
+					let	columnKills = killedCount[$(x).attr('xcoord')];
+					currentY += dir * columnKills.filter(x => x <rootY).length;
 
-				$(x).attr('currenty', currentY.toString());
+					$(x).attr('currenty', currentY.toString());
 
-				actualHeight = (0.5*Math.floor(currentY/5)+currentY*1.75).toString();
-				$(x).css(dirString, actualHeight+'vh');
-			});
+					actualHeight = (0.5*Math.floor(currentY/5)+currentY*1.75).toString();
+					$(x).css(dirString, actualHeight+'vh');
+				});
+			}
 		}
 	});
 }
