@@ -335,6 +335,7 @@ def vassal_action(chunkMoves, gameStates, exceptions, turnExceptions, persistent
     if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
         gainCash(2)(chunkMoves, gameStates, exceptions, turnExceptions, persistents)
         exceptions.append(Exception(standard_condition(['DISCARD']), moveException('DECKS', 'DISCARDS')))
+        discardedCard = standardCards[CARD_CARD]
         for subchunk in chunkMoves[1:]:
             if standardPreds[subchunk[0].pred].name == 'DISCARD':
                 discardedCard = subchunk[0].items.cardList()[0]
