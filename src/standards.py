@@ -62,6 +62,7 @@ def standardOnGains(source, gainedCard):
     return out_function
 
 def standard_boonhex(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
+    whichBoon = standardCards[CARD_CARD]
     for subchunk in chunkMoves[1:]:
         if standardPreds[subchunk[0].pred].name in ['RECEIVE BOONHEX', 'TAKES BOONHEX']:
             whichBoon = standardCards[subchunk[0].items.cardList()[0]]
@@ -3155,6 +3156,7 @@ standardCards.append(t)
 # 425: Pixie
 def pixie_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
     if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        whichBoon = standardCards[CARD_CARD]
         for subchunk in chunkMoves[1:]:
             if standardPreds[subchunk[0].pred].name in ['RECEIVE BOONHEX', 'TAKES BOONHEX']:
                 whichBoon = standardCards[subchunk[0].items.cardList()[0]]
