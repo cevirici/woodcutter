@@ -35,20 +35,34 @@ def unpack(logstring, supplystring):
 def parse_game(parsedLog):
     moveTree = []
     currentTurn = []
+    lastIndent = 0
+    indentBugDiff = 0
+    indentBugThreshold = 0
+
     for i in range(len(parsedLog)):
         currentMove = parsedLog[i]
         if currentMove.pred == NEWTURN_PRED:
             moveTree.append(currentTurn)
             currentTurn = [currentMove]
+            lastIndent = 0
         else:
             if currentMove.pred == currentMove.pred == GAMESTART_PRED:
                 currentTurn = [currentMove]
             else:
                 pointer = currentTurn
-                for j in range(currentMove.indent):
+
+                #grrr
+                if currentMove.indent > lastIndent + 1:
+                    indentBugDiff = currentMove.indent - lastIndent - 1
+                    indentBugThreshold = currentMove.indent
+                elif currentMove.indent < indentBugThreshold:
+                    indentBugDiff = 0
+
+                for j in range(currentMove.indent - indentBugDiff):
                     pointer = pointer[-1]
 
                 pointer.append([currentMove])
+                lastIndent = currentMove.indent
 
     moveTree.append(currentTurn)
 
