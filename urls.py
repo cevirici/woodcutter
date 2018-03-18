@@ -7,5 +7,6 @@ urlpatterns = [
     path('', views.main, name='index'),
     path('input', views.inputFields, name='inputform'),
     path('submit', views.submit, name='submit'),
+    path('errorlist', views.error_list, name='errorlist'),
     path('<int:game_id>/display/', views.display, name='display'),
 ]

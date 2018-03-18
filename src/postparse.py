@@ -55,12 +55,8 @@ def parse_game(parsedLog):
     return moveTree
 
 
-index = 0
 parseOK = True
 def get_decision_state(moveTree, supply):
-    global index
-    index = 0
-
     startState = gameState()
     startState.add(0, 'SUPPLY', supply)
     # Zombies
@@ -72,10 +68,6 @@ def get_decision_state(moveTree, supply):
     for turn in moveTree:
         turnExceptions = []
         def parse_chunk(chunk, exceptions, turnExceptions, persistents):
-            global index
-            index = index + 1
-            print(index)
-
             subexceptions = []
             gameStates.append(deepcopy(gameStates[-1]))
 
@@ -101,12 +93,9 @@ def get_decision_state(moveTree, supply):
             for subchunk in chunk[1:]:
                 parse_chunk(subchunk, subexceptions, turnExceptions, persistents)
 
-
         parse_chunk(turn, [], turnExceptions, standardPersistents)
 
-    global parseOK
-
-    return [gameStates, parseOK]
+    return gameStates
 
 def get_turn_points(moveTree):
     #Position of last decision in each turn, including the pregame turn
@@ -268,8 +257,10 @@ def full_printout(moveTree, gameStates):
         global index
         outfile.write(str(index))
         outfile.write('{}>'.format('-'*chunk[0].indent))
-        outfile.write(standardPreds[chunk[0].pred].regex)
+        outfile.write(standardPreds[chunk[0].pred].name)
         outfile.write(chunk[0].items.debugstr())
+        if not gameStates[index+1].valid:
+            outfile.write("\n###INVALID MOVE")
         outfile.write(str(gameStates[index]))
         index += 1
         for subchunk in chunk[1:]:
@@ -278,4 +269,3 @@ def full_printout(moveTree, gameStates):
     for chunk in moveTree:
         print_chunk(chunk)
     outfile.close()
-

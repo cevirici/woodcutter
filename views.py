@@ -35,94 +35,110 @@ def submit(request):
     else:
         existinglog.log = ret[0]
         existinglog.supply = sup
-        existinglog.players=players
+        existinglog.players = players
         existinglog.save()
 
     return HttpResponseRedirect(reverse('woodcutter:display', args=(ret[1],)))
 
 def display(request, game_id):
-    try:
-        log = get_object_or_404(GameLog, game_id=game_id)
+    log = get_object_or_404(GameLog, game_id=game_id)
 
-        moveData = unpack(log.log, log.supply)
-        players = log.players.split('~')
+    moveData = unpack(log.log, log.supply)
+    players = log.players.split('~')
 
-        moveTree = parse_game(moveData[0])
-        statesRaw = get_decision_state(moveTree, moveData[1])
-        gameStates = statesRaw[0]
-        parseSuccess = statesRaw[1]
-        log.valid = parseSuccess
+    moveTree = parse_game(moveData[0])
+    gameStates = get_decision_state(moveTree, moveData[1])
 
-        turnPoints = get_turn_points(moveTree)
-        turnOwners = get_turn_owners(moveTree)
-        shuffledTurns = get_shuffled_turns(moveTree)
+    log.valid = gameStates[-1].valid
+    log.save()
 
-        involvedCards = get_involved_cards(gameStates)
+    turnPoints = get_turn_points(moveTree)
+    turnOwners = get_turn_owners(moveTree)
+    shuffledTurns = get_shuffled_turns(moveTree)
 
-        allCards = find_turn_decks(turnPoints, gameStates)
-        gainedCards = find_gained_cards(turnPoints, gameStates)
+    involvedCards = get_involved_cards(gameStates)
 
-        cleanupPoints = [x+y for x,y in zip(get_cleanup_points(moveTree), [-1] + turnPoints)]
-        cleanupPoints[0] = turnPoints[0] + 1
-        progressCards = find_shuffle_progress(turnPoints, cleanupPoints, gameStates)
+    allCards = find_turn_decks(turnPoints, gameStates)
+    gainedCards = find_gained_cards(turnPoints, gameStates)
 
-        vpCards = find_vp(turnPoints, gameStates)
+    cleanupPoints = [x+y for x,y in zip(get_cleanup_points(moveTree), [-1] + turnPoints)]
+    cleanupPoints[0] = turnPoints[0] + 1
+    progressCards = find_shuffle_progress(turnPoints, cleanupPoints, gameStates)
 
-        graph_all_top = render_graph_row(allCards, [''], 0)
-        graph_all_bot = render_graph_row(allCards, [''], 1)
+    vpCards = find_vp(turnPoints, gameStates)
 
-        graph_gained_top = render_graph_row(gainedCards, ['redoutline', 'redoutline faded', ''], 0)
-        graph_gained_bot = render_graph_row(gainedCards, ['redoutline', 'redoutline faded', ''], 1)
+    graph_all_top = render_graph_row(allCards, [''], 0)
+    graph_all_bot = render_graph_row(allCards, [''], 1)
 
-        graph_progress_top = render_graph_row(progressCards, ['faded', '', 'faded'], 0)
-        graph_progress_bot = render_graph_row(progressCards, ['faded', '', 'faded'], 1)
+    graph_gained_top = render_graph_row(gainedCards, ['redoutline', 'redoutline faded', ''], 0)
+    graph_gained_bot = render_graph_row(gainedCards, ['redoutline', 'redoutline faded', ''], 1)
 
-        graph_vps_top = render_vp_row(vpCards, 0)
-        graph_vps_bot = render_vp_row(vpCards, 1)
+    graph_progress_top = render_graph_row(progressCards, ['faded', '', 'faded'], 0)
+    graph_progress_bot = render_graph_row(progressCards, ['faded', '', 'faded'], 1)
 
-        axisLabels = render_axis_labels(turnOwners)
-        bgData_top = render_graph_background(turnOwners, shuffledTurns, 0)
-        bgData_bot = render_graph_background(turnOwners, shuffledTurns, 1)
-        legendBoxes = render_legend_boxes(involvedCards)
-        sidebarLabels = render_story_sidebar_labels(turnOwners, turnPoints)
-        story = elaborate_story(players, moveTree)
+    graph_vps_top = render_vp_row(vpCards, 0)
+    graph_vps_bot = render_vp_row(vpCards, 1)
 
-        #DEBUG BLOCK
-        full_printout(moveTree, gameStates)
+    axisLabels = render_axis_labels(turnOwners)
+    bgData_top = render_graph_background(turnOwners, shuffledTurns, 0)
+    bgData_bot = render_graph_background(turnOwners, shuffledTurns, 1)
+    legendBoxes = render_legend_boxes(involvedCards)
+    sidebarLabels = render_story_sidebar_labels(turnOwners, turnPoints)
+    story = elaborate_story(players, moveTree)
 
-        kingdom = render_kingdom(moveData[1])
+    #DEBUG BLOCK
+    full_printout(moveTree, gameStates)
 
-        titleString = 'Game #{}: {} - {}'.format(game_id, players[0],players[1])
+    kingdom = render_kingdom(moveData[1])
 
-        context = {
-            'title_string' : titleString,
-            'graph_all_top' : graph_all_top,
-            'graph_all_bot' : graph_all_bot,
-            'graph_gained_top' : graph_gained_top,
-            'graph_gained_bot' : graph_gained_bot,
-            'graph_progress_top' : graph_progress_top,
-            'graph_progress_bot' : graph_progress_bot,
-            'graph_vps_top': graph_vps_top[0],
-            'graph_vps_labels_top': graph_vps_top[1],
-            'graph_vps_bot': graph_vps_bot[0],
-            'graph_vps_labels_bot': graph_vps_bot[1],
-            'turnOwners' : turnOwners,
-            'bgData_top' : bgData_top,
-            'bgData_bot' : bgData_bot,
-            'axisLabels' : axisLabels,
-            'legendBoxes' : legendBoxes,
-            'story_lines' : story,
-            'sidebar_labels' : sidebarLabels,
-            'kingdomCards' : kingdom
-        }
+    titleString = 'Game #{}: {} - {}'.format(game_id, players[0],players[1])
 
-    except Exception:
-        log = get_object_or_404(GameLog, game_id=game_id)
-        log.valid = False
-        raise
-
+    context = {
+        'title_string': titleString,
+        'graph_all_top': graph_all_top,
+        'graph_all_bot': graph_all_bot,
+        'graph_gained_top': graph_gained_top,
+        'graph_gained_bot': graph_gained_bot,
+        'graph_progress_top': graph_progress_top,
+        'graph_progress_bot': graph_progress_bot,
+        'graph_vps_top': graph_vps_top[0],
+        'graph_vps_labels_top': graph_vps_top[1],
+        'graph_vps_bot': graph_vps_bot[0],
+        'graph_vps_labels_bot': graph_vps_bot[1],
+        'turnOwners': turnOwners,
+        'bgData_top': bgData_top,
+        'bgData_bot': bgData_bot,
+        'axisLabels': axisLabels,
+        'legendBoxes': legendBoxes,
+        'story_lines': story,
+        'sidebar_labels': sidebarLabels,
+        'kingdomCards': kingdom
+    }
 
     return render(request, 'woodcutter/display.html', context)
+
+def error_list(request):
+    for log in GameLog.objects.all():
+        moveData = unpack(log.log, log.supply)
+        moveTree = parse_game(moveData[0])
+        gameStates = get_decision_state(moveTree, moveData[1])
+
+        log.valid = gameStates[-1].valid
+        log.save()
+
+    rawLogs = GameLog.objects.filter(valid=False).all()
+    errorLogs = []
+    for rawLog in rawLogs:
+        players = rawLog.players.split('~')
+        title = 'Game #{}: {} - {}'.format(rawLog.game_id, players[0], players[1])
+
+        errorLogs.append([title])
+
+    context = {
+        'error_logs': errorLogs
+    }
+    return render(request, 'woodcutter/errorList.html', context)
+
 
 def error_404(request):
     data = {}

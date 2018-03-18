@@ -1,6 +1,6 @@
 
 body{
-	background: #202020;	
+	background: #141411;	
 }
 
 .content-container{
@@ -15,7 +15,7 @@ body{
 p{
 	width: 50%;
 	padding: 10px;
-	background: #444444;
+	background: #383838;
 
 	font-family: "Segoe UI";
 	text-align: center;
@@ -35,4 +35,32 @@ h1{
 	color: #FFFFFF;
 	font: 3.5vh Verdana;
 	text-shadow: 1px 1px 0 #000;
+}
+
+.log-list{
+	width: 50%;
+	padding: 10px;
+	background: #383838;
+
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+}
+
+.log-entry{
+	width: 80%;
+
+	display: flex;
+	flex-direction: row;
+	justify-content: flex-start;
+	align-items: center;
+}
+
+.log-info{
+	width: 40%;
+
+	font: 1.5vh "Segoe UI";
+	text-align: left;
+	color: #FFFFFF;
 }

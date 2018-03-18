@@ -14,7 +14,7 @@ standardCards = []
 
 class Card:
     def __init__(self, simple_name, multi_name, phrase_name,
-                 cost, supply_type, border_color, card_color, 
+                 cost, supply_type, border_color, card_color,
                  action, worth = lambda x,y: 0):
 
         self.simple_name = simple_name
@@ -29,9 +29,6 @@ class Card:
 
     def names(self):
         return [self.simple_name, self.multi_name, self.phrase_name]
-
-    def action(self, pred):
-        self.action(pred)
 
 class Exception:
     def __init__(self, condition, action, name='Exception'):
@@ -156,6 +153,7 @@ class gameState:
         self.coinsLower = [0, 0]
         self.vps = [0, 0]
         self.obelisk = []
+        self.valid = True
 
     def __str__(self):
         outstr = ''
@@ -172,12 +170,10 @@ class gameState:
 
         if len((itemsNoArgs - getattr(self, src)[min(len(getattr(self, src))-1, player)]).cardList()) > 0:
             print('ILLEGAL MOVE {} from {} to {}'.format(items, src, dest))
-            global parseOK
-            parseOK = False
+            self.valid = False
 
         getattr(self, src)[min(len(getattr(self, src))-1, player)] -= itemsNoArgs
         getattr(self, dest)[min(len(getattr(self, dest))-1, player)] += itemsNoArgs
-
 
     def add(self, player, dest, items):
         getattr(self, dest)[min(len(getattr(self, dest))-1, player)] += items

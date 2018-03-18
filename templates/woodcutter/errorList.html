@@ -1,0 +1,23 @@
+{% load static %}
+
+<html>
+	<head>
+		<title>Dominion Woodcutter</title>
+		<meta name='viewport' content='width=device-width, initial-scale=1'>
+		<link rel='stylesheet' href="{% static 'woodcutter/mainstyle.css' %}">
+	</head>
+	<body>
+		<div class = 'content-container'>
+			<h1> Errors </h1>
+			<p>These are the logs with errors! Yay!</p>
+			<div class = 'log-list'>
+				{% for log in error_logs %}
+				<div class = 'log-entry'>
+					<div class = 'log-info'>{{ log.0 }}</div>
+					<div class = 'log-kingdom'></div>
+				</div>
+				{% endfor %}
+			</div>
+		</div>
+	</body>
+</html>
