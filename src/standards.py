@@ -550,7 +550,11 @@ t = Card('Wishing Well', 'Wishing Wells', 'a Wishing Well', 3, 0, 'c4c0b4', '617
 standardCards.append(t)
 
 # 61: Ambassador
-t = Card('Ambassador', 'Ambassadors', 'an Ambassador', 3, 0, 'c4c0b4', 'b8602c', empty)
+def ambassador_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
+    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        exceptions.append(Exception(standard_condition(['RETURN TO']), moveException('HANDS', 'SUPPLY')))
+
+t = Card('Ambassador', 'Ambassadors', 'an Ambassador', 3, 0, 'c4c0b4', 'b8602c', ambassador_action)
 standardCards.append(t)
 
 # 62: Bazaar
@@ -3451,7 +3455,12 @@ standardPreds.append(t)
 
 # 7
 def pred7Action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    gameStates[-1].move(chunkMoves[0].player, 'HANDS', 'TRASH', chunkMoves[0].items)
+    #Mining Village Bug
+    if standardCards[chunkMoves[0].items.cardList()[0]].simple_name == 'Mining Village'\
+       and chunkMoves[0].indent == 0:
+        gameStates[-1].move(chunkMoves[0].player, 'INPLAYS', 'TRASH', chunkMoves[0].items)
+    else:
+        gameStates[-1].move(chunkMoves[0].player, 'HANDS', 'TRASH', chunkMoves[0].items)
 
     # Market Square
     exceptions.append(Exception(standard_condition(['DISCARD'],['Market Square']),moveException('HANDS', 'DISCARDS')))
