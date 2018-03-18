@@ -50,7 +50,6 @@ def parse_game(parsedLog):
                 currentTurn = [currentMove]
             else:
                 pointer = currentTurn
-
                 #grrr
                 if currentMove.indent > lastIndent + 1:
                     indentBugDiff = currentMove.indent - lastIndent - 1

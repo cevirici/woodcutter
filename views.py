@@ -49,11 +49,11 @@ def display(request, game_id):
     moveTree = parse_game(moveData[0])
     try:
         gameStates = get_decision_state(moveTree, moveData[1])
-    except Exception:
+    except BaseException:
         log.valid = False
         log.save()
         raise
-        
+
     log.valid = gameStates[-1].valid
     log.save()
 
