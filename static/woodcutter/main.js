@@ -170,16 +170,16 @@ $('.modalcontrolbox').click(function(){
 
 $('.graph-control').click(function(){		
 	if ($(this).index('.graph-control')==0){
-		$('.row').toggleClass('topshifted');
-		$('.axis').toggleClass('topshifted');
-		$('.row').removeClass('downshifted');
-		$('.axis').removeClass('downshifted');
+		$('.graph-container').toggleClass('topshifted');
+		$('.graph-background').toggleClass('topshifted');
+		$('.graph-container').removeClass('downshifted');
+		$('.graph-background').removeClass('downshifted');
 	}
 	else{
-		$('.row').toggleClass('downshifted');
-		$('.axis').toggleClass('downshifted');
-		$('.row').removeClass('topshifted');
-		$('.axis').removeClass('topshifted');
+		$('.graph-container').toggleClass('downshifted');
+		$('.graph-container').removeClass('topshifted');
+		$('.graph-background').toggleClass('downshifted');
+		$('.graph-background').removeClass('topshifted');
 	}
 
 	$('.graph-control').not(this).removeClass('highlight');

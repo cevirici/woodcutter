@@ -1,7 +1,8 @@
 /*********** Everything Animated ***********/
 
-.axis, .axislabel, .box, .controlbox, .graph-control, .graph-layer, .inner-color,
-.kingdom-card, .legendbox, .modal, .modalcontrolbox, .scale-bar, .settingsbox,
+.axis, .axislabel, .box, .controlbox, .graph-background, .graph-container, .graph-control, 
+.graph-layer, .inner-color, .kingdom-card, .legendbox, .modal, 
+.modalcontrolbox, .scale-bar, .settingsbox,
 .story-sidebar-block, .vpbox{
 	-moz-transition: all 0.5s;
 	-o-transition: all 0.5s;
@@ -134,6 +135,13 @@ modals{
 	display: none;
 }
 
+.graph-container.downshifted, .graph-background.downshifted{
+	transform: translateY(47%);
+}
+.graph-container.topshifted, .graph-background.topshifted{
+	transform: translateY(-47%);
+}
+
 .graph-layer{
 	position: absolute;
 	width: 100%;
@@ -147,17 +155,6 @@ modals{
 	top: 0;
 
 	display: flex;
-
-	transition: top 0.5s;
-	-moz-transition: top 0.5s;
-	-o-transition: top 0.5s;
-	-webkit-transition: top 0.5s;
-}
-.row.downshifted{
-	top: 47%;
-}
-.row.topshifted{
-	top: -47%;
 }
 .row:nth-child(1){
 	transform-origin: bottom;
@@ -172,12 +169,7 @@ modals{
 	background: #111111;
 
 	display: flex;
-}
-.axis.downshifted{
-	transform: translateY(783.333%);
-}
-.axis.topshifted{
-	transform: translateY(-783.333%);
+	visibility: hidden;
 }
 
 .axislabel{
