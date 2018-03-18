@@ -47,8 +47,13 @@ def display(request, game_id):
     players = log.players.split('~')
 
     moveTree = parse_game(moveData[0])
-    gameStates = get_decision_state(moveTree, moveData[1])
-
+    try:
+        gameStates = get_decision_state(moveTree, moveData[1])
+    except Exception:
+        log.valid = False
+        log.save()
+        raise
+        
     log.valid = gameStates[-1].valid
     log.save()
 
