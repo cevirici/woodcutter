@@ -13,7 +13,11 @@
 			<div class = 'log-list'>
 				{% for log in error_logs %}
 				<div class = 'log-entry'>
-					<div class = 'log-info'>{{ log.0 }}</div>
+					<div class = 'log-info'>
+						<a href = "{% url 'woodcutter:display' game_id=log.1 %}">
+							{{ log.0 }}
+						</a>
+					</div>
 					<div class = 'log-kingdom'></div>
 				</div>
 				{% endfor %}
