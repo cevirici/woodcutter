@@ -619,7 +619,7 @@ def island_action(chunkMoves, gameStates, exceptions, turnExceptions, persistent
             if standardCards[item].simple_name != 'Island':
                 itemsSansIsland.insert(item, chunkMoves[0].items[item])
             else:
-                IslandId = item
+                islandId = item
 
         def islandSetaside(items, islandId):
             def out_function(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
