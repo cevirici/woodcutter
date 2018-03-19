@@ -440,7 +440,7 @@ def lurker_action(chunkMoves, gameStates, exceptions, turnExceptions, persistent
         exceptions.append(Exception(standard_condition(['GAIN']), standardOnGains('DECKS', chunkMoves[0].items)))
 
 
-t = Card('Lurker', 'Lurkers', 'a Lurker', 2, 0, 'c4c0b4', '909ab2', empty)
+t = Card('Lurker', 'Lurkers', 'a Lurker', 2, 0, 'c4c0b4', '909ab2', lurker_action)
 standardCards.append(t)
 
 # 46: Masquerade
@@ -612,7 +612,27 @@ t = Card('Haven', 'Havens', 'a Haven', 2, 0, 'dda561', '866846', empty)
 standardCards.append(t)
 
 # 70: Island
-t = Card('Island', 'Islands', 'an Island', 4, 0, 'aac298', '5d9fbd', empty, staticWorth(2))
+def island_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
+    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        itemsSansIsland = Cardstack({})
+        for item in chunkMoves[0].items:
+            if standardCards[item].simple_name != 'Island':
+                itemsSansIsland.insert(item, chunkMoves[0].items[item])
+            else:
+                IslandId = item
+
+        def islandSetaside(items, islandId):
+            def out_function(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
+                gameStates[-1].move(chunkMoves[0].player, 'INPLAYS', 'OTHERS',
+                                    Cardstack({islandId: 1}))
+                gameStates[-1].move(chunkMoves[0].player, 'HANDS', 'OTHERS',
+                                    items)
+            return out_function
+
+        exceptions.append(Exception(standard_condition(['PUT ONTO']),
+                                    islandSetaside(itemsSansIsland, islandId)))
+
+t = Card('Island', 'Islands', 'an Island', 4, 0, 'aac298', '5d9fbd', island_action, staticWorth(2))
 standardCards.append(t)
 
 # 71: Lighthouse
@@ -3171,7 +3191,7 @@ def pixie_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents
             itemsSansPixie = Cardstack({})
             for item in chunkMoves[0].items:
                 if standardCards[item].simple_name != 'Pixie':
-                    itemsSansPixie.insert(item, chunkMOves[0].items[item])
+                    itemsSansPixie.insert(item, chunkMoves[0].items[item])
                 else:
                     pixieId = item
 
