@@ -67,6 +67,7 @@ def standardOnGains(src, gainedCard):
                              topdeckerMove))
         exc.append(Exception(standardCondition(['TRASH'], [gainedName]),
                              trasherMove))
+        exc.append(standardException(['PUT INHAND'], src, 'HANDS', ['Villa']))
 
     return out_function
 
@@ -3347,7 +3348,7 @@ def standardGains(source, destination='DISCARDS'):
                 gS[-1].move(cM[0].player, source, 'DECKS', exceptionalStuff)
                 standardOnGains('DECKS', exceptionalStuff)(cM, gS, exc, tExc, pers)
 
-            if standardCards[card].simple_name in ['Villa', 'Den Of Sin', 'Guardian', 
+            if standardCards[card].simple_name in ['Den Of Sin', 'Guardian',
                                                    'Ghost Town', 'Night Watchman']:
                 exceptionalStuff = Cardstack({card: targetStuff[card]})
                 targetStuff -= exceptionalStuff
