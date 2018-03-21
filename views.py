@@ -134,7 +134,7 @@ def error_list(request):
         except BaseException:
             log.valid = False
             log.save()
-            raise
+
         log.valid = gameStates[-1].valid
         log.save()
 
