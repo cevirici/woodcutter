@@ -1,4 +1,5 @@
 from .classes import *
+from copy import deepcopy
 
 '''GAAAAH FUCK HERMIT
 AND BOM
@@ -54,10 +55,19 @@ def standardOnGains(source, gainedCard):
         gameStates[-1].move(chunkMoves[0].player, source, 'DECKS',
                             gainedCard)
 
+    def trasherMove(chunkMoves, gameStates, exceptions,
+                     turnExceptions, persistents):
+        gameStates[-1].move(chunkMoves[0].player, source, 'TRASH',
+                            gainedCard)
 
     def out_function(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-        exceptions.append(Exception(standard_condition(['TOPDECK']), topdeckerMove))
-        exceptions.append(Exception(standard_condition(['TRASH']), moveException(source, 'TRASH')))
+        gainedCardName = standardCards[gainedCard.cardList()[0]].simple_name
+        exceptions.append(Exception(standard_condition(['TOPDECK'],
+                                    [gainedCardName]),
+                                    topdeckerMove))
+        exceptions.append(Exception(standard_condition(['TRASH'],
+                                    [gainedCardName]),
+                                    trasherMove))
 
     return out_function
 
@@ -87,6 +97,12 @@ def standard_boonhex(chunkMoves, gameStates, exceptions, turnExceptions, persist
                                     moveException('SUPPLY', 'DECKS')))
         exceptions.append(Exception(standard_condition(['GAIN'], ['Copper']),
                                     standardOnGains('DECKS', chunkMoves[0].items)))
+
+    elif whichBoon.simple_name == 'Plague':
+        exceptions.append(Exception(standard_condition(['GAIN'], ['Curse']),
+                                    moveException('SUPPLY', 'HANDS')))
+        exceptions.append(Exception(standard_condition(['GAIN'], ['Curse']),
+                                    standardOnGains('HANDS', chunkMoves[0].items)))
 
     elif whichBoon.simple_name == 'Bad Omens':
         exceptions.append(Exception(standard_condition(['DISCARD']), moveException('DECKS', 'DISCARDS')))
@@ -1566,12 +1582,7 @@ t = Card('Noble Brigand', 'Noble Brigands', 'a Noble Brigand', 4, 0, 'c4c0b4', '
 standardCards.append(t)
 
 # 162: Nomad Camp
-def nomadCamp_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['BUY AND GAIN', 'GAIN TOPDECK', 'GAIN TRASH', 'GAIN']:
-        moveException('SUPPLY', 'DECKS')(chunkMoves, gameStates, exceptions, turnExceptions, persistents)
-        standardOnGains('DECKS', chunkMoves[0].items)(chunkMoves, gameStates, exceptions, turnExceptions, persistents)
-
-t = Card('Nomad Camp', 'Nomad Camps', 'a Nomad Camp', 4, 0, 'c4c0b4', '87a1b1', nomadCamp_action)
+t = Card('Nomad Camp', 'Nomad Camps', 'a Nomad Camp', 4, 0, 'c4c0b4', '87a1b1', empty)
 standardCards.append(t)
 
 # 163: Oasis
@@ -2337,8 +2348,14 @@ standardCards.append(t)
 t = Card('Swamp Hag', 'Swamp Hags', 'a Swamp Hag', 5, 0, 'dda561', '8c462e', empty)
 standardCards.append(t)
 
+
 # 291: Teacher
-t = Card('Teacher', 'Teachers', 'a Teacher', 6, 1, 'c5af85', 'bb7937', empty)
+def teacher_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
+    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        exceptions.append(Exception(standard_condition(['PUT ONTO']),
+                          moveException('INPLAYS', 'OTHERS')))
+
+t = Card('Teacher', 'Teachers', 'a Teacher', 6, 1, 'c5af85', 'bb7937', teacher_action)
 standardCards.append(t)
 
 # 292: Travelling Fair
@@ -2356,8 +2373,8 @@ standardCards.append(t)
 # 295: Transmogrify
 def transmogrify_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
     if standardPreds[chunkMoves[0].pred].name in ['CALL']:
-        exceptions.append(Exception(standard_condition(['GAIN']),moveException('SUPPLY', 'HANDS')))
-        exceptions.append(Exception(standard_condition(['GAIN']),standardOnGains('HANDS', chunkMoves[0].items)))
+        exceptions.append(Exception(standard_condition(['GAIN']), moveException('SUPPLY', 'HANDS')))
+        exceptions.append(Exception(standard_condition(['GAIN']), standardOnGains('HANDS', chunkMoves[0].items)))
 
 t = Card('Transmogrify', 'Transmogrifies', 'a Transmogrify', 4, 0, 'c5af85', '6e6258', transmogrify_action)
 standardCards.append(t)
@@ -2839,12 +2856,7 @@ t = Card('Triumphal Arch', 'Triumphal Arches', 'a Triumphal Arch', 0, 2, '65ab6f
 standardCards.append(t)
 
 # 365: Villa
-def villa_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['BUY AND GAIN', 'GAIN TOPDECK', 'GAIN TRASH', 'GAIN']:
-        exceptions.append(Exception(standard_condition(['PUT INHAND'],['Villa']),moveException('DISCARDS', 'HANDS')))
-        exceptions.append(Exception(standard_condition(['GAIN']),standardOnGains('DISCARDS', chunkMoves[0].items)))
-
-t = Card('Villa', 'Villas', 'a Villa', 4, 0, 'c4c0b4', '87b34f', villa_action)
+t = Card('Villa', 'Villas', 'a Villa', 4, 0, 'c4c0b4', '87b34f', empty)
 standardCards.append(t)
 
 # 366: Wall
@@ -3060,13 +3072,9 @@ standardCards.append(t)
 t = Card('Cursed Village', 'Cursed Villages', 'a Cursed Village', 5, 0, 'c4c0b4', '265ea6', gaining_boonhex)
 standardCards.append(t)
 
-# 412: Den Of Sin
-def den_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['BUY AND GAIN', 'GAIN TOPDECK', 'GAIN TRASH', 'GAIN']:
-        moveException('DISCARDS', 'HANDS')(chunkMoves, gameStates, exceptions, turnExceptions, persistents)
-        standardOnGains('HANDS', chunkMoves[0].items)(chunkMoves, gameStates, exceptions, turnExceptions, persistents)
 
-t = Card('Den Of Sin', 'Dens Of Sin', 'a Den Of Sin', 5, 0, '7a5622', '2c2226', den_action)
+# 412: Den Of Sin
+t = Card('Den Of Sin', 'Dens Of Sin', 'a Den Of Sin', 5, 0, '7a5622', '2c2226', empty)
 standardCards.append(t)
 
 # 413: Devil\'s Workshop
@@ -3095,21 +3103,11 @@ t = Card('Fool', 'Fools', 'a Fool', 3, 0, 'c4c0b4', 'a7af3f', empty)
 standardCards.append(t)
 
 # 418: Ghost Town
-def ghosttown_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['BUY AND GAIN', 'GAIN TOPDECK', 'GAIN TRASH', 'GAIN']:
-        moveException('DISCARDS', 'HANDS')(chunkMoves, gameStates, exceptions, turnExceptions, persistents)
-        standardOnGains('HANDS', chunkMoves[0].items)(chunkMoves, gameStates, exceptions, turnExceptions, persistents)
-
-t = Card('Ghost Town', 'Ghost Towns', 'a Ghost Town', 3, 0, '7a5622', '173b57', ghosttown_action)
+t = Card('Ghost Town', 'Ghost Towns', 'a Ghost Town', 3, 0, '7a5622', '173b57', empty)
 standardCards.append(t)
 
 # 419: Guardian
-def guardian_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['BUY AND GAIN', 'GAIN TOPDECK', 'GAIN TRASH', 'GAIN']:
-        moveException('DISCARDS', 'HANDS')(chunkMoves, gameStates, exceptions, turnExceptions, persistents)
-        standardOnGains('HANDS', chunkMoves[0].items)(chunkMoves, gameStates, exceptions, turnExceptions, persistents)
-
-t = Card('Guardian', 'Guardians', 'a Guardian', 2, 0, '7a5622', '376db9', guardian_action)
+t = Card('Guardian', 'Guardians', 'a Guardian', 2, 0, '7a5622', '376db9', empty)
 standardCards.append(t)
 
 # 420: Idol
@@ -3171,9 +3169,6 @@ def watchman_action(chunkMoves, gameStates, exceptions, turnExceptions, persiste
         exceptions.append(Exception(standard_condition(['DISCARD']), moveException('DECKS', 'DISCARDS')))
         exceptions.append(Exception(standard_condition(['TOPDECK']), moveException('DECKS', 'DECKS')))
 
-    if standardPreds[chunkMoves[0].pred].name in ['BUY AND GAIN', 'GAIN TOPDECK', 'GAIN TRASH', 'GAIN']:
-        moveException('DISCARDS', 'HANDS')(chunkMoves, gameStates, exceptions, turnExceptions, persistents)
-        standardOnGains('HANDS', chunkMoves[0].items)(chunkMoves, gameStates, exceptions, turnExceptions, persistents)
 
 t = Card('Night Watchman', 'Night Watchmen', 'a Night Watchman', 3, 0, '30484e', '464266', watchman_action)
 standardCards.append(t)
@@ -3259,7 +3254,15 @@ t = Card('Tracker', 'Trackers', 'a Tracker', 2, 0, 'c4c0b4', '87c7d9', playing_b
 standardCards.append(t)
 
 # 435: Vampire
-t = Card('Vampire', 'Vampires', 'a Vampire', 5, 0, '30484e', '523a4c', playing_boonhex)
+def vampire_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
+    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        exceptions.append(Exception(standard_condition(['RETURN'], ['Vampire']),
+                                    moveException('INPLAYS', 'SUPPLY')))
+
+        standard_boonhex(chunkMoves, gameStates, exceptions, turnExceptions, persistents)
+
+
+t = Card('Vampire', 'Vampires', 'a Vampire', 5, 0, '30484e', '523a4c', vampire_action)
 standardCards.append(t)
 
 # 436: Werewolf
@@ -3306,8 +3309,15 @@ standardCards.append(t)
 t = Card('Pouch', 'Pouches', 'a Pouch', 2, 2, 'd8c280', '4A4A55', empty)
 standardCards.append(t)
 
+
 # 444: Bat
-t = Card('Bat', 'Bats', 'a Bat', 2, 1, '30484e', '475B5D', empty)
+def bat_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
+    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        exceptions.append(Exception(standard_condition(['RETURN'], ['Bat']),
+                                    moveException('INPLAYS', 'SUPPLY')))
+
+
+t = Card('Bat', 'Bats', 'a Bat', 2, 1, '30484e', '475B5D', bat_action)
 standardCards.append(t)
 
 # 445: Ghost
@@ -3437,36 +3447,47 @@ def newTurnAction(chunkMoves, gameStates, exceptions, turnExceptions, persistent
 t = Pred("^Turn (?P<cards>.*) - (?P<player>.*)$", newTurnAction, "NEW TURN")
 standardPreds.append(t)
 
-# 2
-def pred2Action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    gameStates[-1].move(chunkMoves[0].player, 'SUPPLY', 'DISCARDS', chunkMoves[0].items)
-    standardOnGains('DISCARDS', chunkMoves[0].items)(chunkMoves, gameStates, exceptions, turnExceptions, persistents)
 
-t = Pred("^(?P<player>.*) buys and gains (?P<cards>.*)\.$", pred2Action, "BUY AND GAIN")
+def standardGains(source):
+    def out_function(cM, gS, exc, tExc, pers):
+        targetStuff = deepcopy(cM[0].items)
+
+        for card in targetStuff:
+            if standardCards[card].simple_name in ['Nomad Camp']:
+                exceptionalStuff = Cardstack({card: targetStuff[card]})
+                targetStuff -= exceptionalStuff
+
+                gS[-1].move(cM[0].player, source, 'DECKS', exceptionalStuff)
+                standardOnGains('DECKS', exceptionalStuff)(cM, gS, exc, tExc, pers)
+
+            if standardCards[card].simple_name in ['Villa', 'Den Of Sin', 'Guardian', 
+                                                   'Ghost Town', 'Night Watchman']:
+                exceptionalStuff = Cardstack({card: targetStuff[card]})
+                targetStuff -= exceptionalStuff
+
+                gS[-1].move(cM[0].player, source, 'HANDS', exceptionalStuff)
+                standardOnGains('HANDS', exceptionalStuff)(cM, gS, exc, tExc, pers)
+
+        if targetStuff.count() > 0:
+            gS[-1].move(cM[0].player, source, 'DISCARDS', targetStuff)
+            standardOnGains('DISCARDS', targetStuff)(cM, gS, exc, tExc, pers)
+
+    return out_function
+
+# 2
+t = Pred("^(?P<player>.*) buys and gains (?P<cards>.*)\.$", standardGains('SUPPLY'), "BUY AND GAIN")
 standardPreds.append(t)
 
 # 3
-def pred3Action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    gameStates[-1].move(chunkMoves[0].player, 'SUPPLY', 'DECKS', chunkMoves[0].items)
-    standardOnGains('DECKS', chunkMoves[0].items)(chunkMoves, gameStates, exceptions, turnExceptions, persistents)
-
-t = Pred("^(?P<player>.*) gains (?P<cards>.*) onto their drawpile\.$", pred3Action, "GAIN TOPDECK")
+t = Pred("^(?P<player>.*) gains (?P<cards>.*) onto their drawpile\.$", standardGains('SUPPLY'), "GAIN TOPDECK")
 standardPreds.append(t)
 
 # 4
-def pred4Action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    gameStates[-1].move(chunkMoves[0].player, 'TRASH', 'DISCARDS', chunkMoves[0].items)
-    standardOnGains('DISCARDS', chunkMoves[0].items)(chunkMoves, gameStates, exceptions, turnExceptions, persistents)
-
-t = Pred("^(?P<player>.*) gains (?P<cards>.*) from trash\.$", pred4Action, "GAIN TRASH")
+t = Pred("^(?P<player>.*) gains (?P<cards>.*) from trash\.$", standardGains('TRASH'), "GAIN TRASH")
 standardPreds.append(t)
 
 # 5
-def pred5Action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    gameStates[-1].move(chunkMoves[0].player, 'SUPPLY', 'DISCARDS', chunkMoves[0].items)
-    standardOnGains('DISCARDS', chunkMoves[0].items)(chunkMoves, gameStates, exceptions, turnExceptions, persistents)
-
-t = Pred("^(?P<player>.*) gains (?P<cards>.*)\.$", pred5Action, "GAIN")
+t = Pred("^(?P<player>.*) gains (?P<cards>.*)\.$", standardGains('SUPPLY'), "GAIN")
 standardPreds.append(t)
 
 # 6
@@ -3708,8 +3729,8 @@ standardPreds.append(t)
 
 # 42
 def buyAction(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    # Trashing Hovel
-    exceptions.append(Exception(standard_condition(['TRASH']),moveException('HANDS', 'TRASH')))
+    # Trashing Hovel, plan etc.
+    exceptions.append(Exception(standard_condition(['TRASH']), moveException('HANDS', 'TRASH')))
 
 t = Pred("^(?P<player>.*) buys (?P<cards>.*)\.$", empty, "BUY")
 standardPreds.append(t)
@@ -4137,4 +4158,4 @@ standardPersistents.append(Exception(urchin_trash_condition, urchin_trash_except
 standardPersistents.append(Exception(standard_condition(['SET ASIDE'], ['Horse Traders']), moveException('HANDS', 'OTHERS')))
 standardPersistents.append(Exception(standard_condition(['RETURN TO'], ['Encampment']), moveException('OTHERS', 'SUPPLY')))
 travellers = ['Page', 'Treasure Hunter', 'Warrior', 'Hero', 'Champion', 'Peasant', 'Soldier', 'Fugitive', 'Disciple', 'Teacher']
-standardPersistents.append(Exception(standard_condition(['RETURN'], travellers), moveException('INPLAYS', 'SUPPLY')))
+standardPersistents.append(Exception(standard_condition(['RETURN'], travellers),  moveException('INPLAYS', 'SUPPLY')))

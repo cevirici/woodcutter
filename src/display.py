@@ -230,8 +230,8 @@ def elaborate_cards(cardlist):
             else:
                 thisPhrase = '{} {}'.format(cardlist[item],thisCard.multi_name)
 
-            thisPhrase = "<div class='story-color' style='background : #{}; \
-                           outline-color : #{};' card = {}>{}</div>".format(
+            thisPhrase = "<div class='story-color' style='background: #{}; \
+                           outline-color: #{};' card = {}>{}</div>".format(
                            thisCard.card_color, thisCard.border_color, item, thisPhrase)
 
             phrases.append(thisPhrase)
@@ -251,19 +251,27 @@ def elaborate_story(players, moveTree):
             argumentsSplit = entry.items[ARGUMENT_CARD].split('/')
 
         entryString = standardPreds[entry.pred].regex
-        entryString = re.sub(r'\^?\(\?P<player>\.\*\)',players[entry.player],entryString)
+
+        PLAYER_COLORS = ['#4277FE', '#FF4545']
+        PLAYER_OUTLINES = ['#CECECE', '#CECECE']
+        playerDiv = makeDiv('story-color',
+                            {'background': PLAYER_COLORS[entry.player],
+                             'outline-color': PLAYER_OUTLINES[entry.player]
+                             },
+                            innerHTML=players[entry.player])
+        entryString = re.sub(r'\^?\(\?P<player>\.\*\)', playerDiv, entryString)
 
         elab = elaborate_cards(entry.items)
         if elab:
             entryString = re.sub(r'\(\?P<cards>(\.\*)\)', elab, entryString)
         elif argumentsSplit:
-            if re.search(r'\(\?P<cards>(\.\*)\)', entryString) != None:
+            if re.search(r'\(\?P<cards>(\.\*)\)', entryString) is not None:
                 entryString = re.sub(r'\(\?P<cards>(\.\*)\)', argumentsSplit.pop(0), entryString)
 
-        entryString = reduce(lambda x,y: re.sub(r'\(\.\*\)',y,x,1), argumentsSplit,entryString)
+        entryString = reduce(lambda x, y: re.sub(r'\(\.\*\)', y, x, 1), argumentsSplit, entryString)
 
-        entryString = re.sub(r'\\([\.\(\)])',r'\1',entryString)
-        entryString = re.sub('\^|\$|\*','',entryString)
+        entryString = re.sub(r'\\([\.\(\)])', r'\1', entryString)
+        entryString = re.sub('\^|\$|\*', '', entryString)
 
         return entryString
 
