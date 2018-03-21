@@ -8,21 +8,20 @@ AND INHERITANCE
 AND ROCKS
 AND ENCHANTRESS'''
 
-pred_parse_order = list(range(26)) + [119] + list(range(26,125))
+pred_parse_order = list(range(26)) + [119] + list(range(26, 125))
 
-def empty(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
+def empty(cM, gS, exc, tExc, pers):
     pass
 
-
-def standard_condition(predList, targetList=[]):
-    def out_function(chunkMoves):
+def standardCondition(predList, targetList=[]):
+    def out_function(cM):
         if predList:
-            if standardPreds[chunkMoves[0].pred].name not in predList:
+            if standardPreds[cM[0].pred].name not in predList:
                 return False
         if targetList:
             inside = False
             for card in targetList:
-                if standardNames.index(card) in chunkMoves[0].items:
+                if standardNames.index(card) in cM[0].items:
                     inside = True
             if not inside:
                 return False
@@ -31,103 +30,106 @@ def standard_condition(predList, targetList=[]):
     return out_function
 
 
-def moveException(source, destination):
-    def out_function(chunkMoves, gameStates, exceptions,
-                     turnExceptions, persistents):
-        gameStates[-1].move(chunkMoves[0].player, source, destination,
-                            chunkMoves[0].items)
-
+def moveException(src, dest):
+    def out_function(cM, gS, exc, tExc, pers):
+        standardMove(src, dest, cM, gS)
     return out_function
+
+
+def standardMove(src, dest, cM, gS):
+    gS[-1].move(cM[0].player, src, dest, cM[0].items)
+
+
+def standardException(predList, src, dest, targetList=[]):
+    return Exception(standardCondition(predList, targetList),
+                     moveException(src, dest))
 
 
 def gainCash(amount):
-    def out_function(chunkMoves, gameStates, exceptions,
-                     turnExceptions, persistents):
-        player = chunkMoves[0].player
-        gameStates[-1].coins[player] += amount
+    def out_function(cM, gS, exc, tExc, pers):
+        player = cM[0].player
+        gS[-1].coins[player] += amount
 
     return out_function
 
 
-def standardOnGains(source, gainedCard):
-    def topdeckerMove(chunkMoves, gameStates, exceptions,
-                     turnExceptions, persistents):
-        gameStates[-1].move(chunkMoves[0].player, source, 'DECKS',
-                            gainedCard)
+def standardOnGains(src, gainedCard):
+    def topdeckerMove(cM, gS, exc, tExc, pers):
+        gS[-1].move(cM[0].player, src, 'DECKS', gainedCard)
 
-    def trasherMove(chunkMoves, gameStates, exceptions,
-                     turnExceptions, persistents):
-        gameStates[-1].move(chunkMoves[0].player, source, 'TRASH',
-                            gainedCard)
+    def trasherMove(cM, gS, exc, tExc, pers):
+        gS[-1].move(cM[0].player, src, 'TRASH', gainedCard)
 
-    def out_function(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-        gainedCardName = standardCards[gainedCard.cardList()[0]].simple_name
-        exceptions.append(Exception(standard_condition(['TOPDECK'],
-                                    [gainedCardName]),
-                                    topdeckerMove))
-        exceptions.append(Exception(standard_condition(['TRASH'],
-                                    [gainedCardName]),
-                                    trasherMove))
+    def out_function(cM, gS, exc, tExc, pers):
+        gainedName = gainedCard.primary()
+        exc.append(Exception(standardCondition(['TOPDECK'], [gainedName]),
+                             topdeckerMove))
+        exc.append(Exception(standardCondition(['TRASH'], [gainedName]),
+                             trasherMove))
 
     return out_function
 
-def standard_boonhex(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
+
+def standard_boonhex(cM, gS, exc, tExc, pers):
     whichBoon = standardCards[CARD_CARD]
-    for subchunk in chunkMoves[1:]:
-        if standardPreds[subchunk[0].pred].name in ['RECEIVE BOONHEX', 'TAKES BOONHEX']:
-            whichBoon = standardCards[subchunk[0].items.cardList()[0]]
+    for subchunk in cM[1:]:
+        if subchunk[0].predName() in ['RECEIVE BOONHEX', 'TAKES BOONHEX']:
+            whichBoon = subchunk[0].items.primary()
             break
 
-    if whichBoon.simple_name == 'The Sun\'s Gift':
-        exceptions.append(Exception(standard_condition(['TOPDECK']), moveException('DECKS', 'DECKS')))
-        exceptions.append(Exception(standard_condition(['DISCARD']), moveException('DECKS', 'DISCARDS')))
+    if whichBoon == 'The Sun\'s Gift':
+        exc.append(exc_revealTopdeck)
+        exc.append(exc_revealDiscard)
 
-    elif whichBoon.simple_name == 'The Moon\'s Gift':
-        exceptions.append(Exception(standard_condition(['TOPDECK']), moveException('DISCARDS', 'DECKS')))
+    elif whichBoon == 'The Moon\'s Gift':
+        exc.append(exc_harbinger)
 
-    elif whichBoon.simple_name == 'Locusts':
-        exceptions.append(Exception(standard_condition(['TRASH']), moveException('DECKS', 'TRASH')))
+    elif whichBoon == 'Locusts':
+        exc.append(exc_revealTrash)
 
-    elif whichBoon.simple_name == 'War':
-        exceptions.append(Exception(standard_condition(['TRASH']), moveException('DECKS', 'TRASH')))
-        exceptions.append(Exception(standard_condition(['DISCARD']), moveException('DECKS', 'DISCARDS')))
+    elif whichBoon == 'War':
+        exc.append(exc_revealTrash)
+        exc.append(exc_revealDiscard)
 
-    elif whichBoon.simple_name == 'Greed':
-        exceptions.append(Exception(standard_condition(['GAIN'], ['Copper']),
-                                    moveException('SUPPLY', 'DECKS')))
-        exceptions.append(Exception(standard_condition(['GAIN'], ['Copper']),
-                                    standardOnGains('DECKS', chunkMoves[0].items)))
+    elif whichBoon == 'Greed':
+        exc.append(standardException(['GAIN'], 'SUPPLY', 'DECKS', ['Copper']))
+        exc.append(Exception(standardCondition(['GAIN'], ['Copper']),
+                             standardOnGains('DECKS', cM[0].items)))
 
-    elif whichBoon.simple_name == 'Plague':
-        exceptions.append(Exception(standard_condition(['GAIN'], ['Curse']),
-                                    moveException('SUPPLY', 'HANDS')))
-        exceptions.append(Exception(standard_condition(['GAIN'], ['Curse']),
-                                    standardOnGains('HANDS', chunkMoves[0].items)))
+    elif whichBoon == 'Plague':
+        exc.append(standardException(['GAIN'], 'SUPPLY', 'HANDS', ['Curse']))
+        exc.append(Exception(standardCondition(['GAIN'], ['Curse']),
+                             standardOnGains('HANDS', cM[0].items)))
 
-    elif whichBoon.simple_name == 'Bad Omens':
-        exceptions.append(Exception(standard_condition(['DISCARD']), moveException('DECKS', 'DISCARDS')))
-        exceptions.append(Exception(standard_condition(['TOPDECK']), moveException('DISCARDS', 'DECKS')))
+    elif whichBoon == 'Bad Omens':
+        exc.append(exc_revealDiscard)
+        exc.append(exc_harbinger)
 
-    elif whichBoon.simple_name == 'Famine':
-        exceptions.append(Exception(standard_condition(['DISCARD']), moveException('DECKS', 'DISCARDS')))
-        exceptions.append(Exception(standard_condition(['SHUFFLE INTO']), moveException('DECKS', 'DECKS')))
+    elif whichBoon == 'Famine':
+        exc.append(exc_revealDiscard)
+        exc.append(standardException(['SHUFFLE INTO'], 'DECKS', 'DECKS'))
 
 
-def standard_play(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    for card in chunkMoves[0].items:
+def standardOnPlay(cM, gS, exc, tExc, pers):
+    for card in cM[0].items:
         if card != ARGUMENT_CARD:
-            for i in range(chunkMoves[0].items[card]):
-                standardCards[card].action(chunkMoves, gameStates, exceptions, turnExceptions, persistents)
+            for i in range(cM[0].items[card]):
+                standardCards[card].action(cM, gS, exc, tExc, pers)
 
 
 def staticWorth(val):
-    def out_function(gameState, player):
+    def out_function(gS, player):
         return val
     return out_function
 
 
-def durationDontDiscard(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    gameState.dontdiscard[player].insert(chunkMoves[0].items.cardList()[0], 1)
+exc_revealTrash = standardException(['TRASH'], 'DECKS', 'TRASH')
+exc_revealTopdeck = standardException(['TOPDECK'], 'DECKS', 'DECKS')
+exc_revealDiscard = standardException(['DISCARD'], 'DECKS', 'DISCARDS')
+exc_harbinger = standardException(['TOPDECK'], 'DISCARDS', 'DECKS')
+exc_gainHand = standardException(['GAIN'], 'SUPPLY', 'HANDS')
+exc_supplyTrash = standardException(['TRASH'], 'SUPPLY', 'TRASH')
+exc_inplayTrash = standardException(['TRASH'], 'INPLAYS', 'TRASH')
 
 
 # First: Argument
@@ -146,26 +148,32 @@ standardCards.append(t)
 t = Card('Curse', 'Curses', 'a Curse', 0, -1, 'b571b3', 'a2b8b8', empty, staticWorth(-1))
 standardCards.append(t)
 
+
 # 3: Copper
-def copper_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        gainCash(1)(chunkMoves, gameStates, exceptions, turnExceptions, persistents)
+def copper_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        gainCash(1)(cM, gS, exc, tExc, pers)
+
 
 t = Card('Copper', 'Coppers', 'a Copper', 0, -1, 'f1d14d', 'a05624', copper_action)
 standardCards.append(t)
 
+
 # 4: Silver
-def silver_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        gainCash(2)(chunkMoves, gameStates, exceptions, turnExceptions, persistents)
+def silver_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        gainCash(2)(cM, gS, exc, tExc, pers)
+
 
 t = Card('Silver', 'Silvers', 'a Silver', 3, -1, 'f1d14d', '709aa4', silver_action)
 standardCards.append(t)
 
+
 # 5: Gold
-def gold_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        gainCash(3)(chunkMoves, gameStates, exceptions, turnExceptions, persistents)
+def gold_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        gainCash(3)(cM, gS, exc, tExc, pers)
+
 
 t = Card('Gold', 'Golds', 'a Gold', 6, -1, 'f1d14d', 'ffae06', gold_action)
 standardCards.append(t)
@@ -182,29 +190,37 @@ standardCards.append(t)
 t = Card('Province', 'Provinces', 'a Province', 8, -1, '548C2B', 'efaf49', empty, staticWorth(6))
 standardCards.append(t)
 
+
 # 9: Artisan
-def artisan_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exceptions.append(Exception(standard_condition(['GAIN']), moveException('SUPPLY', 'HANDS')))
-        exceptions.append(Exception(standard_condition(['GAIN']), standardOnGains('DISCARDS', chunkMoves[0].items)))
+def artisan_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        exc.append(exc_gainHand)
+        exc.append(Exception(standardCondition(['GAIN']),
+                             standardOnGains('HANDS', cM[0].items)))
+
 
 t = Card('Artisan', 'Artisans', 'an Artisan', 6, 0, 'c4c0b4', 'bc5a00', artisan_action)
 standardCards.append(t)
 
+
 # 10: Bandit
-def bandit_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exceptions.append(Exception(standard_condition(['TRASH']),moveException('DECKS', 'TRASH')))
-        exceptions.append(Exception(standard_condition(['DISCARD']),moveException('DECKS', 'DISCARDS')))
+def bandit_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        exc.append(exc_revealTrash)
+        exc.append(exc_revealDiscard)
+
 
 t = Card('Bandit', 'Bandits', 'a Bandit', 5, 0, 'c4c0b4', '8a861e', bandit_action)
 standardCards.append(t)
 
+
 # 11: Bureaucrat
-def bureaucrat_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exceptions.append(Exception(standard_condition(['GAIN'],['Silver']),moveException('SUPPLY', 'DECKS')))
-        exceptions.append(Exception(standard_condition(['GAIN']),standardOnGains('DECKS', chunkMoves[0].items)))
+def bureaucrat_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        exc.append(standardException(['GAIN'], 'SUPPLY', 'DECKS', ['Silver']))
+        exc.append(Exception(standardCondition(['GAIN']),
+                             standardOnGains('DECKS', cM[0].items)))
+
 
 t = Card('Bureaucrat', 'Bureaucrats', 'a Bureaucrat', 4, 0, 'c4c0b4', '95633b', bureaucrat_action)
 standardCards.append(t)
@@ -221,10 +237,12 @@ standardCards.append(t)
 t = Card('Council Room', 'Council Rooms', 'a Council Room', 5, 0, 'c4c0b4', '815121', empty)
 standardCards.append(t)
 
+
 # 15: Festival
-def festival_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        gainCash(2)(chunkMoves, gameStates, exceptions, turnExceptions, persistents)
+def festival_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        gainCash(2)(cM, gS, exc, tExc, pers)
+
 
 t = Card('Festival', 'Festivals', 'a Festival', 5, 0, 'c4c0b4', '636d61', festival_action)
 standardCards.append(t)
@@ -232,8 +250,8 @@ standardCards.append(t)
 
 # 16: Gardens
 def gardens_worth(gameState, player):
-    return gameState.crunch(['DECKS', 'HANDS', 'DISCARDS', 'OTHERS', 'INPLAYS'],
-                            [player]).count()//10
+    return gameState.crunch(['DECKS', 'HANDS', 'DISCARDS', 'OTHERS',
+                             'INPLAYS'], [player]).count()//10
 
 
 t = Card('Gardens', 'Gardens', 'a Gardens', 4, 0, '9cbe8a', '5f792f', empty, gardens_worth)
@@ -241,65 +259,62 @@ standardCards.append(t)
 
 
 # 17: Harbinger
-def harbinger_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exceptions.append(Exception(standard_condition(['TOPDECK']),moveException('DISCARDS', 'DECKS')))
+def harbinger_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        exc.append(exc_harbinger)
+
 
 t = Card('Harbinger', 'Harbingers', 'a Harbinger', 3, 0, 'c4c0b4', '8e8a3c', harbinger_action)
 standardCards.append(t)
+
 
 # 18: Laboratory
 t = Card('Laboratory', 'Laboratories', 'a Laboratory', 5, 0, 'c4c0b4', '614739', empty)
 standardCards.append(t)
 
+
 # 19: Library
-def library_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exceptions.append(Exception(standard_condition(['SETS ASIDE WITH']),moveException('DECKS', 'OTHERS')))
-        exceptions.append(Exception(standard_condition(['DISCARD']),moveException('OTHERS', 'DISCARDS')))
+def library_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        exc.append(standardException(['SETS ASIDE WITH'], 'DECKS', 'OTHERS'))
+        exc.append(standardException(['DISCARD'], 'OTHERS', 'DISCARDS'))
+
 
 t = Card('Library', 'Libraries', 'a Library', 5, 0, 'c4c0b4', '7a7e4a', library_action)
 standardCards.append(t)
 
+
 # 20: Market
-def market_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        gainCash(2)(chunkMoves, gameStates, exceptions, turnExceptions, persistents)
+def market_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        gainCash(1)(cM, gS, exc, tExc, pers)
+
 
 t = Card('Market', 'Markets', 'a Market', 5, 0, 'c4c0b4', '684830', market_action)
 standardCards.append(t)
 
+
 # 21: Merchant
-def maintain_silver(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    gainCash(2)(chunkMoves, gameStates, exceptions, turnExceptions, persistents)
-maintain_silver_exception = Exception(standard_condition(['PLAY'],['Silver']), maintain_silver)
-
-def merchant_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    def merchant_silver(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-        gainCash(1)(chunkMoves, gameStates, exceptions, turnExceptions, persistents)        
-
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        if standardCards[4] not in gameStates[-1].INPLAYS[chunkMoves[0].player]:
-            turnExceptions.append(Exception(standard_condition(['PLAY'],['Silver']), merchant_silver))
-            if maintain_silver_exception not in turnExceptions:
-                turnExceptions.append(maintain_silver_exception)
-
-t = Card('Merchant', 'Merchants', 'a Merchant', 3, 0, 'c4c0b4', '917911', merchant_action)
+t = Card('Merchant', 'Merchants', 'a Merchant', 3, 0, 'c4c0b4', '917911', empty)
 standardCards.append(t)
 
+
 # 22: Militia
-def militia_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        gainCash(2)(chunkMoves, gameStates, exceptions, turnExceptions, persistents)
+def militia_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        gainCash(2)(cM, gS, exc, tExc, pers)
 
 t = Card('Militia', 'Militias', 'a Militia', 4, 0, 'c4c0b4', '856961', militia_action)
 standardCards.append(t)
 
+
 # 23: Mine
-def mine_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exceptions.append(Exception(standard_condition(['GAIN']),moveException('SUPPLY', 'HANDS')))
-        exceptions.append(Exception(standard_condition(['GAIN']),standardOnGains('HANDS', chunkMoves[0].items)))
+def mine_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        exc.append(exc_gainHand)
+        exc.append(Exception(standardCondition(['GAIN']),
+                             standardOnGains('HANDS', cM[0].items)))
+
 
 t = Card('Mine', 'Mines', 'a Mine', 5, 0, 'c4c0b4', '433935', mine_action)
 standardCards.append(t)
@@ -308,18 +323,16 @@ standardCards.append(t)
 t = Card('Moat', 'Moats', 'a Moat', 2, 0, '8ca2be', '586472', empty)
 standardCards.append(t)
 
-# 25: Moneylender
-def moneylender_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exceptions.append(Exception(standard_condition(['TRASH'],['Copper']), getCash(3)))
 
+# 25: Moneylender
 t = Card('Moneylender', 'Moneylenders', 'a Moneylender', 4, 0, 'c4c0b4', '7a644c', empty)
 standardCards.append(t)
 
+
 # 26: Poacher
-def poacher_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        gainCash(1)(chunkMoves, gameStates, exceptions, turnExceptions, persistents)
+def poacher_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        gainCash(1)(cM, gS, exc, tExc, pers)
 
 t = Card('Poacher', 'Poachers', 'a Poacher', 4, 0, 'c4c0b4', '8f810d', poacher_action)
 standardCards.append(t)
@@ -328,12 +341,14 @@ standardCards.append(t)
 t = Card('Remodel', 'Remodels', 'a Remodel', 4, 0, 'c4c0b4', '8e7e4a', empty)
 standardCards.append(t)
 
+
 # 28: Sentry
-def sentry_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exceptions.append(Exception(standard_condition(['TRASH']),moveException('DECKS', 'TRASH')))
-        exceptions.append(Exception(standard_condition(['DISCARD']),moveException('DECKS', 'DISCARDS')))
-        exceptions.append(Exception(standard_condition(['TOPDECK']),moveException('DECKS', 'DECKS')))
+def sentry_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        exc.append(exc_revealTrash)
+        exc.append(exc_revealDiscard)
+        exc.append(exc_revealTopdeck)
+
 
 t = Card('Sentry', 'Sentries', 'a Sentry', 5, 0, 'c4c0b4', '5a361e', sentry_action)
 standardCards.append(t)
@@ -346,23 +361,24 @@ standardCards.append(t)
 t = Card('Throne Room', 'Throne Rooms', 'a Throne Room', 4, 0, 'c4c0b4', 'd76315', empty)
 standardCards.append(t)
 
+
 # 31: Vassal
-def vassal_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        gainCash(2)(chunkMoves, gameStates, exceptions, turnExceptions, persistents)
-        exceptions.append(Exception(standard_condition(['DISCARD']), moveException('DECKS', 'DISCARDS')))
-        discardedCard = CARD_CARD
-        for subchunk in chunkMoves[1:]:
-            if standardPreds[subchunk[0].pred].name == 'DISCARD':
-                discardedCard = subchunk[0].items.cardList()[0]
+def vassal_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        gainCash(2)(cM, gS, exc, tExc, pers)
+
+        exc.append(exc_revealDiscard)
+        discardedCard = standardCards[CARD_CARD].simple_name
+        for subchunk in cM[1:]:
+            if subchunk[0].predName == 'DISCARD':
+                discardedCard = subchunk[0].items.primary()
                 break
 
-        discardedCardName = standardCards[discardedCard].simple_name
-        #You're fucked up, vassal.
-        turnExceptions.append(Exception(standard_condition(['PLAY'], [discardedCardName]),
-                              moveException('DISCARDS', 'INPLAYS')))
-        turnExceptions.append(Exception(standard_condition(['PLAY'], [discardedCardName]),
+        # You're fucked up, vassal.
+        tExc.append(standardException(['PLAY'], 'DISCARDS', 'INPLAYS', [discardedCard]))
+        tExc.append(Exception(standardCondition(['PLAY'], [discardedCard]),
                               standard_play))
+
 
 t = Card('Vassal', 'Vassals', 'a Vassal', 3, 0, 'c4c0b4', 'ba6816', vassal_action)
 standardCards.append(t)
@@ -383,10 +399,12 @@ standardCards.append(t)
 t = Card('Courtyard', 'Courtyards', 'a Courtyard', 2, 0, 'c4c0b4', '74a454', empty)
 standardCards.append(t)
 
+
 # 36: Conspirator
-def conspirator_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        gainCash(2)(chunkMoves, gameStates, exceptions, turnExceptions, persistents)
+def conspirator_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        gainCash(2)(cM, gS, exc, tExc, pers)
+
 
 t = Card('Conspirator', 'Conspirators', 'a Conspirator', 4, 0, 'c4c0b4', '2b5989', conspirator_action)
 standardCards.append(t)
@@ -396,19 +414,13 @@ t = Card('Courtier', 'Courtiers', 'a Courtier', 5, 0, 'c4c0b4', 'ac6228', empty)
 standardCards.append(t)
 
 # 38: Baron
-def baron_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        for chunk in chunkMoves[1:]:
-            if standardPreds[chunk[0].pred].name == 'DISCARD' and 6 in chunk[0].items:
-                gainCash(4)(chunkMoves, gameStates, exceptions, turnExceptions, persistents)
-
-t = Card('Baron', 'Barons', 'a Baron', 4, 0, 'c4c0b4', '876341', baron_action)
+t = Card('Baron', 'Barons', 'a Baron', 4, 0, 'c4c0b4', '876341', empty)
 standardCards.append(t)
 
 # 39: Bridge
-def bridge_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        gainCash(1)(chunkMoves, gameStates, exceptions, turnExceptions, persistents)
+def bridge_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        gainCash(1)(cM, gS, exc, tExc, pers)
 
 t = Card('Bridge', 'Bridges', 'a Bridge', 4, 0, 'c4c0b4', '859b6b', bridge_action)
 standardCards.append(t)
@@ -419,13 +431,13 @@ standardCards.append(t)
 
 
 # 41: Duke
-def duke_worth(gameState, player):
-    playerDeck = gameState.crunch(['DECKS', 'HANDS', 'DISCARDS', 'OTHERS'],
-                                  [player])
+def duke_worth(gS, player):
+    playerDeck = gS.crunch(['DECKS', 'HANDS', 'DISCARDS', 'OTHERS'],
+                           [player])
+
     for card in playerDeck:
         if standardCards[card].simple_name == 'Duchy':
             return playerDeck[card]
-
     return 0
 
 
@@ -449,26 +461,20 @@ standardCards.append(t)
 
 
 # 45: Lurker
-def lurker_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exceptions.append(Exception(standard_condition(['TRASH']), moveException('SUPPLY', 'TRASH')))
-        exceptions.append(Exception(standard_condition(['GAIN']), moveException('TRASH', 'DECKS')))
-        exceptions.append(Exception(standard_condition(['GAIN']), standardOnGains('DECKS', chunkMoves[0].items)))
+def lurker_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        exc.append(exc_supplyTrash)
+        exc.append(standardException(['GAIN'], 'TRASH', 'DISCARDS'))
+        exc.append(Exception(standard_condition(['GAIN']),
+                             standardOnGains('DECKS', cM[0].items)))
 
 
 t = Card('Lurker', 'Lurkers', 'a Lurker', 2, 0, 'c4c0b4', '909ab2', lurker_action)
 standardCards.append(t)
 
+
 # 46: Masquerade
-def masquerade_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    def passAction(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-        gameStates[-1].HANDS[chunkMoves[0].player] -= chunkMoves[0].items
-        gameStates[-1].HANDS[1 - chunkMoves[0].player] += chunkMoves[0].items
-
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exceptions.append(Exception(standard_condition(['PASS']), passAction))
-
-t = Card('Masquerade', 'Masquerades', 'a Masquerade', 3, 0, 'c4c0b4', '635d51', masquerade_action)
+t = Card('Masquerade', 'Masquerades', 'a Masquerade', 3, 0, 'c4c0b4', '635d51', empty)
 standardCards.append(t)
 
 # 47: Mill
@@ -476,27 +482,27 @@ t = Card('Mill', 'Mills', 'a Mill', 4, 0, 'aac298', '78b294', empty, staticWorth
 standardCards.append(t)
 
 # 48: Mining Village
-def minevillage_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exceptions.append(Exception(standard_condition(['TRASH']), moveException('INPLAYS', 'TRASH')))
+def minevillage_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        exc.append(exc_inplayTrash)
 
 t = Card('Mining Village', 'Mining Villages', 'a Mining Village', 4, 0, 'c4c0b4', 'aea090', minevillage_action)
 standardCards.append(t)
 
 # 49: Minion
-def minion_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        for chunk in chunkMoves[1:]:
+def minion_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        for chunk in cM[1:]:
             if standardPreds[chunk[0].pred].name != 'DISCARD':
-                gainCash(2)(chunkMoves, gameStates, exceptions, turnExceptions, persistents)
+                gainCash(2)(cM, gS, exc, tExc, pers)
 
 t = Card('Minion', 'Minions', 'a Minion', 5, 0, 'c4c0b4', '6c382e', minion_action)
 standardCards.append(t)
 
 # 50: Patrol
-def patrol_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exceptions.append(Exception(standard_condition(['TOPDECK']), moveException('DECKS', 'DECKS')))
+def patrol_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        exc.append(exc_revealTopdeck)
 
 t = Card('Patrol', 'Patrols', 'a Patrol', 5, 0, 'c4c0b4', '98ae70', patrol_action)
 standardCards.append(t)
@@ -505,10 +511,12 @@ standardCards.append(t)
 t = Card('Pawn', 'Pawns', 'a Pawn', 2, 0, 'c4c0b4', '3f2f25', empty)
 standardCards.append(t)
 
+
 # 52: Replace
-def replace_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exceptions.append(Exception(standard_condition(['TOPDECK']), moveException('DISCARDS', 'DECKS')))
+def replace_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        exc.append(exc_harbinger)
+
 
 t = Card('Replace', 'Replaces', 'a Replace', 5, 0, 'c4c0b4', '564850', replace_action)
 standardCards.append(t)
@@ -522,37 +530,33 @@ t = Card('Shanty Town', 'Shanty Towns', 'a Shanty Town', 3, 0, 'c4c0b4', '124e44
 standardCards.append(t)
 
 # 55: Steward
-def steward_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        for chunk in chunkMoves[1:]:
-            if standardPreds[chunk[0].pred].name not in ['TRASH', 'DRAW']:
-                gainCash(2)(chunkMoves, gameStates, exceptions, turnExceptions, persistents)
-
-t = Card('Steward', 'Stewards', 'a Steward', 3, 0, 'c4c0b4', '4f4d5d', steward_action)
+t = Card('Steward', 'Stewards', 'a Steward', 3, 0, 'c4c0b4', '4f4d5d', empty)
 standardCards.append(t)
 
 # 56: Swindler
-def swindler_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exceptions.append(Exception(standard_condition(['TRASH']), moveException('DECKS', 'TRASH')))
+def swindler_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        exce.append(exc_revealTrash)
 
 t = Card('Swindler', 'Swindlers', 'a Swindler', 3, 0, 'c4c0b4', 'b78d49', swindler_action)
 standardCards.append(t)
 
 # 57: Torturer
-def torturer_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exceptions.append(Exception(standard_condition(['GAIN'], ['Curse']), moveException('SUPPLY', 'HANDS')))
-        exceptions.append(Exception(standard_condition(['GAIN']), standardOnGains('HANDS', chunkMoves[0].items)))
+def torturer_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        exc.append(standardException(['GAIN'], 'SUPPLY', 'HANDS', ['Curse']))
+        exc.append(Exception(standardCondition(['GAIN'], ['Curse']),
+                             standardOnGains('HANDS', cM[0].items)))
 
 t = Card('Torturer', 'Torturers', 'a Torturer', 5, 0, 'c4c0b4', '842804', torturer_action)
 standardCards.append(t)
 
 # 58: Trading Post
-def tradepost_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exceptions.append(Exception(standard_condition(['GAIN'], ['Silver']), moveException('SUPPLY', 'HANDS')))
-        exceptions.append(Exception(standard_condition(['GAIN']), standardOnGains('HANDS', chunkMoves[0].items)))
+def tradepost_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        exc.append(standardException(['GAIN'], 'SUPPLY', 'HANDS', ['Silver']))
+        exc.append(Exception(standardCondition(['GAIN'], ['Silver']),
+                             standardOnGains('HANDS', cM[0].items)))
 
 t = Card('Trading Post', 'Trading Posts', 'a Trading Post', 5, 0, 'c4c0b4', '686434', tradepost_action)
 standardCards.append(t)
@@ -565,18 +569,22 @@ standardCards.append(t)
 t = Card('Wishing Well', 'Wishing Wells', 'a Wishing Well', 3, 0, 'c4c0b4', '61756b', empty)
 standardCards.append(t)
 
+
 # 61: Ambassador
-def ambassador_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exceptions.append(Exception(standard_condition(['RETURN TO']), moveException('HANDS', 'SUPPLY')))
+def ambassador_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        exc.append(standardException(['RETURN TO'], 'HANDS', 'SUPPLY'))
+
 
 t = Card('Ambassador', 'Ambassadors', 'an Ambassador', 3, 0, 'c4c0b4', 'b8602c', ambassador_action)
 standardCards.append(t)
 
+
 # 62: Bazaar
-def bazaar_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        gainCash(1)(chunkMoves, gameStates, exceptions, turnExceptions, persistents)
+def bazaar_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        gainCash(1)(cM, gS, exc, tExc, pers)
+
 
 t = Card('Bazaar', 'Bazaars', 'a Bazaar', 5, 0, 'c4c0b4', 'a6765e', bazaar_action)
 standardCards.append(t)
@@ -585,36 +593,45 @@ standardCards.append(t)
 t = Card('Caravan', 'Caravans', 'a Caravan', 4, 0, 'dda561', 'b9ab7f', empty)
 standardCards.append(t)
 
+
 # 64: Cutpurse
-def cutpurse_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        gainCash(2)(chunkMoves, gameStates, exceptions, turnExceptions, persistents)
+def cutpurse_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        gainCash(2)(cM, gS, exc, tExc, pers)
+
 
 t = Card('Cutpurse', 'Cutpurses', 'a Cutpurse', 4, 0, 'c4c0b4', '826a4e', cutpurse_action)
 standardCards.append(t)
 
+
 # 65: Embargo
-def embargo_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        gainCash(2)(chunkMoves, gameStates, exceptions, turnExceptions, persistents)
-        exceptions.append(Exception(standard_condition(['TRASH']), moveException('INPLAYS', 'TRASH')))
+def embargo_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        gainCash(2)(cM, gS, exc, tExc, pers)
+        exc.append(exc_inplayTrash)
+
 
 t = Card('Embargo', 'Embargos', 'an Embargo', 2, 0, 'c4c0b4', '9da381', embargo_action)
 standardCards.append(t)
 
+
 # 66: Explorer
-def explorer_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exceptions.append(Exception(standard_condition(['GAIN'], ['Silver', 'Gold']), moveException('SUPPLY', 'HANDS')))
-        exceptions.append(Exception(standard_condition(['GAIN']), standardOnGains('HANDS', chunkMoves[0].items)))
+def explorer_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        exc.append(standardException(['GAIN'], 'SUPPLY', 'HANDS',
+                                     ['Silver', 'Gold']))
+        exc.append(Exception(standardCondition(['GAIN'], ['Silver', 'Gold']),
+                             standardOnGains('HANDS', cM[0].items)))
+
 
 t = Card('Explorer', 'Explorers', 'an Explorer', 5, 0, 'c4c0b4', '74D0F6', explorer_action)
 standardCards.append(t)
 
+
 # 67: Fishing Village
-def fishvillage_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        gainCash(1)(chunkMoves, gameStates, exceptions, turnExceptions, persistents)
+def fishvillage_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        gainCash(1)(cM, gS, exc, tExc, pers)
 
 t = Card('Fishing Village', 'Fishing Villages', 'a Fishing Village', 3, 0, 'dda561', '7db9b3', fishvillage_action)
 standardCards.append(t)
@@ -627,121 +644,134 @@ standardCards.append(t)
 t = Card('Haven', 'Havens', 'a Haven', 2, 0, 'dda561', '866846', empty)
 standardCards.append(t)
 
-# 70: Island
-def island_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        itemsSansIsland = Cardstack({})
-        for item in chunkMoves[0].items:
-            if standardCards[item].simple_name != 'Island':
-                itemsSansIsland.insert(item, chunkMoves[0].items[item])
-            else:
-                islandId = item
 
-        def islandSetaside(items, islandId):
-            def out_function(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-                gameStates[-1].move(chunkMoves[0].player, 'INPLAYS', 'OTHERS',
-                                    Cardstack({islandId: 1}))
-                gameStates[-1].move(chunkMoves[0].player, 'HANDS', 'OTHERS',
-                                    items)
+# 70: Island
+def island_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        islandID = standardNames.index('Island')
+        islandStack = Cardstack({islandID: 1})
+        otherStuff = cM[0].items - islandStack
+
+        def islandSetaside(islandStack, otherStuff):
+            def out_function(cM, gS, exc, tExc, pers):
+                gS[-1].move(cM[0].player, 'INPLAYS', 'OTHERS', islandStack)
+                gS[-1].move(cM[0].player, 'HANDS', 'OTHERS', otherStuff)
             return out_function
 
-        exceptions.append(Exception(standard_condition(['PUT ONTO']),
-                                    islandSetaside(itemsSansIsland, islandId)))
+        exc.append(Exception(standardCondition(['PUT ONTO']),
+                                    islandSetaside(islandStack, otherStuff)))
+
 
 t = Card('Island', 'Islands', 'an Island', 4, 0, 'aac298', '5d9fbd', island_action, staticWorth(2))
 standardCards.append(t)
 
+
 # 71: Lighthouse
-def lighthouse_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        gainCash(1)(chunkMoves, gameStates, exceptions, turnExceptions, persistents)
+def lighthouse_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        gainCash(1)(cM, gS, exc, tExc, pers)
+
 
 t = Card('Lighthouse', 'Lighthouses', 'a Lighthouse', 2, 0, 'dda561', '559773', lighthouse_action)
 standardCards.append(t)
 
+
 # 72: Lookout
-def lookout_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exceptions.append(Exception(standard_condition(['TRASH']), moveException('DECKS', 'TRASH')))
-        exceptions.append(Exception(standard_condition(['DISCARD']), moveException('DECKS', 'DISCARDS')))
-        exceptions.append(Exception(standard_condition(['TOPDECK']), moveException('DECKS', 'DECKS')))
+def lookout_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        exc.append(exc_revealTrash)
+        exc.append(exc_revealDiscard)
+        exc.append(exc_revealTopdeck)
+
 
 t = Card('Lookout', 'Lookouts', 'a Lookout', 3, 0, 'c4c0b4', '723a6a', lookout_action)
 standardCards.append(t)
 
+
 # 73: Merchant Ship
-def merchship_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        gainCash(2)(chunkMoves, gameStates, exceptions, turnExceptions, persistents)
+def merchship_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        gainCash(2)(cM, gS, exc, tExc, pers)
+
 
 t = Card('Merchant Ship', 'Merchant Ships', 'a Merchant Ship', 5, 0, 'dda561', 'b58127', merchship_action)
 standardCards.append(t)
 
+
 # 74: Native Village
-def nv_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exceptions.append(Exception(standard_condition(['PUT INHAND']), moveException('OTHERS', 'HANDS')))
+def nv_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        exc.append(standardException(['PUT INHAND'], 'OTHERS', 'HANDS'))
+
 
 t = Card('Native Village', 'Native Villages', 'a Native Village', 2, 0, 'c4c0b4', '6f919f', nv_action)
 standardCards.append(t)
 
+
 # 75: Navigator
-def navigator_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        gainCash(2)(chunkMoves, gameStates, exceptions, turnExceptions, persistents)
-        exceptions.append(Exception(standard_condition(['TOPDECK']), moveException('DECKS', 'DECKS')))
-        exceptions.append(Exception(standard_condition(['DISCARD']), moveException('DECKS', 'DISCARDS')))
+def navigator_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        gainCash(2)(cM, gS, exc, tExc, pers)
+        exc.append(exc_revealTopdeck)
+        exc.append(exc_revealDiscard)
+
 
 t = Card('Navigator', 'Navigators', 'a Navigator', 4, 0, 'c4c0b4', '5ba7ad', navigator_action)
 standardCards.append(t)
+
 
 # 76: Outpost
 t = Card('Outpost', 'Outposts', 'an Outpost', 5, 0, 'dda561', '949ab2', empty)
 standardCards.append(t)
 
+
 # 77: Pearl Diver
-def pearldiver_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exceptions.append(Exception(standard_condition(['TOPDECK']), moveException('DECKS', 'DECKS')))
+def pearldiver_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        exc.append(standardException(['TOPDECK'], 'DECKS', 'DECKS'))
+
 
 t = Card('Pearl Diver', 'Pearl Divers', 'a Pearl Diver', 2, 0, 'c4c0b4', '00aee6', pearldiver_action)
 standardCards.append(t)
 
+
 # 78: Pirate Ship
 def generalized_pirateship(value):
-    def pirateship_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-        if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-            exceptions.append(Exception(standard_condition(['TRASH']), moveException('DECKS', 'TRASH')))
-            gainCash(value)(chunkMoves, gameStates, exceptions, turnExceptions, persistents)
+    def pirateship_action(cM, gS, exc, tExc, pers):
+        if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+            exc.append(exc_revealTrash)
+            gainCash(value)(cM, gS, exc, tExc, pers)
 
-            for chunk in chunkMoves[1:]:
-                if standardPreds[chunk[0].pred].name in ['REVEAL']:
-                    gainCash(-value)(chunkMoves, gameStates, exceptions, turnExceptions, persistents)
+            for chunk in cM[1:]:
+                if chunk[0].predName == 'REVEAL':
+                    gainCash(-value)(cM, gS, exc, tExc, pers)
 
-                if standardPreds[chunk[0].pred].name in ['TRASH']:
-                    persistents.append(Exception(standard_condition(['PLAY', 'PLAY AGAIN', 'PLAY THIRD'],
-                        ['Pirate Ship']), generalized_pirateship(value + 1)))
+                if chunk[0].predName == 'TRASH':
+                    pers.append(Exception(
+                        standardCondition(['PLAY', 'PLAY AGAIN', 'PLAY THIRD'],
+                                          ['Pirate Ship']),
+                        generalized_pirateship(value + 1))
+                    )
 
     return pirateship_action
+
 
 t = Card('Pirate Ship', 'Pirate Ships', 'a Pirate Ship', 4, 0, 'c4c0b4', '7e9ec2', generalized_pirateship(0))
 standardCards.append(t)
 
-# 79: Salvager
-def salvager_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        for chunk in chunkMoves[1:]:
-            if standardPreds[chunk[0].pred].name in ['TRASH']:
-                gainCash(standardCards[chunk[0].items.cardList()[0]].cost)
 
-t = Card('Salvager', 'Salvagers', 'a Salvager', 4, 0, 'c4c0b4', '397b7b', salvager_action)
+# 79: Salvager
+t = Card('Salvager', 'Salvagers', 'a Salvager', 4, 0, 'c4c0b4', '397b7b', empty)
 standardCards.append(t)
 
+
 # 80: Sea Hag
-def seahag_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exceptions.append(Exception(standard_condition(['GAIN'],['Curse']), moveException('SUPPLY', 'DECKS')))
-        exceptions.append(Exception(standard_condition(['GAIN']), standardOnGains('DECKS', chunkMoves[0].items)))
+def seahag_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        exc.append(standardException(['GAIN'], 'SUPPLY', 'DECKS', ['Curse']))
+        exc.append(Exception(standardCondition(['GAIN']),
+                             standardOnGains('DECKS', cM[0].items)))
+
 
 t = Card('Sea Hag', 'Sea Hags', 'a Sea Hag', 4, 0, 'c4c0b4', '745a44', seahag_action)
 standardCards.append(t)
@@ -754,46 +784,46 @@ standardCards.append(t)
 t = Card('Tactician', 'Tacticians', 'a Tactician', 5, 0, 'dda561', '785c44', empty)
 standardCards.append(t)
 
+
 # 83: Treasure Map
-def tmap_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    def tmap_one_tmap(chunkMoves):
-        if standardPreds[chunkMoves[0].pred].name == 'TRASH' and \
-        'Treasure Map' == standardCards[chunkMoves[0].items.cardList()[0]].simple_name:
-            for card in chunkMoves[0].items:
-                if standardCards[card].simple_name == 'Treasure Map':
-                    if chunkMoves[0].items[card] == 1:
-                        return True
+def tmap_action(cM, gS, exc, tExc, pers):
+    def tmap_one_tmap(cM):
+        if cM[0].predName() == 'TRASH':
+            if cM[0].items.primary() == 'Treasure Map':
+                if cM[0].items[standardNames.index('Treasure Map')] == 1:
+                    return True
         return False
 
-    def tmap_two_tmap(chunkMoves):
-        if standardPreds[chunkMoves[0].pred].name == 'TRASH' and \
-        'Treasure Map' == standardCards[chunkMoves[0].items.cardList()[0]].simple_name:
-            for card in chunkMoves[0].items:
-                if standardCards[card].simple_name == 'Treasure Map':
-                    if chunkMoves[0].items[card] == 1:
-                        return True
+    def tmap_two_tmap(cM):
+        if cM[0].predName() == 'TRASH':
+            if cM[0].items.primary() == 'Treasure Map':
+                if cM[0].items[standardNames.index('Treasure Map')] == 2:
+                    return True
         return False
 
-    def tmap_double_trash(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-        single_map = Cardstack({83: 1})
-        gameStates[-1].move(chunkMoves[0].player, 'INPLAYS', 'TRASH', single_map)
-        gameStates[-1].move(chunkMoves[0].player, 'HANDS', 'TRASH', single_map)
+    def tmap_double_trash(cM, gS, exc, tExc, pers):
+        single_map = Cardstack({standardNames.index('Treasure Map'): 1})
+        gS[-1].move(cM[0].player, 'INPLAYS', 'TRASH', single_map)
+        gS[-1].move(cM[0].player, 'HANDS', 'TRASH', single_map)
 
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        exc.append(Exception(tmap_one_tmap, moveException('INPLAYS', 'TRASH')))
+        exc.append(Exception(tmap_two_tmap, tmap_double_trash))
 
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exceptions.append(Exception(tmap_one_tmap, moveException('INPLAYS', 'TRASH')))
-        exceptions.append(Exception(tmap_two_tmap, tmap_double_trash))
 
 t = Card('Treasure Map', 'Treasure Maps', 'a Treasure Map', 4, 0, 'c4c0b4', '9d651b', tmap_action)
 standardCards.append(t)
 
+
 # 84: Treasury
-def treasury_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        gainCash(1)(chunkMoves, gameStates, exceptions, turnExceptions, persistents)
+def treasury_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        gainCash(1)(cM, gS, exc, tExc, pers)
+
 
 t = Card('Treasury', 'Treasuries', 'a Treasury', 5, 0, 'c4c0b4', '884a00', treasury_action)
 standardCards.append(t)
+
 
 # 85: Warehouse
 t = Card('Warehouse', 'Warehouses', 'a Warehouse', 3, 0, 'c4c0b4', '59635b', empty)
@@ -808,9 +838,10 @@ t = Card('Alchemist', 'Alchemists', 'an Alchemist', 5, 0, 'c4c0b4', '49A4E4', em
 standardCards.append(t)
 
 # 88: Apothecary
-def apoth_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exceptions.append(Exception(standard_condition(['TOPDECK']), moveException('DECKS', 'DECKS')))
+def apoth_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        exc.append(exc_revealTopdeck)
+
 
 t = Card('Apothecary', 'Apothecaries', 'an Apothecary', 4, 0, 'c4c0b4', 'a36713', apoth_action)
 standardCards.append(t)
@@ -823,20 +854,24 @@ standardCards.append(t)
 t = Card('Familiar', 'Familiars', 'a Familiar', 5, 0, 'c4c0b4', 'aa6656', empty)
 standardCards.append(t)
 
+
 # 91: Golem
-def golem_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exceptions.append(Exception(standard_condition(['PLAY']), moveException('DECKS', 'INPLAYS')))
-        exceptions.append(Exception(standard_condition(['PLAY']), standard_play))
-        exceptions.append(Exception(standard_condition(['DISCARD']), moveException('DECKS', 'DISCARDS')))
+def golem_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        exc.append(standardException(['PLAY']), 'DECKS', 'INPLAYS')
+        exc.append(Exception(standardCondition(['PLAY']), standardOnPlay))
+        exc.append(exc_revealDiscard)
+
 
 t = Card('Golem', 'Golems', 'a Golem', 6, 0, 'c4c0b4', '5e6c80', golem_action)
 standardCards.append(t)
 
+
 # 92: Herbalist
-def herbalist_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exceptions.append(Exception(standard_condition(['TOPDECK']), moveException('INPLAYS', 'DECKS')))
+def herbalist_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        exc.append(standardException(['TOPDECK'], 'INPLAYS', 'DECKS'))
+
 
 t = Card('Herbalist', 'Herbalists', 'a Herbalist', 2, 0, 'c4c0b4', 'b8884e', herbalist_action)
 standardCards.append(t)
@@ -853,11 +888,13 @@ standardCards.append(t)
 t = Card('Potion', 'Potions', 'a Potion', 4, 1, 'f1d14d', '1768C4', empty)
 standardCards.append(t)
 
+
 # 96: Scrying Pool
-def pool_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exceptions.append(Exception(standard_condition(['TOPDECK']), moveException('DECKS', 'DECKS')))
-        exceptions.append(Exception(standard_condition(['DISCARD']), moveException('DECKS', 'DISCARDS')))
+def pool_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        exc.append(exc_revealTopdeck)
+        exc.append(exc_revealDiscard)
+
 
 t = Card('Scrying Pool', 'Scrying Pools', 'a Scrying Pool', 4, 0, 'c4c0b4', 'a45e08', pool_action)
 standardCards.append(t)
@@ -872,303 +909,304 @@ standardCards.append(t)
 
 
 actionList = ['Artisan',
-                  'Bandit',
-                  'Bureaucrat',
-                  'Cellar',
-                  'Chapel',
-                  'Council Room',
-                  'Festival',
-                  'Harbinger',
-                  'Laboratory',
-                  'Library',
-                  'Market',
-                  'Merchant',
-                  'Militia',
-                  'Mine',
-                  'Moat',
-                  'Moneylender',
-                  'Poacher',
-                  'Remodel',
-                  'Sentry',
-                  'Smithy',
-                  'Throne Room',
-                  'Vassal',
-                  'Village',
-                  'Witch',
-                  'Workshop',
-                  'Courtyard',
-                  'Conspirator',
-                  'Courtier',
-                  'Baron',
-                  'Bridge',
-                  'Diplomat',
-                  'Nobles',
-                  'Ironworks',
-                  'Lurker',
-                  'Masquerade',
-                  'Mill',
-                  'Mining Village',
-                  'Minion',
-                  'Patrol',
-                  'Pawn',
-                  'Replace',
-                  'Secret Passage',
-                  'Shanty Town',
-                  'Steward',
-                  'Swindler',
-                  'Torturer',
-                  'Trading Post',
-                  'Upgrade',
-                  'Wishing Well',
-                  'Ambassador',
-                  'Bazaar',
-                  'Caravan',
-                  'Cutpurse',
-                  'Embargo',
-                  'Explorer',
-                  'Fishing Village',
-                  'Ghost Ship',
-                  'Haven',
-                  'Island',
-                  'Lighthouse',
-                  'Lookout',
-                  'Merchant Ship',
-                  'Native Village',
-                  'Navigator',
-                  'Outpost',
-                  'Pearl Diver',
-                  'Pirate Ship',
-                  'Salvager',
-                  'Sea Hag',
-                  'Smugglers',
-                  'Tactician',
-                  'Treasure Map',
-                  'Treasury',
-                  'Warehouse',
-                  'Wharf',
-                  'Alchemist',
-                  'Apothecary',
-                  'Apprentice',
-                  'Familiar',
-                  'Golem',
-                  'Herbalist',
-                  'Possession',
-                  'Scrying Pool',
-                  'Transmute',
-                  'University',
-                  'Bishop',
-                  'Counting House',
-                  'City',
-                  'Expand',
-                  'Forge',
-                  'Grand Market',
-                  'Goons',
-                  'King\'s Court',
-                  'Mint',
-                  'Monument',
-                  'Mountebank',
-                  'Peddler',
-                  'Rabble',
-                  'Trade Route',
-                  'Vault',
-                  'Watchtower',
-                  'Worker\'s Village',
-                  'Bag of Gold',
-                  'Farming Village',
-                  'Followers',
-                  'Fortune Teller',
-                  'Hamlet',
-                  'Harvest',
-                  'Horse Traders',
-                  'Hunting Party',
-                  'Jester',
-                  'Menagerie',
-                  'Princess',
-                  'Remake',
-                  'Tournament',
-                  'Trusty Steed',
-                  'Young Witch',
-                  'Border Village',
-                  'Cartographer',
-                  'Crossroads',
-                  'Develop',
-                  'Duchess',
-                  'Embassy',
-                  'Haggler',
-                  'Highway',
-                  'Inn',
-                  'Jack of All Trades',
-                  'Mandarin',
-                  'Noble Brigand',
-                  'Nomad Camp',
-                  'Oasis',
-                  'Oracle',
-                  'Margrave',
-                  'Scheme',
-                  'Spice Merchant',
-                  'Stables',
-                  'Trader',
-                  'Ruins',
-                  'Knights',
-                  'Abandoned Mine',
-                  'Altar',
-                  'Armory',
-                  'Band of Misfits',
-                  'Bandit Camp',
-                  'Beggar',
-                  'Catacombs',
-                  'Count',
-                  'Cultist',
-                  'Dame Anna',
-                  'Dame Josephine',
-                  'Dame Molly',
-                  'Dame Natalie',
-                  'Dame Sylvia',
-                  'Death Cart',
-                  'Forager',
-                  'Fortress',
-                  'Graverobber',
-                  'Hermit',
-                  'Hunting Grounds',
-                  'Ironmonger',
-                  'Junk Dealer',
-                  'Madman',
-                  'Market Square',
-                  'Marauder',
-                  'Mercenary',
-                  'Mystic',
-                  'Necropolis',
-                  'Pillage',
-                  'Poor House',
-                  'Procession',
-                  'Rats',
-                  'Rebuild',
-                  'Rogue',
-                  'Ruined Library',
-                  'Ruined Market',
-                  'Ruined Village',
-                  'Sage',
-                  'Scavenger',
-                  'Sir Bailey',
-                  'Sir Destry',
-                  'Sir Martin',
-                  'Sir Michael',
-                  'Sir Vander',
-                  'Storeroom',
-                  'Squire',
-                  'Survivors',
-                  'Urchin',
-                  'Vagrant',
-                  'Wandering Minstrel',
-                  'Advisor',
-                  'Baker',
-                  'Butcher',
-                  'Candlestick Maker',
-                  'Doctor',
-                  'Herald',
-                  'Journeyman',
-                  'Merchant Guild',
-                  'Plaza',
-                  'Taxman',
-                  'Soothsayer',
-                  'Stonemason',
-                  'Amulet',
-                  'Artificer',
-                  'Bridge Troll',
-                  'Caravan Guard',
-                  'Champion',
-                  'Disciple',
-                  'Distant Lands',
-                  'Dungeon',
-                  'Duplicate',
-                  'Fugitive',
-                  'Gear',
-                  'Giant',
-                  'Guide',
-                  'Haunted Woods',
-                  'Hero',
-                  'Hireling',
-                  'Lost City',
-                  'Magpie',
-                  'Messenger',
-                  'Miser',
-                  'Page',
-                  'Peasant',
-                  'Port',
-                  'Ranger',
-                  'Ratcatcher',
-                  'Raze',
-                  'Royal Carriage',
-                  'Soldier',
-                  'Storyteller',
-                  'Swamp Hag',
-                  'Teacher',
-                  'Transmogrify',
-                  'Treasure Hunter',
-                  'Warrior',
-                  'Wine Merchant',
-                  'Encampment',
-                  'Patrician',
-                  'Emporium',
-                  'Settlers',
-                  'Bustling Village',
-                  'Catapult',
-                  'Gladiator',
-                  'Small Castle',
-                  'Opulent Castle',
-                  'Archive',
-                  'Chariot Race',
-                  'City Quarter',
-                  'Crown',
-                  'Enchantress',
-                  'Engineer',
-                  'Farmers\' Market',
-                  'Forum',
-                  'Groundskeeper',
-                  'Legionary',
-                  'Overlord',
-                  'Royal Blacksmith',
-                  'Sacrifice',
-                  'Temple',
-                  'Villa',
-                  'Wild Hunt',
-                  'Bard',
-                  'Blessed Village',
-                  'Conclave',
-                  'Cursed Village',
-                  'Druid',
-                  'Faithful Hound',
-                  'Fool',
-                  'Leprechaun',
-                  'Necromancer',
-                  'Pixie',
-                  'Pooka',
-                  'Sacred Grove',
-                  'Secret Cave',
-                  'Shepherd',
-                  'Skulk',
-                  'Tormentor',
-                  'Tragic Hero',
-                  'Tracker',
-                  'Werewolf',
-                  'Imp',
-                  'Will-o\'-wisp',
-                  'Wish',
-                  'Zombie Apprentice',
-                  'Zombie Mason',
-                  'Zombie Spy',
-                  'Sauna',
-                  'Avanto',
-                  'Black Market',
-                  'Envoy',
-                  'Governor',
-                  'Prince',
-                  'Walled Village',
-                  'Dismantle']
+              'Bandit',
+              'Bureaucrat',
+              'Cellar',
+              'Chapel',
+              'Council Room',
+              'Festival',
+              'Harbinger',
+              'Laboratory',
+              'Library',
+              'Market',
+              'Merchant',
+              'Militia',
+              'Mine',
+              'Moat',
+              'Moneylender',
+              'Poacher',
+              'Remodel',
+              'Sentry',
+              'Smithy',
+              'Throne Room',
+              'Vassal',
+              'Village',
+              'Witch',
+              'Workshop',
+              'Courtyard',
+              'Conspirator',
+              'Courtier',
+              'Baron',
+              'Bridge',
+              'Diplomat',
+              'Nobles',
+              'Ironworks',
+              'Lurker',
+              'Masquerade',
+              'Mill',
+              'Mining Village',
+              'Minion',
+              'Patrol',
+              'Pawn',
+              'Replace',
+              'Secret Passage',
+              'Shanty Town',
+              'Steward',
+              'Swindler',
+              'Torturer',
+              'Trading Post',
+              'Upgrade',
+              'Wishing Well',
+              'Ambassador',
+              'Bazaar',
+              'Caravan',
+              'Cutpurse',
+              'Embargo',
+              'Explorer',
+              'Fishing Village',
+              'Ghost Ship',
+              'Haven',
+              'Island',
+              'Lighthouse',
+              'Lookout',
+              'Merchant Ship',
+              'Native Village',
+              'Navigator',
+              'Outpost',
+              'Pearl Diver',
+              'Pirate Ship',
+              'Salvager',
+              'Sea Hag',
+              'Smugglers',
+              'Tactician',
+              'Treasure Map',
+              'Treasury',
+              'Warehouse',
+              'Wharf',
+              'Alchemist',
+              'Apothecary',
+              'Apprentice',
+              'Familiar',
+              'Golem',
+              'Herbalist',
+              'Possession',
+              'Scrying Pool',
+              'Transmute',
+              'University',
+              'Bishop',
+              'Counting House',
+              'City',
+              'Expand',
+              'Forge',
+              'Grand Market',
+              'Goons',
+              'King\'s Court',
+              'Mint',
+              'Monument',
+              'Mountebank',
+              'Peddler',
+              'Rabble',
+              'Trade Route',
+              'Vault',
+              'Watchtower',
+              'Worker\'s Village',
+              'Bag of Gold',
+              'Farming Village',
+              'Followers',
+              'Fortune Teller',
+              'Hamlet',
+              'Harvest',
+              'Horse Traders',
+              'Hunting Party',
+              'Jester',
+              'Menagerie',
+              'Princess',
+              'Remake',
+              'Tournament',
+              'Trusty Steed',
+              'Young Witch',
+              'Border Village',
+              'Cartographer',
+              'Crossroads',
+              'Develop',
+              'Duchess',
+              'Embassy',
+              'Haggler',
+              'Highway',
+              'Inn',
+              'Jack of All Trades',
+              'Mandarin',
+              'Noble Brigand',
+              'Nomad Camp',
+              'Oasis',
+              'Oracle',
+              'Margrave',
+              'Scheme',
+              'Spice Merchant',
+              'Stables',
+              'Trader',
+              'Ruins',
+              'Knights',
+              'Abandoned Mine',
+              'Altar',
+              'Armory',
+              'Band of Misfits',
+              'Bandit Camp',
+              'Beggar',
+              'Catacombs',
+              'Count',
+              'Cultist',
+              'Dame Anna',
+              'Dame Josephine',
+              'Dame Molly',
+              'Dame Natalie',
+              'Dame Sylvia',
+              'Death Cart',
+              'Forager',
+              'Fortress',
+              'Graverobber',
+              'Hermit',
+              'Hunting Grounds',
+              'Ironmonger',
+              'Junk Dealer',
+              'Madman',
+              'Market Square',
+              'Marauder',
+              'Mercenary',
+              'Mystic',
+              'Necropolis',
+              'Pillage',
+              'Poor House',
+              'Procession',
+              'Rats',
+              'Rebuild',
+              'Rogue',
+              'Ruined Library',
+              'Ruined Market',
+              'Ruined Village',
+              'Sage',
+              'Scavenger',
+              'Sir Bailey',
+              'Sir Destry',
+              'Sir Martin',
+              'Sir Michael',
+              'Sir Vander',
+              'Storeroom',
+              'Squire',
+              'Survivors',
+              'Urchin',
+              'Vagrant',
+              'Wandering Minstrel',
+              'Advisor',
+              'Baker',
+              'Butcher',
+              'Candlestick Maker',
+              'Doctor',
+              'Herald',
+              'Journeyman',
+              'Merchant Guild',
+              'Plaza',
+              'Taxman',
+              'Soothsayer',
+              'Stonemason',
+              'Amulet',
+              'Artificer',
+              'Bridge Troll',
+              'Caravan Guard',
+              'Champion',
+              'Disciple',
+              'Distant Lands',
+              'Dungeon',
+              'Duplicate',
+              'Fugitive',
+              'Gear',
+              'Giant',
+              'Guide',
+              'Haunted Woods',
+              'Hero',
+              'Hireling',
+              'Lost City',
+              'Magpie',
+              'Messenger',
+              'Miser',
+              'Page',
+              'Peasant',
+              'Port',
+              'Ranger',
+              'Ratcatcher',
+              'Raze',
+              'Royal Carriage',
+              'Soldier',
+              'Storyteller',
+              'Swamp Hag',
+              'Teacher',
+              'Transmogrify',
+              'Treasure Hunter',
+              'Warrior',
+              'Wine Merchant',
+              'Encampment',
+              'Patrician',
+              'Emporium',
+              'Settlers',
+              'Bustling Village',
+              'Catapult',
+              'Gladiator',
+              'Small Castle',
+              'Opulent Castle',
+              'Archive',
+              'Chariot Race',
+              'City Quarter',
+              'Crown',
+              'Enchantress',
+              'Engineer',
+              'Farmers\' Market',
+              'Forum',
+              'Groundskeeper',
+              'Legionary',
+              'Overlord',
+              'Royal Blacksmith',
+              'Sacrifice',
+              'Temple',
+              'Villa',
+              'Wild Hunt',
+              'Bard',
+              'Blessed Village',
+              'Conclave',
+              'Cursed Village',
+              'Druid',
+              'Faithful Hound',
+              'Fool',
+              'Leprechaun',
+              'Necromancer',
+              'Pixie',
+              'Pooka',
+              'Sacred Grove',
+              'Secret Cave',
+              'Shepherd',
+              'Skulk',
+              'Tormentor',
+              'Tragic Hero',
+              'Tracker',
+              'Werewolf',
+              'Imp',
+              'Will-o\'-wisp',
+              'Wish',
+              'Zombie Apprentice',
+              'Zombie Mason',
+              'Zombie Spy',
+              'Sauna',
+              'Avanto',
+              'Black Market',
+              'Envoy',
+              'Governor',
+              'Prince',
+              'Walled Village',
+              'Dismantle']
+
 
 # 99: Vineyard
-def vineyard_worth(gameState, player):
-    playerDeck = gameState.crunch(['DECKS', 'DISCARDS', 'HANDS', 'OTHERS', 'INPLAYS'], [player])
+def vineyard_worth(gS, player):
+    playerDeck = gS.crunch(['DECKS', 'DISCARDS', 'HANDS', 'OTHERS', 'INPLAYS'], [player])
     return sum([playerDeck[item] for item in playerDeck if
                 standardCards[item].simple_name in actionList]) // 3
 
@@ -1180,10 +1218,12 @@ standardCards.append(t)
 t = Card('Bank', 'Banks', 'a Bank', 7, 0, 'd8c280', '616745', empty)
 standardCards.append(t)
 
+
 # 101: Bishop
-def bishop_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        gainCash(1)(chunkMoves, gameStates, exceptions, turnExceptions, persistents)
+def bishop_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        gainCash(1)(cM, gS, exc, tExc, pers)
+
 
 t = Card('Bishop', 'Bishops', 'a Bishop', 4, 0, 'c4c0b4', '6a587c', bishop_action)
 standardCards.append(t)
@@ -1192,18 +1232,22 @@ standardCards.append(t)
 t = Card('Colony', 'Colonies', 'a Colony', 11, 0, '548C2B', '9494d8', empty, staticWorth(10))
 standardCards.append(t)
 
+
 # 103: Contraband
-def contraband_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        gainCash(3)(chunkMoves, gameStates, exceptions, turnExceptions, persistents)
+def contraband_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        gainCash(3)(cM, gS, exc, tExc, pers)
+
 
 t = Card('Contraband', 'Contrabands', 'a Contraband', 5, 0, 'd8c280', '68442c', contraband_action)
 standardCards.append(t)
 
+
 # 104: Counting House
-def countinghouse_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exceptions.append(Exception(standard_condition(['PUT INHAND']), moveException('DISCARDS', 'HANDS')))
+def countinghouse_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        exc.append(standardException(['PUT INHAND']), 'DISCARDS', 'HANDS')
+
 
 t = Card('Counting House', 'Counting Houses', 'a Counting House', 5, 0, 'c4c0b4', '6f5143', countinghouse_action)
 standardCards.append(t)
@@ -1220,26 +1264,32 @@ standardCards.append(t)
 t = Card('Forge', 'Forges', 'a Forge', 7, 0, 'c4c0b4', 'd05a2a', empty)
 standardCards.append(t)
 
+
 # 108: Grand Market
-def gm_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        gainCash(2)(chunkMoves, gameStates, exceptions, turnExceptions, persistents)
+def gm_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        gainCash(2)(cM, gS, exc, tExc, pers)
+
 
 t = Card('Grand Market', 'Grand Markets', 'a Grand Market', 6, 0, 'c4c0b4', 'ab735b', gm_action)
 standardCards.append(t)
 
+
 # 109: Goons
-def goons_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        gainCash(2)(chunkMoves, gameStates, exceptions, turnExceptions, persistents)
+def goons_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        gainCash(2)(cM, gS, exc, tExc, pers)
+
 
 t = Card('Goons', 'Goons', 'a Goons', 6, 0, 'c4c0b4', '6d6129', goons_action)
 standardCards.append(t)
 
+
 # 110: Hoard
-def hoard_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        gainCash(2)(chunkMoves, gameStates, exceptions, turnExceptions, persistents)
+def hoard_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        gainCash(2)(cM, gS, exc, tExc, pers)
+
 
 t = Card('Hoard', 'Hoards', 'a Hoard', 6, 0, 'd8c280', '917d25', hoard_action)
 standardCards.append(t)
@@ -1248,85 +1298,105 @@ standardCards.append(t)
 t = Card('King\'s Court', 'King\'s Courts', 'a King\'s Court', 7, 0, 'c4c0b4', '926634', empty)
 standardCards.append(t)
 
+
 # 112: Loan
-def loan_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        gainCash(1)(chunkMoves, gameStates, exceptions, turnExceptions, persistents)
-        exceptions.append(Exception(standard_condition(['TRASH']), moveException('DECKS', 'TRASH')))
-        exceptions.append(Exception(standard_condition(['DISCARD']), moveException('DECKS', 'DISCARDS')))
+def loan_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        gainCash(1)(cM, gS, exc, tExc, pers)
+        exc.append(exc_revealTrash)
+        exc.append(exc_revealDiscard)
+
 
 t = Card('Loan', 'Loans', 'a Loan', 3, 0, 'd8c280', '9d936f', loan_action)
 standardCards.append(t)
 
+
 # 113: Mint
-def mint_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['BUY AND GAIN', 'BUY']:
-        exceptions.append(Exception(standard_condition(['TRASH']), moveException('INPLAYS', 'TRASH')))
+def mint_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['BUY AND GAIN', 'BUY']:
+        exc.append(standardException(['TRASH'], 'INPLAYS', 'TRASH'))
+
 
 t = Card('Mint', 'Mints', 'a Mint', 5, 0, 'c4c0b4', '7a5e40', mint_action)
 standardCards.append(t)
 
+
 # 114: Monument
-def monument_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        gainCash(2)(chunkMoves, gameStates, exceptions, turnExceptions, persistents)
+def monument_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        gainCash(2)(cM, gS, exc, tExc, pers)
+
 
 t = Card('Monument', 'Monuments', 'a Monument', 4, 0, 'c4c0b4', '8191ab', monument_action)
 standardCards.append(t)
 
+
 # 115: Mountebank
-def mountebank_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        gainCash(2)(chunkMoves, gameStates, exceptions, turnExceptions, persistents)
+def mountebank_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        gainCash(2)(cM, gS, exc, tExc, pers)
+
 
 t = Card('Mountebank', 'Mountebanks', 'a Mountebank', 5, 0, 'c4c0b4', '866a6a', mountebank_action)
 standardCards.append(t)
 
+
 # 116: Peddler
-def peddler_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        gainCash(1)(chunkMoves, gameStates, exceptions, turnExceptions, persistents)
+def peddler_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        gainCash(1)(cM, gS, exc, tExc, pers)
+
 
 t = Card('Peddler', 'Peddlers', 'a Peddler', 8, 0, 'c4c0b4', '9a5a2e', peddler_action)
 standardCards.append(t)
 
+
 # 117: Platinum
-def platinum_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        gainCash(5)(chunkMoves, gameStates, exceptions, turnExceptions, persistents)
+def platinum_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        gainCash(5)(cM, gS, exc, tExc, pers)
+
 
 t = Card('Platinum', 'Platina', 'a Platinum', 9, 0, 'f1d14d', '948266', platinum_action)
 standardCards.append(t)
 
+
 # 118: Quarry
-def quarry_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        gainCash(1)(chunkMoves, gameStates, exceptions, turnExceptions, persistents)
+def quarry_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        gainCash(1)(cM, gS, exc, tExc, pers)
+
 
 t = Card('Quarry', 'Quarries', 'a Quarry', 4, 0, 'd8c280', 'b9b59f', quarry_action)
 standardCards.append(t)
 
+
 # 119: Rabble
-def rabble_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exceptions.append(Exception(standard_condition(['TOPDECK']), moveException('DECKS', 'DECKS')))
-        exceptions.append(Exception(standard_condition(['DISCARD']), moveException('DECKS', 'DISCARDS')))
+def rabble_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        exc.append(exc_revealTopdeck)
+        exc.append(exc_revealDiscard)
+
 
 t = Card('Rabble', 'Rabbles', 'a Rabble', 5, 0, 'c4c0b4', '88422c', rabble_action)
 standardCards.append(t)
 
+
 # 120: Royal Seal
-def royalseal_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        gainCash(2)(chunkMoves, gameStates, exceptions, turnExceptions, persistents)
+def royalseal_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        gainCash(2)(cM, gS, exc, tExc, pers)
+
 
 t = Card('Royal Seal', 'Royal Seals', 'a Royal Seal', 5, 0, 'd8c280', 'd8b08e', royalseal_action)
 standardCards.append(t)
 
+
 # 121: Talisman
-def talisman_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        gainCash(1)(chunkMoves, gameStates, exceptions, turnExceptions, persistents)
+def talisman_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        gainCash(1)(cM, gS, exc, tExc, pers)
+
 
 t = Card('Talisman', 'Talismans', 'a Talisman', 4, 0, 'd8c280', 'b28038', talisman_action)
 standardCards.append(t)
@@ -1339,13 +1409,15 @@ standardCards.append(t)
 t = Card('Vault', 'Vaults', 'a Vault', 5, 0, 'c4c0b4', '947e4e', empty)
 standardCards.append(t)
 
+
 # 124: Venture
-def venture_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        gainCash(1)(chunkMoves, gameStates, exceptions, turnExceptions, persistents)
-        exceptions.append(Exception(standard_condition(['PLAY']), moveException('DECKS', 'INPLAYS')))
-        exceptions.append(Exception(standard_condition(['PLAY']), standard_play))
-        exceptions.append(Exception(standard_condition(['DISCARD']), moveException('DECKS', 'DISCARDS')))
+def venture_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        gainCash(1)(cM, gS, exc, tExc, pers)
+        exc.append(standardException(['PLAY'], 'DECKS', 'INPLAYS'))
+        exc.append(Exception(standardCondition(['PLAY']), standardOnPlay))
+        exc.append(standardException(['DISCARD'], 'DECKS', 'DISCARDS'))
+
 
 t = Card('Venture', 'Ventures', 'a Venture', 5, 0, 'd8c280', '624e36', venture_action)
 standardCards.append(t)
@@ -1362,11 +1434,14 @@ standardCards.append(t)
 t = Card('Prize Pile', 'Prize Piles', 'a Prize Pile', 0, 0, '666666', '666666', empty)
 standardCards.append(t)
 
+
 # 128: Bag of Gold
-def bagofgold_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exceptions.append(Exception(standard_condition(['GAIN'],['Gold']), moveException('SUPPLY', 'DECKS')))
-        exceptions.append(Exception(standard_condition(['GAIN']), standardOnGains('DECKS', chunkMoves[0].items)))
+def bagofgold_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        exc.append(standardException(['GAIN'], 'SUPPLY', 'DECKS', ['Gold']))
+        exc.append(Exception(standardCondition(['GAIN'], ['Gold']),
+                             standardOnGains('DECKS', cM[0].items)))
+
 
 t = Card('Bag of Gold', 'Bags of Gold', 'a Bag of Gold', 0, 1, 'c4c0b4', 'b47214', bagofgold_action)
 standardCards.append(t)
@@ -1377,18 +1452,20 @@ standardCards.append(t)
 
 
 # 130: Fairgrounds
-def fairgrounds_worth(gameState, player):
-    playerDeck = gameState.crunch(['DECKS', 'DISCARDS', 'HANDS', 'OTHERS', 'INPLAYS'], [player])
+def fairgrounds_worth(gS, player):
+    playerDeck = gS.crunch(['DECKS', 'DISCARDS', 'HANDS', 'OTHERS', 'INPLAYS'], [player])
     return len(playerDeck.cardList()) // 5
 
 
 t = Card('Fairgrounds', 'Fairgrounds', 'a Fairgrounds', 6, 0, '9cbe8a', '9a8462', empty, fairgrounds_worth)
 standardCards.append(t)
 
+
 # 131: Farming Village
-def farmvillage_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exceptions.append(Exception(standard_condition(['DISCARD']), moveException('DECKS', 'DISCARDS')))
+def farmvillage_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        exc.append(exc_revealDiscard)
+
 
 t = Card('Farming Village', 'Farming Villages', 'a Farming Village', 4, 0, 'c4c0b4', '8d7f67', farmvillage_action)
 standardCards.append(t)
@@ -1397,11 +1474,12 @@ standardCards.append(t)
 t = Card('Followers', 'Followers', 'a Followers', 0, 1, 'c4c0b4', 'ab670b', empty)
 standardCards.append(t)
 
+
 # 133: Fortune Teller
-def fortuneteller_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exceptions.append(Exception(standard_condition(['TOPDECK']), moveException('DECKS', 'DECKS')))
-        exceptions.append(Exception(standard_condition(['DISCARD']), moveException('DECKS', 'DISCARDS')))
+def fortuneteller_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        exc.append(exc_revealTopdeck)
+        exc.append(exc_revealDiscard)
 
 t = Card('Fortune Teller', 'Fortune Tellers', 'a Fortune Teller', 3, 0, 'c4c0b4', '884214', fortuneteller_action)
 standardCards.append(t)
@@ -1411,9 +1489,9 @@ t = Card('Hamlet', 'Hamlets', 'a Hamlet', 2, 0, 'c4c0b4', '8e9886', empty)
 standardCards.append(t)
 
 # 135: Harvest
-def harvest_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exceptions.append(Exception(standard_condition(['DISCARD']), moveException('DECKS', 'DISCARDS')))
+def harvest_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        exc.append(exc_revealDiscard)
 
 t = Card('Harvest', 'Harvests', 'a Harvest', 5, 0, 'c4c0b4', 'cd9f49', harvest_action)
 standardCards.append(t)
@@ -1423,26 +1501,26 @@ t = Card('Horse Traders', 'Horse Traders', 'a Horse Traders', 4, 0, '8ca2be', '5
 standardCards.append(t)
 
 # 137: Horn of Plenty
-def hop_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exceptions.append(Exception(standard_condition(['TRASH'], ['Horn of Plenty']),
-                                    moveException('INPLAYS', 'TRASH')))
+def hop_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        exc.append(standardException(['TRASH'], 'INPLAYS', 'TRASH',
+                                     ['Horn of Plenty']))
 
 t = Card('Horn of Plenty', 'Horns of Plenty', 'a Horn of Plenty', 5, 0, 'd8c280', '7b4d27', hop_action)
 standardCards.append(t)
 
 # 138: Hunting Party
-def huntingparty_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exceptions.append(Exception(standard_condition(['DISCARD']), moveException('DECKS', 'DISCARDS')))
+def huntingparty_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        exc.append(exc_revealDiscard)
 
 t = Card('Hunting Party', 'Hunting Parties', 'a Hunting Party', 5, 0, 'c4c0b4', '4e4e48', huntingparty_action)
 standardCards.append(t)
 
 # 139: Jester
-def jester_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exceptions.append(Exception(standard_condition(['DISCARD']), moveException('DECKS', 'DISCARDS')))
+def jester_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        exc.append(exc_revealDiscard)
 
 t = Card('Jester', 'Jesters', 'a Jester', 5, 0, 'c4c0b4', '9f7967', jester_action)
 standardCards.append(t)
@@ -1459,19 +1537,26 @@ standardCards.append(t)
 t = Card('Remake', 'Remakes', 'a Remake', 4, 0, 'c4c0b4', 'b46614', empty)
 standardCards.append(t)
 
+
 # 143: Tournament
-def tournament_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exceptions.append(Exception(standard_condition(['GAIN']), moveException('SUPPLY', 'DECKS')))
-        exceptions.append(Exception(standard_condition(['GAIN']), standardOnGains('DECKS', chunkMoves[0].items)))
+def tournament_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        exc.append(standardException(['GAIN'], 'SUPPLY', 'DECKS'))
+        exc.append(Exception(standardCondition(['GAIN']),
+                             standardOnGains('DECKS', cM[0].items)))
+
 
 t = Card('Tournament', 'Tournaments', 'a Tournament', 4, 0, 'c4c0b4', '937755', tournament_action)
 standardCards.append(t)
 
+
 # 144: Trusty Steed
-def steed_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exceptions.append(Exception(standard_condition(['GAIN'],['Silver']), moveException('SUPPLY', 'DECKS')))
+def steed_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        exc.append(standardException(['GAIN'], 'SUPPLY', 'DECKS', ['Silver']))
+        exc.append(Exception(standardCondition(['GAIN']),
+                             standardOnGains('DECKS', cM[0].items)))
+
 
 t = Card('Trusty Steed', 'Trusty Steeds', 'a Trusty Steed', 0, 1, 'c4c0b4', '6e726a', steed_action)
 standardCards.append(t)
@@ -1488,11 +1573,13 @@ standardCards.append(t)
 t = Card('Cache', 'Caches', 'a Cache', 5, 0, 'd8c280', '6e7846', empty)
 standardCards.append(t)
 
+
 # 148: Cartographer
-def cartographer_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exceptions.append(Exception(standard_condition(['DISCARD']),moveException('DECKS', 'DISCARDS')))
-        exceptions.append(Exception(standard_condition(['TOPDECK']),moveException('DECKS', 'DECKS')))
+def cartographer_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        exc.append(exc_revealDiscard)
+        exc.append(exc_revealTopdeck)
+
 
 t = Card('Cartographer', 'Cartographers', 'a Cartographer', 5, 0, 'c4c0b4', 'a45a14', cartographer_action)
 standardCards.append(t)
@@ -1501,20 +1588,25 @@ standardCards.append(t)
 t = Card('Crossroads', 'Crossroads', 'a Crossroads', 2, 0, 'c4c0b4', 'a7a187', empty)
 standardCards.append(t)
 
+
 # 150: Develop
-def develop_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exceptions.append(Exception(standard_condition(['GAIN']), moveException('SUPPLY', 'DECKS')))
-        exceptions.append(Exception(standard_condition(['GAIN']), standardOnGains('DECKS', chunkMoves[0].items)))
+def develop_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        exc.append(standardException(['GAIN'], 'SUPPLY', 'DECKS'))
+        exc.append(Exception(standardCondition(['GAIN']),
+                             standardOnGains('DECKS', cM[0].items)))
+
 
 t = Card('Develop', 'Develops', 'a Develop', 3, 0, 'c4c0b4', 'c09864', develop_action)
 standardCards.append(t)
 
+
 # 151: Duchess
-def duchess_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exceptions.append(Exception(standard_condition(['DISCARD']),moveException('DECKS', 'DISCARDS')))
-        exceptions.append(Exception(standard_condition(['TOPDECK']),moveException('DECKS', 'DECKS')))
+def duchess_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        exc.append(exc_revealDiscard)
+        exc.append(exc_revealTopdeck)
+
 
 t = Card('Duchess', 'Duchesses', 'a Duchess', 2, 0, 'c4c0b4', '999b77', duchess_action)
 standardCards.append(t)
@@ -1527,10 +1619,12 @@ standardCards.append(t)
 t = Card('Farmland', 'Farmlands', 'a Farmland', 6, 0, '9cbe8a', '4fbb9d', empty, staticWorth(2))
 standardCards.append(t)
 
+
 # 154: Fool\'s Gold
-def fg_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['TRASH']:
-        turnExceptions.append(Exception(standard_condition(['GAIN'],['Gold']), moveException('SUPPLY', 'DECKS')))
+def fg_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['TRASH']:
+        tExc.append(standardException(['GAIN'], 'SUPPLY', 'DECKS', ['Gold']))
+
 
 t = Card('Fool\'s Gold', 'Fool\'s Golds', 'a Fool\'s Gold', 2, 0, '939E9D', 'b8a62e', fg_action)
 standardCards.append(t)
@@ -1543,10 +1637,12 @@ standardCards.append(t)
 t = Card('Highway', 'Highways', 'a Highway', 5, 0, 'c4c0b4', 'a0be8c', empty)
 standardCards.append(t)
 
+
 # 157: Ill-Gotten Gains
-def igg_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exceptions.append(Exception(standard_condition(['GAIN'],['Copper']),moveException('SUPPLY', 'HANDS')))
+def igg_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        tExc.append(standardException(['GAIN'], 'SUPPLY', 'HANDS', ['Copper']))
+
 
 t = Card('Ill-Gotten Gains', 'Ill-Gotten Gains', 'an Ill-Gotten Gains', 5, 0, 'd8c280', '9d6d41', igg_action)
 standardCards.append(t)
@@ -1555,28 +1651,35 @@ standardCards.append(t)
 t = Card('Inn', 'Inns', 'an Inn', 5, 0, 'c4c0b4', '71957d', empty)
 standardCards.append(t)
 
+
 # 159: Jack of All Trades
-def jack_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exceptions.append(Exception(standard_condition(['DISCARD']),moveException('DECKS', 'DISCARDS')))
-        exceptions.append(Exception(standard_condition(['TOPDECK']),moveException('DECKS', 'DECKS')))
+def jack_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        exc.append(exc_revealDiscard)
+        exc.append(exc_revealTopdeck)
+
 
 t = Card('Jack of All Trades', 'Jacks of All Trades', 'a Jack of All Trades', 4, 0, 'c4c0b4', '7aa2a4', jack_action)
 standardCards.append(t)
 
+
 # 160: Mandarin
-def mandarin_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['BUY AND GAIN', 'GAIN TOPDECK', 'GAIN TRASH', 'GAIN']:
-        exceptions.append(Exception(standard_condition(['TOPDECK']),moveException('INPLAYS', 'DECKS')))
+def mandarin_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['BUY AND GAIN', 'GAIN TOPDECK',
+                            'GAIN TRASH', 'GAIN']:
+        exc.append(standardException(['TOPDECK'], 'INPLAYS', 'DECKS'))
+
 
 t = Card('Mandarin', 'Mandarins', 'a Mandarin', 5, 0, 'c4c0b4', 'b38f2d', mandarin_action)
 standardCards.append(t)
 
+
 # 161: Noble Brigand
-def brigand_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD', 'BUY']:
-        exceptions.append(Exception(standard_condition(['TRASH']),moveException('DECKS', 'TRASH')))
-        exceptions.append(Exception(standard_condition(['DISCARD']),moveException('DECKS', 'DISCARDS')))
+def brigand_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD', 'BUY']:
+        exc.append(exc_revealTrash)
+        exc.append(exc_revealDiscard)
+
 
 t = Card('Noble Brigand', 'Noble Brigands', 'a Noble Brigand', 4, 0, 'c4c0b4', '645c46', brigand_action)
 standardCards.append(t)
@@ -1589,11 +1692,13 @@ standardCards.append(t)
 t = Card('Oasis', 'Oases', 'an Oasis', 3, 0, 'c4c0b4', '8e9864', empty)
 standardCards.append(t)
 
+
 # 164: Oracle
-def oracle_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exceptions.append(Exception(standard_condition(['DISCARD']),moveException('DECKS', 'DISCARDS')))
-        exceptions.append(Exception(standard_condition(['TOPDECK']),moveException('DECKS', 'DECKS')))
+def oracle_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        exc.append(exc_revealDiscard)
+        exc.append(exc_revealTopdeck)
+
 
 t = Card('Oracle', 'Oracles', 'an Oracle', 3, 0, 'c4c0b4', '69491b', oracle_action)
 standardCards.append(t)
@@ -1637,11 +1742,15 @@ victoryCards = ['Estate',
                 'King\'s Castle',
                 'Cemetery',
                 'Pasture']
+
+
 # 167: Silk Road
 def silkroad_worth(gameState, player):
-    playerDeck = gameState.crunch(['DECKS', 'DISCARDS', 'HANDS', 'OTHERS', 'INPLAYS'], [player])
+    playerDeck = gameState.crunch(['DECKS', 'DISCARDS', 'HANDS',
+                                   'OTHERS', 'INPLAYS'], [player])
     return sum([playerDeck[item] for item in playerDeck if
                 standardCards[item].simple_name in victoryCards])
+
 
 t = Card('Silk Road', 'Silk Roads', 'a Silk Road', 4, 0, '9cbe8a', '948452', empty, silkroad_worth)
 standardCards.append(t)
@@ -1678,10 +1787,14 @@ standardCards.append(t)
 t = Card('Altar', 'Altars', 'an Altar', 6, 0, 'c4c0b4', '7e3800', empty)
 standardCards.append(t)
 
+
 # 176: Armory
-def armory_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exceptions.append(Exception(standard_condition(['GAIN']),moveException('SUPPLY', 'DECKS')))
+def armory_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        exc.append(standardException(['GAIN'], 'SUPPLY', 'DECKS'))
+        exc.append(Exception(standardCondition(['GAIN']),
+                             standardOnGains('DECKS', cM[0].items)))
+
 
 t = Card('Armory', 'Armories', 'an Armory', 4, 0, 'c4c0b4', '54564e', armory_action)
 standardCards.append(t)
@@ -1694,18 +1807,24 @@ standardCards.append(t)
 t = Card('Bandit Camp', 'Bandit Camps', 'a Bandit Camp', 5, 0, 'c4c0b4', '42889e', empty)
 standardCards.append(t)
 
+
 # 179: Beggar
-def beggar_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exceptions.append(Exception(standard_condition(['GAIN']),moveException('SUPPLY', 'HANDS')))
+def beggar_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        exc.append(standardException(['GAIN'], 'SUPPLY', 'HANDS', ['Copper']))
+        exc.append(Exception(standardCondition(['GAIN'], ['Copper']),
+                             standardOnGains('HANDS', cM[0].items)))
+
 
 t = Card('Beggar', 'Beggars', 'a Beggar', 2, 0, '8ca2be', '503626', beggar_action)
 standardCards.append(t)
 
+
 # 180: Catacombs
-def catacombs_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exceptions.append(Exception(standard_condition(['DISCARD']),moveException('DECKS', 'DISCARDS')))
+def catacombs_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        exc.append(exc_revealDiscard)
+
 
 t = Card('Catacombs', 'Catacombs', 'a Catacombs', 5, 0, 'c4c0b4', '472f1f', catacombs_action)
 standardCards.append(t)
@@ -1714,10 +1833,12 @@ standardCards.append(t)
 t = Card('Count', 'Counts', 'a Count', 5, 0, 'c4c0b4', '58605c', empty)
 standardCards.append(t)
 
+
 # 182: Counterfeit
-def counterfeit_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exceptions.append(Exception(standard_condition(['TRASH']),moveException('INPLAYS', 'TRASH')))
+def counterfeit_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        exc.append(exc_inplayTrash)
+
 
 t = Card('Counterfeit', 'Counterfeits', 'a Counterfeit', 5, 0, 'd8c280', 'a66e28', counterfeit_action)
 standardCards.append(t)
@@ -1726,34 +1847,45 @@ standardCards.append(t)
 t = Card('Cultist', 'Cultists', 'a Cultist', 5, 0, 'c4c0b4', '4b4957', empty)
 standardCards.append(t)
 
-def knights_trash_condition(knightPlayer):
-    def out_function(chunkMoves):
-        return standardPreds[chunkMoves[0].pred].name == 'TRASH' and chunkMoves[0].player != knightPlayer
+
+def knightsTrashCondition(knightPlayer):
+    def out_function(cM):
+        return cM[0].predName() == 'TRASH' and cM[0].player != knightPlayer
     return out_function
 
-def knights_suicide_condition(knightPlayer):
-    def out_function(chunkMoves):
-        return standardPreds[chunkMoves[0].pred].name == 'TRASH' and chunkMoves[0].player == knightPlayer
+
+def knightsSuicideCondition(knightPlayer):
+    def out_function(cM):
+        return cM[0].predName() == 'TRASH' and cM[0].player == knightPlayer
     return out_function
 
-def standard_knights_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exceptions.append(Exception(standard_condition(['DISCARD']), moveException('DECKS', 'DISCARDS')))
-        exceptions.append(Exception(knights_trash_condition(chunkMoves[0].player), moveException('DECKS', 'TRASH')))
-        exceptions.append(Exception(knights_suicide_condition(chunkMoves[0].player), moveException('INPLAYS', 'TRASH')))
+
+def standardKnightsAction(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        exc.append(exc_revealDiscard)
+        exc.append(Exception(knightsTrashCondition(cM[0].player),
+                             moveException('DECKS', 'TRASH')))
+        exc.append(Exception(knightsSuicideCondition(cM[0].player),
+                             moveException('INPLAYS', 'TRASH')))
+
 
 # 184: Dame Anna
 def anna_trash_condition(knightPlayer):
-    def out_function(chunkMoves):
-        return standardPreds[chunkMoves[0].pred].name == 'TRASH' and chunkMoves[0].player == knightPlayer
+    def out_function(cM):
+        return cM[0].predName() == 'TRASH' and cM[0].player == knightPlayer
     return out_function
 
-def anna_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exceptions.append(Exception(standard_condition(['DISCARD']),moveException('DECKS', 'DISCARDS')))
-        exceptions.append(Exception(knights_trash_condition(chunkMoves[0].player), moveException('DECKS', 'TRASH')))
-        exceptions.append(Exception(knights_suicide_condition(chunkMoves[0].player), moveException('INPLAYS', 'TRASH')))
-        exceptions.append(Exception(anna_trash_condition(chunkMoves[0].player), moveException('HANDS', 'TRASH')))
+
+def anna_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        exc.append(exc_revealDiscard)
+        exc.append(Exception(knights_trash_condition(cM[0].player),
+                             moveException('DECKS', 'TRASH')))
+        exc.append(Exception(knights_suicide_condition(cM[0].player),
+                             moveException('INPLAYS', 'TRASH')))
+        exc.append(Exception(anna_trash_condition(cM[0].player),
+                             moveException('HANDS', 'TRASH')))
+
 
 t = Card('Dame Anna', 'Dame Annas', 'a Dame Anna', 5, -1, 'c4c0b4', '775f35', anna_action)
 standardCards.append(t)
@@ -1761,28 +1893,30 @@ standardCards.append(t)
 
 # 185: Dame Josephine
 t = Card('Dame Josephine', 'Dame Josephines', 'a Dame Josephine', 5, -1,
-         'aac298', '635147', standard_knights_action, staticWorth(2))
+         'aac298', '635147', standardKnightsAction, staticWorth(2))
 standardCards.append(t)
 
 # 186: Dame Molly
-t = Card('Dame Molly', 'Dame Mollies', 'a Dame Molly', 5, -1, 'c4c0b4', '946e50', standard_knights_action)
+t = Card('Dame Molly', 'Dame Mollies', 'a Dame Molly', 5, -1, 'c4c0b4', '946e50', standardKnightsAction)
 standardCards.append(t)
 
 # 187: Dame Natalie
-t = Card('Dame Natalie', 'Dame Natalies', 'a Dame Natalie', 5, -1, 'c4c0b4', '56665a', standard_knights_action)
+t = Card('Dame Natalie', 'Dame Natalies', 'a Dame Natalie', 5, -1, 'c4c0b4', '56665a', standardKnightsAction)
 standardCards.append(t)
 
 # 188: Dame Sylvia
-t = Card('Dame Sylvia', 'Dame Sylvias', 'a Dame Sylvia', 5, -1, 'c4c0b4', '744c36', standard_knights_action)
+t = Card('Dame Sylvia', 'Dame Sylvias', 'a Dame Sylvia', 5, -1, 'c4c0b4', '744c36', standardKnightsAction)
 standardCards.append(t)
 
 # 189: Death Cart
 t = Card('Death Cart', 'Death Carts', 'a Death Cart', 4, 0, 'c4c0b4', '826636', empty)
 standardCards.append(t)
 
+
 # 190: Feodum
 def feodum_worth(gameState, player):
-    playerDeck = gameState.crunch(['DECKS', 'DISCARDS', 'HANDS', 'OTHERS', 'INPLAYS'], [player])
+    playerDeck = gameState.crunch(['DECKS', 'DISCARDS', 'HANDS',
+                                   'OTHERS', 'INPLAYS'], [player])
 
     for card in playerDeck:
         if standardCards[card].simple_name == 'Silver':
@@ -1798,24 +1932,28 @@ standardCards.append(t)
 t = Card('Forager', 'Foragers', 'a Forager', 3, 0, 'c4c0b4', 'a46618', empty)
 standardCards.append(t)
 
+
 # 192: Fortress
-def fortress_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['TRASH']:
-        exceptions.append(Exception(standard_condition(['PUT INHAND']),moveException('TRASH', 'HANDS')))
+def fortress_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['TRASH']:
+        exc.append(standardException(['PUT INHAND'], 'TRASH', 'HANDS'))
+
 
 t = Card('Fortress', 'Fortresses', 'a Fortress', 4, 0, 'c4c0b4', '62524c', fortress_action)
 standardCards.append(t)
 
+
 # 193: Graverobber
-def graverobber_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+def graverobber_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
         isRemodelling = False
-        for chunk in chunkMoves[1:]:
-            if standardPreds[chunk[0].pred].name == 'TRASH':
+        for chunk in cM[1:]:
+            if chunk[0].predName == 'TRASH':
                 isRemodelling = True
 
         if not isRemodelling:
-            exceptions.append(Exception(standard_condition(['GAIN']),moveException('TRASH', 'DECKS')))
+            exc.append(standardException(['GAIN'], 'TRASH', 'DECKS'))
+
 
 t = Card('Graverobber', 'Graverobbers', 'a Graverobber', 5, 0, 'c4c0b4', '4e4052', graverobber_action)
 standardCards.append(t)
@@ -1832,11 +1970,13 @@ standardCards.append(t)
 t = Card('Hunting Grounds', 'Hunting Grounds', 'a Hunting Grounds', 6, 0, 'c4c0b4', 'a08250', empty)
 standardCards.append(t)
 
+
 # 197: Ironmonger
-def ironmonger_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exceptions.append(Exception(standard_condition(['DISCARD']),moveException('DECKS', 'DISCARDS')))
-        exceptions.append(Exception(standard_condition(['TOPDECK']),moveException('DECKS', 'DECKS')))
+def ironmonger_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        exc.append(exc_revealDiscard)
+        exc.append(exc_revealTopdeck)
+
 
 t = Card('Ironmonger', 'Ironmongers', 'an Ironmonger', 4, 0, 'c4c0b4', '72787a', ironmonger_action)
 standardCards.append(t)
@@ -1873,10 +2013,13 @@ standardCards.append(t)
 t = Card('Overgrown Estate', 'Overgrown Estates', 'an Overgrown Estate', 1, 2, 'b4a65e', '58664c', empty)
 standardCards.append(t)
 
+
 # 206: Pillage
-def pillage_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exceptions.append(Exception(standard_condition(['TRASH'],['Pillage']),moveException('INPLAYS', 'TRASH')))
+def pillage_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        exc.append(standardException(['TRASH'], 'INPLAYS', 'TRASH',
+                                     ['Pillage']))
+
 
 t = Card('Pillage', 'Pillages', 'a Pillage', 5, 0, 'c4c0b4', '8d7f63', pillage_action)
 standardCards.append(t)
@@ -1885,10 +2028,12 @@ standardCards.append(t)
 t = Card('Poor House', 'Poor Houses', 'a Poor House', 1, 0, 'c4c0b4', '65573d', empty)
 standardCards.append(t)
 
+
 # 208: Procession
-def procession_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exceptions.append(Exception(standard_condition(['TRASH']),moveException('INPLAYS', 'TRASH')))
+def procession_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        exc.append(exc_inplayTrash)
+
 
 t = Card('Procession', 'Processions', 'a Procession', 4, 0, 'c4c0b4', '775f3d', procession_action)
 standardCards.append(t)
@@ -1897,21 +2042,25 @@ standardCards.append(t)
 t = Card('Rats', 'Rats', 'a Rats', 4, 0, 'c4c0b4', '795743', empty)
 standardCards.append(t)
 
+
 # 210: Rebuild
-def rebuild_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exceptions.append(Exception(standard_condition(['TRASH']),moveException('DECKS', 'TRASH')))
-        exceptions.append(Exception(standard_condition(['DISCARD']),moveException('DECKS', 'DISCARDS')))
+def rebuild_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        exc.append(exc_revealTrash)
+        exc.append(exc_revealDiscard)
+
 
 t = Card('Rebuild', 'Rebuilds', 'a Rebuild', 5, 0, 'c4c0b4', '64748c', rebuild_action)
 standardCards.append(t)
 
+
 # 211: Rogue
-def rogue_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exceptions.append(Exception(standard_condition(['GAIN']),moveException('TRASH', 'DISCARDS')))
-        exceptions.append(Exception(standard_condition(['DISCARD']),moveException('DECKS', 'DISCARDS')))
-        exceptions.append(Exception(knight_trash_condition(chunkMoves[0].player), moveException('DECKS', 'TRASH')))
+def rogue_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        exc.append(standardCondition(['GAIN'], 'TRASH', 'DISCARDS'))
+        exc.append(exc_revealDiscard)
+        exc.append(exc_revealTrash)
+
 
 t = Card('Rogue', 'Rogues', 'a Rogue', 5, 0, 'c4c0b4', '363c4c', rogue_action)
 standardCards.append(t)
@@ -1928,52 +2077,58 @@ standardCards.append(t)
 t = Card('Ruined Village', 'Ruined Villages', 'a Ruined Village', 0, 0, 'b29462', 'a4886a', empty)
 standardCards.append(t)
 
+
 # 215: Sage
-def sage_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exceptions.append(Exception(standard_condition(['DISCARD']),moveException('DECKS', 'DISCARDS')))
+def sage_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        exc.append(exc_revealDiscard)
+
 
 t = Card('Sage', 'Sages', 'a Sage', 3, 0, 'c4c0b4', '89612f', sage_action)
 standardCards.append(t)
 
+
 # 216: Scavenger
-def scavenger_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exceptions.append(Exception(standard_condition(['TOPDECK']),moveException('DISCARDS', 'DECKS')))
+def scavenger_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        exc.append(exc_harbinger)
+
 
 t = Card('Scavenger', 'Scavengers', 'a Scavenger', 4, 0, 'c4c0b4', '34404e', scavenger_action)
 standardCards.append(t)
 
 # 217: Sir Bailey
-t = Card('Sir Bailey', 'Sir Baileys', 'a Sir Bailey', 5, 0, 'c4c0b4', '506070', standard_knights_action)
+t = Card('Sir Bailey', 'Sir Baileys', 'a Sir Bailey', 5, 0, 'c4c0b4', '506070', standardKnightsAction)
 standardCards.append(t)
 
 # 218: Sir Destry
-t = Card('Sir Destry', 'Sir Destries', 'a Sir Destry', 5, -1, 'c4c0b4', '797d7f', standard_knights_action)
+t = Card('Sir Destry', 'Sir Destries', 'a Sir Destry', 5, -1, 'c4c0b4', '797d7f', standardKnightsAction)
 standardCards.append(t)
 
 # 219: Sir Martin
-t = Card('Sir Martin', 'Sir Martins', 'a Sir Martin', 4, -1, 'c4c0b4', 'cc9e60', standard_knights_action)
+t = Card('Sir Martin', 'Sir Martins', 'a Sir Martin', 4, -1, 'c4c0b4', 'cc9e60', standardKnightsAction)
 standardCards.append(t)
 
 # 220: Sir Michael
-def michael_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    def michael_reveal_exception(outerExceptions):
-        def out_function(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-            outerExceptions.append(Exception(standard_condition(['DISCARD']),moveException('DECKS', 'DISCARDS')))
+def michael_action(cM, gS, exc, tExc, pers):
+    def michaelRevealException(outerExceptions):
+        def out_function(cM, gS, exc, tExc, pers):
+            outerExceptions.append(exc_revealDiscard)
         return out_function
 
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exceptions.append(Exception(standard_condition(['TRASH']), moveException('DECKS', 'TRASH')))
-        exceptions.append(Exception(standard_condition(['REVEAL']), michael_reveal_exception(exceptions)))
-        exceptions.append(Exception(knights_suicide_condition(chunkMoves[0].player), moveException('INPLAYS', 'TRASH')))
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        exc.append(exc_revealTrash)
+        exc.append(Exception(standardCondition(['REVEAL']),
+                             michaelRevealException(exceptions)))
+        exc.append(Exception(knightsSuicideCondition(cM[0].player),
+                             moveException('INPLAYS', 'TRASH')))
 
 
 t = Card('Sir Michael', 'Sir Michaels', 'a Sir Michael', 5, -1, 'c4c0b4', '47454b', michael_action)
 standardCards.append(t)
 
 # 221: Sir Vander
-t = Card('Sir Vander', 'Sir Vanders', 'a Sir Vander', 5, -1, 'c4c0b4', '9ca6ac', standard_knights_action)
+t = Card('Sir Vander', 'Sir Vanders', 'a Sir Vander', 5, -1, 'c4c0b4', '9ca6ac', standardKnightsAction)
 standardCards.append(t)
 
 # 222: Spoils
@@ -1988,11 +2143,13 @@ standardCards.append(t)
 t = Card('Squire', 'Squires', 'a Squire', 2, 0, 'c4c0b4', '937b4b', empty)
 standardCards.append(t)
 
+
 # 225: Survivors
-def survivors_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exceptions.append(Exception(standard_condition(['TOPDECK']),moveException('DECKS', 'DECKS')))
-        exceptions.append(Exception(standard_condition(['DISCARD']),moveException('DECKS', 'DISCARDS')))
+def survivors_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        exc.append(exc_revealTopdeck)
+        exc.append(exc_revealDiscard)
+
 
 t = Card('Survivors', 'Survivors', 'a Survivors', 0, 0, 'b29462', '706a46', survivors_action)
 standardCards.append(t)
@@ -2001,27 +2158,33 @@ standardCards.append(t)
 t = Card('Urchin', 'Urchins', 'an Urchin', 3, 0, 'c4c0b4', '634b33', empty)
 standardCards.append(t)
 
+
 # 227: Vagrant
-def vagrant_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exceptions.append(Exception(standard_condition(['TOPDECK']),moveException('DECKS', 'DECKS')))
+def vagrant_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        exc.append(exc_revealTopdeck)
+
 
 t = Card('Vagrant', 'Vagrants', 'a Vagrant', 2, 0, 'c4c0b4', '593f2b', vagrant_action)
 standardCards.append(t)
 
+
 # 228: Wandering Minstrel
-def minstrel_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exceptions.append(Exception(standard_condition(['TOPDECK']),moveException('DECKS', 'DECKS')))
-        exceptions.append(Exception(standard_condition(['DISCARD']),moveException('DECKS', 'DISCARDS')))
+def minstrel_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        exc.append(exc_revealTopdeck)
+        exc.append(exc_revealDiscard)
+
 
 t = Card('Wandering Minstrel', 'Wandering Minstrels', 'a Wandering Minstrel', 4, 0, 'c4c0b4', '905414', minstrel_action)
 standardCards.append(t)
 
+
 # 229: Advisor
-def advisor_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exceptions.append(Exception(standard_condition(['DISCARD']),moveException('DECKS', 'DISCARDS')))
+def advisor_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        exc.append(exc_revealDiscard)
+
 
 t = Card('Advisor', 'Advisors', 'an Advisor', 4, 0, 'c4c0b4', '77675b', advisor_action)
 standardCards.append(t)
@@ -2038,32 +2201,38 @@ standardCards.append(t)
 t = Card('Candlestick Maker', 'Candlestick Makers', 'a Candlestick Maker', 2, 0, 'c4c0b4', '7d6137', empty)
 standardCards.append(t)
 
+
 # 233: Doctor
-def doctor_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD', 'BUY']:
-        exceptions.append(Exception(standard_condition(['TOPDECK']), moveException('DECKS', 'DECKS')))
-        exceptions.append(Exception(standard_condition(['DISCARD']), moveException('DECKS', 'DISCARDS')))
-        exceptions.append(Exception(standard_condition(['TRASH']), moveException('DECKS', 'TRASH')))
+def doctor_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD', 'BUY']:
+        exc.append(exc_revealTopdeck)
+        exc.append(exc_revealDiscard)
+        exc.append(exc_revealTrash)
+
 
 t = Card('Doctor', 'Doctors', 'a Doctor', 3, 0, 'c4c0b4', '895923', doctor_action)
 standardCards.append(t)
 
-# 234: Herald
-def herald_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exceptions.append(Exception(standard_condition(['PLAY']), moveException('DECKS', 'INPLAYS')))
-        exceptions.append(Exception(standard_condition(['PLAY']), standard_play))
 
-    if standardPreds[chunkMoves[0].pred].name in ['BUY']:
-        exceptions.append(Exception(standard_condition(['TOPDECK']),moveException('DISCARDS', 'DECKS')))
+# 234: Herald
+def herald_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        exc.append(standardException(['PLAY'], 'DECKS', 'INPLAYS'))
+        exc.append(Exception(standard_condition(['PLAY']), standardOnPlay))
+
+    if cM[0].predName() in ['BUY']:
+        exc.append(exc_harbinger)
+
 
 t = Card('Herald', 'Heralds', 'a Herald', 4, 0, 'c4c0b4', '996941', herald_action)
 standardCards.append(t)
 
+
 # 235: Journeyman
-def journeyman_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exceptions.append(Exception(standard_condition(['DISCARD']), moveException('DECKS', 'DISCARDS')))
+def journeyman_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        exc.append(exc_revealDiscard)
+
 
 t = Card('Journeyman', 'Journeymen', 'a Journeyman', 5, 0, 'c4c0b4', '78704e', journeyman_action)
 standardCards.append(t)
@@ -2080,10 +2249,14 @@ standardCards.append(t)
 t = Card('Plaza', 'Plazas', 'a Plaza', 4, 0, 'c4c0b4', '87573f', empty)
 standardCards.append(t)
 
+
 # 239: Taxman
-def taxman_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exceptions.append(Exception(standard_condition(['GAIN']), moveException('SUPPLY', 'DECKS')))
+def taxman_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        exc.append(standardException(['GAIN'], 'SUPPLY', 'DECKS'))
+        exc.append(Exception(standardCondition(['GAIN']),
+                             standardOnGains('DECKS', cM[0].items)))
+
 
 t = Card('Taxman', 'Taxmen', 'a Taxman', 4, 0, 'c4c0b4', '70583a', taxman_action)
 standardCards.append(t)
@@ -2104,10 +2277,14 @@ standardCards.append(t)
 t = Card('Amulet', 'Amulets', 'an Amulet', 3, 0, 'dda561', 'd39d25', empty)
 standardCards.append(t)
 
+
 # 244: Artificer
-def artificer_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exceptions.append(Exception(standard_condition(['GAIN']), moveException('SUPPLY', 'DECKS')))
+def artificer_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        exc.append(standardException(['GAIN'], 'SUPPLY', 'DECKS'))
+        exc.append(Exception(standardCondition(['GAIN']),
+                             standardOnGains('DECKS', cM[0].items)))
+
 
 t = Card('Artificer', 'Artificers', 'an Artificer', 5, 0, 'c4c0b4', '754f2b', artificer_action)
 standardCards.append(t)
@@ -2116,10 +2293,12 @@ standardCards.append(t)
 t = Card('Ball', 'Balls', 'a Ball', 5, 2, 'a9a39d', '8b6323', empty)
 standardCards.append(t)
 
+
 # 246: Bonfire
-def bonfire_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['BUY']:
-        exceptions.append(Exception(standard_condition(['TRASH']), moveException('INPLAYS', 'TRASH')))
+def bonfire_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['BUY']:
+        exc.append(exc_inplayTrash)
+
 
 t = Card('Bonfire', 'Bonfires', 'a Bonfire', 3, 2, 'a9a39d', '844e52', bonfire_action)
 standardCards.append(t)
@@ -2140,16 +2319,12 @@ standardCards.append(t)
 t = Card('Champion', 'Champions', 'a Champion', 6, 1, 'dda561', '594c3e', empty)
 standardCards.append(t)
 
+
 # 251: Coin of the Realm
-def cotr_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    def cotr_play_condition(chunkMoves):
-        return standardPreds[chunkMoves[0].pred].name == 'PUT ONTO' and 251 in chunkMoves[0].items.cardList();
+def cotr_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        exc.append(standardException(['PUT ONTO'], 'INPLAYS', 'OTHERS'))
 
-    def cotr_play_exception(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-        gameStates[-1].move(chunkMoves[0].player, 'INPLAYS', 'OTHERS', chunkMoves[0].items)
-
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exceptions.append(Exception(cotr_play_condition, cotr_play_exception, 'cotr exception'))
 
 t = Card('Coin of the Realm', 'Coins of the Realm', 'a Coin of the Realm', 2, 0, 'c2a85c', 'ae6c00', cotr_action)
 standardCards.append(t)
@@ -2160,18 +2335,18 @@ standardCards.append(t)
 
 
 # 253: Distant Lands
-def distantlands_worth(gameState, player):
-    playerDeck = gameState.crunch(['DECKS', 'OTHERS'], [player])
+def distantlands_worth(gS, player):
+    playerDeck = gS.crunch(['DECKS', 'OTHERS'], [player])
     for card in playerDeck:
         if standardCards[card].simple_name == 'Distant Lands':
             DLCard = card
             total = playerDeck[card]
             break
 
-    if DLCard in gameState.OTHERS[player]:
-        return gameState.OTHERS[player][DLCard] / total
-
+    if DLCard in gS.OTHERS[player]:
+        return gS.OTHERS[player][DLCard] / total
     return 0
+
 
 t = Card('Distant Lands', 'Distant Lands', 'a Distant Lands', 5, 0, '9DA97D', 'c49e8c', empty, distantlands_worth)
 standardCards.append(t)
@@ -2200,11 +2375,13 @@ standardCards.append(t)
 t = Card('Gear', 'Gears', 'a Gear', 3, 0, 'dda561', '877969', empty)
 standardCards.append(t)
 
+
 # 260: Giant
-def giant_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exceptions.append(Exception(standard_condition(['DISCARD']),moveException('DECKS', 'DISCARDS')))
-        exceptions.append(Exception(standard_condition(['TRASH']),moveException('DECKS', 'TRASH')))
+def giant_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        exc.append(exc_revealDiscard)
+        exc.append(exc_revealTrash)
+
 
 t = Card('Giant', 'Giants', 'a Giant', 5, 0, 'c4c0b4', '9c7c5a', giant_action)
 standardCards.append(t)
@@ -2237,10 +2414,12 @@ standardCards.append(t)
 t = Card('Lost City', 'Lost Cities', 'a Lost City', 5, 0, 'c4c0b4', '969c6c', empty)
 standardCards.append(t)
 
+
 # 268: Magpie
-def magpie_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exceptions.append(Exception(standard_condition(['TOPDECK']),moveException('DECKS', 'DECKS')))
+def magpie_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        exc.append(exc_revealTopdeck)
+
 
 t = Card('Magpie', 'Magpies', 'a Magpie', 4, 0, 'c4c0b4', '707870', magpie_action)
 standardCards.append(t)
@@ -2297,11 +2476,13 @@ standardCards.append(t)
 t = Card('Ratcatcher', 'Ratcatchers', 'a Ratcatcher', 2, 0, 'c5af85', '655d4f', empty)
 standardCards.append(t)
 
+
 # 282: Raze
-def raze_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exceptions.append(Exception(standard_condition(['TRASH'], ['Raze']),moveException('INPLAYS', 'TRASH')))
-        exceptions.append(Exception(standard_condition(['DISCARD']),moveException('DECKS', 'DISCARDS')))
+def raze_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        exc.append(standardException(['TRASH'], 'INPLAYS', 'TRASH', ['Raze']))
+        exc.append(exc_revealDiscard)
+
 
 t = Card('Raze', 'Razes', 'a Raze', 2, 0, 'c4c0b4', '6b5949', raze_action)
 standardCards.append(t)
@@ -2315,19 +2496,19 @@ t = Card('Royal Carriage', 'Royal Carriages', 'a Royal Carriage', 5, 0, 'c5af85'
 standardCards.append(t)
 
 # 285: Save
-def save_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['BUY']:
-        exceptions.append(Exception(standard_condition(['SET ASIDE WITH']), moveException('HANDS', 'OTHERS')))
-        turnExceptions.append(Exception(standard_condition(['PUT INHAND']), moveException('OTHERS', 'HANDS')))
+def save_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['BUY']:
+        exc.append(standardException(['SET ASIDE WITH'], 'HANDS', 'OTHERS'))
+        tExc.append(standardException(['PUT INHAND'], 'OTHERS', 'HANDS'))
 
 t = Card('Save', 'Saves', 'a Save', 1, 2, 'a9a39d', '814d3b', save_action)
 standardCards.append(t)
 
 # 286: Scouting Party
-def scoutingparty_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['BUY']:
-        exceptions.append(Exception(standard_condition(['TOPDECK']),moveException('DECKS', 'DECKS')))
-        exceptions.append(Exception(standard_condition(['DISCARD']),moveException('DECKS', 'DISCARDS')))
+def scoutingparty_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['BUY']:
+        exc.append(exc_revealTopdeck)
+        exc.append(exc_revealDiscard)
 
 t = Card('Scouting Party', 'Scouting Parties', 'a Scouting Party', 2, 0, 'a9a39d', '97875b', scoutingparty_action)
 standardCards.append(t)
@@ -2350,10 +2531,10 @@ standardCards.append(t)
 
 
 # 291: Teacher
-def teacher_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exceptions.append(Exception(standard_condition(['PUT ONTO']),
-                          moveException('INPLAYS', 'OTHERS')))
+def teacher_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        exc.append(standardException(['PUT ONTO'], 'INPLAYS', 'OTHERS'))
+
 
 t = Card('Teacher', 'Teachers', 'a Teacher', 6, 1, 'c5af85', 'bb7937', teacher_action)
 standardCards.append(t)
@@ -2371,10 +2552,11 @@ t = Card('Training', 'Trainings', 'a Training', 6, 2, 'a9a39d', '533f33', empty)
 standardCards.append(t)
 
 # 295: Transmogrify
-def transmogrify_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['CALL']:
-        exceptions.append(Exception(standard_condition(['GAIN']), moveException('SUPPLY', 'HANDS')))
-        exceptions.append(Exception(standard_condition(['GAIN']), standardOnGains('HANDS', chunkMoves[0].items)))
+def transmogrify_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['CALL']:
+        exc.append(standardException(['GAIN'], 'SUPPLY', 'HANDS'))
+        exc.append(Exception(standardCondition(['GAIN']),
+                             standardOnGains('HANDS', cM[0].items)))
 
 t = Card('Transmogrify', 'Transmogrifies', 'a Transmogrify', 4, 0, 'c5af85', '6e6258', transmogrify_action)
 standardCards.append(t)
@@ -2388,10 +2570,10 @@ t = Card('Treasure Hunter', 'Treasure Hunters', 'a Treasure Hunter', 3, 1, 'c2bf
 standardCards.append(t)
 
 # 298: Warrior
-def warrior_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exceptions.append(Exception(standard_condition(['DISCARD']), moveException('DECKS', 'DISCARDS')))
-        exceptions.append(Exception(standard_condition(['TRASH']), moveException('DISCARDS', 'TRASH')))
+def warrior_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        exc.append(exc_revealDiscard)
+        exc.append(standardException(['TRASH'], 'DISCARDS', 'TRASH'))
 
 
 t = Card('Warrior', 'Warriors', 'a Warrior', 4, 1, 'c2bfba', '564543', warrior_action)
@@ -2413,9 +2595,9 @@ standardCards.append(t)
 
 
 # 302: Patrician
-def patrician_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exceptions.append(Exception(standard_condition(['TOPDECK']), moveException('DECKS', 'DECKS')))
+def patrician_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        exc.append(exc_revealTopdeck)
 
 
 t = Card('Patrician', 'Patricians', 'a Patrician', 2, 0, 'c4c0b4', '6a80a0', patrician_action)
@@ -2425,18 +2607,22 @@ standardCards.append(t)
 t = Card('Emporium', 'Emporia', 'an Emporium', 5, 0, 'c4c0b4', '50ABDF', empty)
 standardCards.append(t)
 
+
 # 304: Settlers
-def settlers_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exceptions.append(Exception(standard_condition(['PUT INHAND']),moveException('DISCARDS', 'HANDS')))
+def settlers_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        exc.append(standardException(['PUT INHAND'], 'DISCARDS', 'HANDS'))
+
 
 t = Card('Settlers', 'Settlers', 'a Settlers', 2, 0, 'c4c0b4', '784624', settlers_action)
 standardCards.append(t)
 
+
 # 305: Bustling Village
-def bustvillage_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exceptions.append(Exception(standard_condition(['PUT INHAND']),moveException('DISCARDS', 'HANDS')))
+def bustvillage_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        exc.append(standardException(['PUT INHAND'], 'DISCARDS', 'HANDS'))
+
 
 t = Card('Bustling Village', 'Bustling Villages', 'a Bustling Village', 5, 0, 'c4c0b4', '745E4D', bustvillage_action)
 standardCards.append(t)
@@ -2445,19 +2631,26 @@ standardCards.append(t)
 t = Card('Catapult', 'Catapults', 'a Catapult', 3, 0, 'c4c0b4', '839f55', empty)
 standardCards.append(t)
 
+
 # 307: Rocks
-def rocks_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['BUY AND GAIN', 'GAIN TOPDECK', 'GAIN TRASH', 'GAIN']:
-        exceptions.append(Exception(standard_condition(['GAIN']), moveException('SUPPLY', 'DECKS')))
-        exceptions.append(Exception(standard_condition(['GAIN']), standardOnGains('DECKS', chunkMoves[0].items)))
+def rocks_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['BUY AND GAIN', 'GAIN TOPDECK',
+                            'GAIN TRASH', 'GAIN']:
+        exc.append(standardException(['GAIN'], 'SUPPLY', 'DECKS'))
+        exc.append(Exception(standardCondition(['GAIN']),
+                             standardOnGains('DECKS', cM[0].items)))
+
 
 t = Card('Rocks', 'Rocks', 'a Rocks', 4, 0, 'd8c280', '80963a', rocks_action)
 standardCards.append(t)
 
+
 # 308: Gladiator
-def gladiator_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exceptions.append(Exception(standard_condition(['TRASH'], ['Gladiator']), moveException('SUPPLY', 'TRASH')))
+def gladiator_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        exc.append(standardException(['TRASH'], 'SUPPLY', 'TRASH',
+                                     ['Gladiator']))
+
 
 t = Card('Gladiator', 'Gladiators', 'a Gladiator', 3, 0, 'c4c0b4', 'b28674', gladiator_action)
 standardCards.append(t)
@@ -2474,11 +2667,14 @@ castles = ['Humble Castle', 'Crumbling Castle', 'Small Castle',
            'Haunted Castle', 'Opulent Castle', 'Sprawling Castle',
            'Grand Castle', 'King\'s Castle']
 
+
 # 311: Humble Castle
-def humbleCastle_worth(gameState, player):
-    playerDeck = gameState.crunch(['DECKS', 'DISCARDS', 'HANDS', 'OTHERS', 'INPLAYS'], [player])
+def humbleCastle_worth(gS, player):
+    playerDeck = gS.crunch(['DECKS', 'DISCARDS', 'HANDS',
+                            'OTHERS', 'INPLAYS'], [player])
     return sum([playerDeck[item] for item in playerDeck if
                 standardCards[item].simple_name in castles])
+
 
 t = Card('Humble Castle', 'Humble Castles', 'a Humble Castle', 3, -1, 'a9c35d', '63af7f', empty, humbleCastle_worth)
 standardCards.append(t)
@@ -2487,10 +2683,13 @@ standardCards.append(t)
 t = Card('Crumbling Castle', 'Crumbling Castles', 'a Crumbling Castle', 4, -1, '9cbe8a', 'ceb22c', empty, staticWorth(1))
 standardCards.append(t)
 
+
 # 313: Small Castle
-def smallcastle_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exceptions.append(Exception(standard_condition(['TRASH'], ['Small Castle']),moveException('INPLAYS', 'TRASH')))
+def smallcastle_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        exc.append(standardException(['TRASH'], 'INPLAYS', 'TRASH',
+                                     ['Small Castle']))
+
 
 t = Card('Small Castle', 'Small Castles', 'a Small Castle', 5, -1, 'aac298', '96a692', smallcastle_action, staticWorth(2))
 standardCards.append(t)
@@ -2511,11 +2710,14 @@ standardCards.append(t)
 t = Card('Grand Castle', 'Grand Castles', 'a Grand Castle', 9, -1, '9cbe8a', '9e7e5a', empty, staticWorth(5))
 standardCards.append(t)
 
+
 # 318: King\'s Castle
-def kingsCastle_worth(gameState, player):
-    playerDeck = gameState.crunch(['DECKS', 'DISCARDS', 'HANDS', 'OTHERS', 'INPLAYS'], [player])
+def kingsCastle_worth(gS, player):
+    playerDeck = gS.crunch(['DECKS', 'DISCARDS', 'HANDS',
+                            'OTHERS', 'INPLAYS'], [player])
     return sum([2 * playerDeck[item] for item in playerDeck if
                 standardCards[item].simple_name in castles])
+
 
 t = Card('King\'s Castle', 'King\'s Castles', 'a King\'s Castle', 10, -1, '9cbe8a', 'cd8959', empty, kingsCastle_worth)
 standardCards.append(t)
@@ -2539,6 +2741,7 @@ standardCards.append(t)
 # 323: Arena
 t = Card('Arena', 'Arenas', 'an Arena', 0, 2, '65ab6f', 'b0587c', empty)
 standardCards.append(t)
+
 
 # 324: Bandit Fort
 def banditfort_worth(gameState, player):
@@ -2573,10 +2776,11 @@ standardCards.append(t)
 t = Card('Charm', 'Charms', 'a Charm', 5, 0, 'd8c280', '756349', empty)
 standardCards.append(t)
 
+
 # 331: Chariot Race
-def chariotrace_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exceptions.append(Exception(standard_condition(['TOPDECK']), moveException('DECKS', 'DECKS')))
+def chariotrace_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        exc.append(exc_revealTopdeck)
 
 t = Card('Chariot Race', 'Chariot Races', 'a Chariot Race', 3, 0, 'c4c0b4', '7f7569', chariotrace_action)
 standardCards.append(t)
@@ -2617,18 +2821,24 @@ standardCards.append(t)
 t = Card('Enchantress', 'Enchantresses', 'an Enchantress', 3, 0, 'dda561', 'a5855f', empty)
 standardCards.append(t)
 
+
 # 341: Engineer
-def engineer_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exceptions.append(Exception(standard_condition(['TRASH'], ['Engineer']), moveException('INPLAYS', 'TRASH')))
+def engineer_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        exc.append(standardException(['TRASH'], 'INPLAYS', 'TRASH',
+                                     ['Engineer']))
+
 
 t = Card('Engineer', 'Engineers', 'an Engineer', 4, 0, 'c4c0b4', '733719', engineer_action)
 standardCards.append(t)
 
+
 # 342: Farmers' Market
-def farmmarket_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exceptions.append(Exception(standard_condition(['TRASH'], ['Farmers\' Market']), moveException('INPLAYS', 'TRASH')))
+def farmmarket_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        exc.append(standardException(['TRASH'], 'INPLAYS', 'TRASH',
+                                     ['Farmers\' Market']))
+
 
 t = Card('Farmers\' Market', 'Farmers\' Markets', 'a Farmers\' Market', 3, 0, 'c4c0b4', '867642', farmmarket_action)
 standardCards.append(t)
@@ -2699,6 +2909,8 @@ treasures = ['Copper',
              'Pasture',
              'Pouch',
              'Stash']
+
+
 def keep_worth(gameState, player):
     playerDeck = gameState.crunch(['DECKS', 'DISCARDS', 'HANDS', 'OTHERS', 'INPLAYS'], [player])
     otherDeck = gameState.crunch(['DECKS', 'DISCARDS', 'HANDS', 'OTHERS', 'INPLAYS'], [1 - player])
@@ -2802,9 +3014,9 @@ t = Card('Sacrifice', 'Sacrifices', 'a Sacrifice', 4, 0, 'c4c0b4', '9b675f', emp
 standardCards.append(t)
 
 # 358: Salt the Earth
-def salt_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['BUY']:
-        exceptions.append(Exception(standard_condition(['TRASH']), moveException('SUPPLY', 'TRASH')))
+def salt_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['BUY']:
+        exc.append(Exception(standard_condition(['TRASH']), moveException('SUPPLY', 'TRASH')))
 
 t = Card('Salt the Earth', 'Salt the Earths', 'a Salt the Earth', 4, 2, 'a9a39d', '7b8383', salt_action)
 standardCards.append(t)
@@ -3001,17 +3213,17 @@ t = Card('War', 'Wars', 'War', 0, -1, '4137df', 'a12700', empty)
 standardCards.append(t)
 
 # 399: Miserable
-def miserable_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name == ['TAKES']:
-        gameStates[-1].vps[chunkMoves[0].player] -= 2
+def miserable_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() == ['TAKES']:
+        gS[-1].vps[cM[0].player] -= 2
 
 t = Card('Miserable', 'Miserables', 'Miserable', 0, -1, 'ceb0a4', '1c161a', miserable_action)
 standardCards.append(t)
 
 # 400: Twice Miserable
-def twicemiserable_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name == ['TAKES']:
-        gameStates[-1].vps[chunkMoves[0].player] -= 2
+def twicemiserable_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() == ['TAKES']:
+        gS[-1].vps[cM[0].player] -= 2
 
 t = Card('Twice Miserable', 'Twice Miserables', 'Twice Miserable', 0, -1, 'ceb0a4', '1c161a', twicemiserable_action)
 standardCards.append(t)
@@ -3028,15 +3240,15 @@ standardCards.append(t)
 t = Card('Lost In The Woods', 'Lost In The Woods', 'Lost In The Woods', 0, -1, 'ceb0a4', '527052', empty)
 standardCards.append(t)
 
-def playing_boonhex(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        standard_boonhex(chunkMoves, gameStates, exceptions, turnExceptions, persistents)
+def playing_boonhex(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        standard_boonhex(cM, gS, exc, tExc, pers)
 
 
-def gaining_boonhex(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['BUY AND GAIN', 'GAIN TOPDECK', 'GAIN TRASH', 'GAIN']:
-        standard_boonhex(chunkMoves, gameStates, exceptions, turnExceptions, persistents)
-        standardOnGains('DISCARDS', chunkMoves[0].items)
+def gaining_boonhex(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['BUY AND GAIN', 'GAIN TOPDECK', 'GAIN TRASH', 'GAIN']:
+        standard_boonhex(cM, gS, exc, tExc, pers)
+        standardOnGains('DISCARDS', cM[0].items)
 
 
 # 404: Bard
@@ -3089,11 +3301,12 @@ standardCards.append(t)
 t = Card('Exorcist', 'Exorcists', 'an Exorcist', 4, 0, '30484e', '3763b5', empty)
 standardCards.append(t)
 
+
 # 416: Faithful Hound
-def hound_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['DISCARD']:
-        exceptions.append(Exception(standard_condition(['SET ASIDE'],['Faithful Hound']), 
-                                    moveException('DISCARDS', 'OTHERS')))
+def hound_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['DISCARD']:
+        exc.append(standardException(['SET ASIDE'], 'DISCARDS', 'OTHERS', ['Faithful Hound']))
+
 
 t = Card('Faithful Hound', 'Faithful Hounds', 'a Faithful Hound', 2, 0, '8ca2be', '8c7640', hound_action)
 standardCards.append(t)
@@ -3118,96 +3331,96 @@ standardCards.append(t)
 t = Card('Leprechaun', 'Leprechauns', 'a Leprechaun', 3, 0, 'c4c0b4', '5e7c04', playing_boonhex)
 standardCards.append(t)
 
-# 422: Monastery
-def monastery_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    #Possible conflicts: Exorcist - hence, trash inplay first.
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        def monastery_trash(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-            coppersToKill = 0
-            for item in chunkMoves[0].items:
-                if standardCards[item].simple_name == 'Copper':
-                    coppersToKill = chunkMoves[0].items[item]
-                    copperId = item
-                    break
 
-            inPlayCoppers = 0
-            for item in gameStates[-1].INPLAYS[chunkMoves[0].player]:
-                if standardCards[item].simple_name == 'Copper':
-                    inPlayCoppers = gameStates[-1].INPLAYS[chunkMoves[0].player][item]
-                    break
+# 422: Monastery
+def monastery_action(cM, gS, exc, tExc, pers):
+    #Possible conflicts: Exorcist - hence, trash inplay first.
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        def monastery_trash(cM, gS, exc, tExc, pers):
+            copperID = standardNames.index('Copper')
+
+            if copperID in cM[0].items:
+                coppersToKill = cM[0].items[copperID]
+            else:
+                coppersToKill = 0
+
+            if copperID in gS[-1].INPLAYS[cM[0].player]:
+                inPlayCoppers = gS[-1].INPLAYS[cM[0].player][copperID]
+            else:
+                inPlayCoppers = 0
 
             coppersToKill = min(coppersToKill, inPlayCoppers)
 
             if coppersToKill > 0:
                 copperStack = Cardstack({copperId: coppersToKill})
-                itemsSansCoppers = chunkMoves[0].items - copperStack
+                itemsSansCoppers = cM[0].items - copperStack
 
-                gameStates[-1].move(chunkMoves[0].player, 'HANDS', 'TRASH',
-                                    itemsSansCoppers)
-                gameStates[-1].move(chunkMoves[0].player, 'INPLAYS', 'TRASH',
-                                    copperStack)
+                gS[-1].move(cM[0].player, 'HANDS', 'TRASH', itemsSansCoppers)
+                gS[-1].move(cM[0].player, 'INPLAYS', 'TRASH', copperStack)
             else:
-                gameStates[-1].move(chunkMoves[0].player, 'HANDS', 'TRASH',
-                                    chunkMoves[0].items)
+                standardMove('HANDS', 'TRASH', cM, gS)
 
-        exceptions.append(Exception(standard_condition(['TRASH'], ['Copper']), monastery_trash))
+        exc.append(Exception(standardCondition(['TRASH'], ['Copper']),
+                             monastery_trash))
+
 
 t = Card('Monastery', 'Monasteries', 'a Monastery', 2, 0, '30484e', '02268a', monastery_action)
 standardCards.append(t)
 
+
 # 423: Necromancer
-def necromancer_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exceptions.append(Exception(standard_condition(['PLAY']), moveException('TRASH', 'TRASH')))
+def necromancer_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        exc.append(standardException(['PLAY'], 'TRASH', 'TRASH'))
+
 
 t = Card('Necromancer', 'Necromancers', 'a Necromancer', 4, 0, 'c4c0b4', '525a36', necromancer_action)
 standardCards.append(t)
 
+
 # 424: Night Watchman
-def watchman_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exceptions.append(Exception(standard_condition(['DISCARD']), moveException('DECKS', 'DISCARDS')))
-        exceptions.append(Exception(standard_condition(['TOPDECK']), moveException('DECKS', 'DECKS')))
+def watchman_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        exc.append(exc_revealDiscard)
+        exc.append(exc_revealTopdeck)
 
 
 t = Card('Night Watchman', 'Night Watchmen', 'a Night Watchman', 3, 0, '30484e', '464266', watchman_action)
 standardCards.append(t)
 
+
 # 425: Pixie
-def pixie_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        whichBoon = standardCards[CARD_CARD]
-        for subchunk in chunkMoves[1:]:
-            if standardPreds[subchunk[0].pred].name in ['RECEIVE BOONHEX', 'TAKES BOONHEX']:
-                whichBoon = standardCards[subchunk[0].items.cardList()[0]]
+def pixie_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        whichBoon = sC[CARD_CARD]
+        for subchunk in cM[1:]:
+            if subchunk[0].predName() in ['RECEIVE BOONHEX', 'TAKES BOONHEX']:
+                whichBoon = subchunk[0].items.primary()
                 break
 
         if whichBoon.simple_name == 'The Flame\'s Gift':
-            itemsSansPixie = Cardstack({})
-            for item in chunkMoves[0].items:
-                if standardCards[item].simple_name != 'Pixie':
-                    itemsSansPixie.insert(item, chunkMoves[0].items[item])
-                else:
-                    pixieId = item
+            pixieStack = {standardNames.index('Pixie'): 1}
+            otherThings = cM[0].items - pixieStack
 
-            def pixieTrash(pixieId, itemsSansPixie):
-                def out_function(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-                    gameStates[-1].move(chunkMoves[0].player, 'INPLAYS', 'TRASH',
-                                        Cardstack({pixieId: 1}))
-                    gameStates[-1].move(chunkMoves[0].player, 'HANDS', 'TRASH',
-                                        itemsSansPixie)
+            def pixieTrash(pixieStack, otherThings):
+                def out_function(cM, gS, exc, tExc, pers):
+                    gS[-1].move(cM[0].player, 'INPLAYS', 'TRASH',
+                                        pixieStack)
+                    gS[-1].move(cM[0].player, 'HANDS', 'TRASH',
+                                        otherThings)
                 return out_function
 
-            exceptions.append(Exception(standard_condition(['TRASH']), pixieTrash(pixieId, itemsSansPixie)))
+            exc.append(Exception(standardCondition(['TRASH']),
+                                 pixieTrash(pixieStack, otherThings)))
         else:
-            exceptions.append(Exception(standard_condition(['TRASH']), moveException('INPLAYS', 'TRASH')))
+            exc.append(standardException(['TRASH'], 'INPLAYS', 'TRASH'))
 
-            if whichBoon.simple_name == 'The Sun\'s Gift':
-                exceptions.append(Exception(standard_condition(['TOPDECK']), moveException('DECKS', 'DECKS')))
-                exceptions.append(Exception(standard_condition(['DISCARD']), moveException('DECKS', 'DISCARDS')))
+            if whichBoon == 'The Sun\'s Gift':
+                exc.append(exc_revealTopdeck)
+                exc.append(exc_revealDiscard)
 
-            elif whichBoon.simple_name == 'The Moon\'s Gift':
-                exceptions.append(Exception(standard_condition(['TOPDECK']), moveException('DISCARDS', 'DECKS')))
+            elif whichBoon == 'The Moon\'s Gift':
+                exc.append(exc_harbinger)
 
 
 t = Card('Pixie', 'Pixies', 'a Pixie', 2, 0, 'c4c0b4', 'a9db75', pixie_action)
@@ -3241,10 +3454,13 @@ standardCards.append(t)
 t = Card('Tormentor', 'Tormentors', 'a Tormentor', 5, 0, 'c4c0b4', '884c6a', playing_boonhex)
 standardCards.append(t)
 
+
 # 433: Tragic Hero
-def tragichero_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exceptions.append(Exception(standard_condition(['TRASH'], ['Tragic Hero']), moveException('INPLAYS', 'TRASH')))
+def tragichero_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        exc.append(standardException(['TRASH'], 'INPLAYS', 'TRASH',
+                                     ['Tragic Hero']))
+
 
 t = Card('Tragic Hero', 'Tragic Heroes', 'a Tragic Hero', 5, 0, 'c4c0b4', '5c88a4', tragichero_action)
 standardCards.append(t)
@@ -3253,13 +3469,14 @@ standardCards.append(t)
 t = Card('Tracker', 'Trackers', 'a Tracker', 2, 0, 'c4c0b4', '87c7d9', playing_boonhex)
 standardCards.append(t)
 
-# 435: Vampire
-def vampire_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exceptions.append(Exception(standard_condition(['RETURN'], ['Vampire']),
-                                    moveException('INPLAYS', 'SUPPLY')))
 
-        standard_boonhex(chunkMoves, gameStates, exceptions, turnExceptions, persistents)
+# 435: Vampire
+def vampire_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        exc.append(standardException(['RETURN'], 'INPLAYS', 'SUPPLY',
+                                     ['Vampire']))
+
+        standard_boonhex(cM, gS, exc, tExc, pers)
 
 
 t = Card('Vampire', 'Vampires', 'a Vampire', 5, 0, '30484e', '523a4c', vampire_action)
@@ -3285,22 +3502,28 @@ standardCards.append(t)
 t = Card('Lucky Coin', 'Lucky Coins', 'a Lucky Coin', 4, 2, 'd8c280', '9ed654', empty)
 standardCards.append(t)
 
+
 # 441: Magic Lamp
-def lamp_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exceptions.append(Exception(standard_condition(['TRASH'], ['Magic Lamp']), moveException('INPLAYS', 'TRASH')))
+def lamp_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        exc.append(standardException(['TRASH'], 'INPLAYS', 'TRASH',
+                                     ['Magic Lamp']))
+
 
 t = Card('Magic Lamp', 'Magic Lamps', 'a Magic Lamp', 0, 2, 'd8c280', '8c3400', lamp_action)
 standardCards.append(t)
 
+
 # 442: Pasture
 def pasture_worth(gameState, player):
-    playerDeck = gameState.crunch(['DECKS', 'DISCARDS', 'HANDS', 'OTHERS', 'INPLAYS'], [player])
+    playerDeck = gameState.crunch(['DECKS', 'DISCARDS', 'HANDS',
+                                   'OTHERS', 'INPLAYS'], [player])
     for card in playerDeck:
         if standardCards[card].simple_name == 'Estate':
             return playerDeck[card]
 
     return 0
+
 
 t = Card('Pasture', 'Pastures', 'a Pasture', 2, 2, 'a9c35d', '959D8D', empty, pasture_worth)
 standardCards.append(t)
@@ -3311,41 +3534,48 @@ standardCards.append(t)
 
 
 # 444: Bat
-def bat_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exceptions.append(Exception(standard_condition(['RETURN'], ['Bat']),
-                                    moveException('INPLAYS', 'SUPPLY')))
+def bat_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        exc.append(standardException(['RETURN'], 'INPLAYS', 'SUPPLY', ['Bat']))
 
 
 t = Card('Bat', 'Bats', 'a Bat', 2, 1, '30484e', '475B5D', bat_action)
 standardCards.append(t)
 
+
 # 445: Ghost
-def ghost_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exceptions.append(Exception(standard_condition(['DISCARD']), moveException('DECKS', 'DISCARDS')))
-        exceptions.append(Exception(standard_condition(['SET ASIDE']), moveException('DECKS', 'OTHERS')))
+def ghost_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        exc.append(exc_revealDiscard)
+        exc.append(standardException(['SET ASIDE'], 'DECKS', 'OTHERS'))
+
 
 t = Card('Ghost', 'Ghosts', 'a Ghost', 4, 1, '7a5622', '13b12f', ghost_action)
 standardCards.append(t)
+
 
 # 446: Imp
 t = Card('Imp', 'Imps', 'an Imp', 2, 1, 'c4c0b4', '936d69', empty)
 standardCards.append(t)
 
+
 # 447: Will-o'-wisp
-def wisp_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exceptions.append(Exception(standard_condition(['TOPDECK']), moveException('DECKS', 'DECKS')))
+def wisp_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        exc.append(exc_revealTopdeck)
+
 
 t = Card('Will-o\'-wisp', 'Will-o\'-wisps', 'a Will-o\'-wisp', 0, 1, 'c4c0b4', '1d593f', wisp_action)
 standardCards.append(t)
 
+
 # 448: Wish
-def wish_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exceptions.append(Exception(standard_condition(['GAIN']), moveException('SUPPLY', 'HANDS')))
-        exceptions.append(Exception(standard_condition(['GAIN']), standardOnGains('HANDS', chunkMoves[0].items)))
+def wish_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        exc.append(standardException(['GAIN'], 'SUPPLY', 'HANDS',))
+        exc.append(Exception(standardCondition(['GAIN']),
+                             standardOnGains('HANDS', cM[0].items)))
+
 
 t = Card('Wish', 'Wishes', 'a Wish', 0, 1, 'c4c0b4', '0f6551', wish_action)
 standardCards.append(t)
@@ -3355,18 +3585,18 @@ t = Card('Zombie Apprentice', 'Zombie Apprentices', 'a Zombie Apprentice', 3, 1,
 standardCards.append(t)
 
 # 450: Zombie Mason
-def zombiemason_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exceptions.append(Exception(standard_condition(['TRASH']), moveException('DECKS', 'TRASH')))
+def zombiemason_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        exc.append(standardException(['TRASH'], 'DECKS', 'TRASH'))
 
 t = Card('Zombie Mason', 'Zombie Masons', 'a Zombie Mason', 3, 1, 'c4c0b4', '5f513d', empty)
 standardCards.append(t)
 
 # 451: Zombie Spy
-def zombiespy_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exceptions.append(Exception(standard_condition(['DISCARD']), moveException('DECKS', 'DISCARDS')))
-        exceptions.append(Exception(standard_condition(['TOPDECK']), moveException('DECKS', 'DECKS')))
+def zombiespy_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        exc.append(exc_revealDiscard)
+        exc.append(exc_revealTopdeck)
 
 t = Card('Zombie Spy', 'Zombie Spies', 'a Zombie Spy', 3, 1, 'c4c0b4', '363438', zombiespy_action)
 standardCards.append(t)
@@ -3380,9 +3610,9 @@ t = Card('Black Market', 'Black Markets', 'a Black Market', 3, 0, 'c4c0b4', 'b5b
 standardCards.append(t)
 
 # 454: Envoy
-def envoy_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exceptions.append(Exception(standard_condition(['DISCARD']), moveException('DECKS', 'DISCARDS')))
+def envoy_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        exc.append(exc_revealDiscard)
 
 t = Card('Envoy', 'Envoys', 'an Envoy', 4, 0, 'c4c0b4', '425064', envoy_action)
 standardCards.append(t)
@@ -3404,9 +3634,9 @@ t = Card('Stash', 'Stashes', 'a Stash', 5, 0, 'd8c280', '666666', empty)
 standardCards.append(t)
 
 # 459: Summon
-def summon_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if standardPreds[chunkMoves[0].pred].name in ['BUY']:
-        exceptions.append(Exception(standard_condition(['SET ASIDE']), moveException('SUPPLY', 'OTHERS')))
+def summon_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['BUY']:
+        exc.append(standardException(['SET ASIDE'], 'SUPPLY', 'OTHERS'))
 
 t = Card('Summon', 'Summons', 'a Summon', 5, 0, 'a9a39d', 'c19b59', summon_action)
 standardCards.append(t)
@@ -3428,27 +3658,22 @@ t = Card('Debt', 'Debt', 'Debt', 0, 0, '666666', '666666', empty)
 standardCards.append(t)
 
 
-standardNames = [x.simple_name for x in standardCards]
-
-# PREDS
-standardPreds = []
-
 # 0
 t = Pred("^Game #(.*), (.*)\.$", empty, "GAME START")
 standardPreds.append(t)
 
 # 1
-def newTurnAction(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
+def newTurnAction(cM, gS, exc, tExc, pers):
     for i in range(2):
-        gameStates[-1].coins[i] = 0
-        gameStates[-1].coinsLower[i] = 0
+        gS[-1].coins[i] = 0
+        gS[-1].coinsLower[i] = 0
 
 
 t = Pred("^Turn (?P<cards>.*) - (?P<player>.*)$", newTurnAction, "NEW TURN")
 standardPreds.append(t)
 
 
-def standardGains(source):
+def standardGains(source, destination='DISCARDS'):
     def out_function(cM, gS, exc, tExc, pers):
         targetStuff = deepcopy(cM[0].items)
 
@@ -3479,6 +3704,11 @@ t = Pred("^(?P<player>.*) buys and gains (?P<cards>.*)\.$", standardGains('SUPPL
 standardPreds.append(t)
 
 # 3
+def pred3Action(cM, gS, exc, tExc, pers):
+    gS[-1].move(cM[0].player, 'SUPPLY', 'DECKS', cM[0].items)
+    standardOnGains('DECKS', cM[0].items)(cM, gS, exc, tExc, pers)
+
+
 t = Pred("^(?P<player>.*) gains (?P<cards>.*) onto their drawpile\.$", standardGains('SUPPLY'), "GAIN TOPDECK")
 standardPreds.append(t)
 
@@ -3494,121 +3724,128 @@ standardPreds.append(t)
 t = Pred("^(?P<player>.*) trashes nothing\.$", empty, "TRASH NOTHING")
 standardPreds.append(t)
 
-# 7
-def pred7Action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    #Mining Village Bug
-    if standardCards[chunkMoves[0].items.cardList()[0]].simple_name == 'Mining Village'\
-       and chunkMoves[0].indent == 0:
-        gameStates[-1].move(chunkMoves[0].player, 'INPLAYS', 'TRASH', chunkMoves[0].items)
+
+def pred7Action(cM, gS, exc, tExc, pers):
+    # Mining Village Bug
+    if cM[0].items.primary() == 'Mining Village' and cM[0].indent == 0:
+        gS[-1].move(cM[0].player, 'INPLAYS', 'TRASH', cM[0].items)
     else:
-        gameStates[-1].move(chunkMoves[0].player, 'HANDS', 'TRASH', chunkMoves[0].items)
+        gS[-1].move(cM[0].player, 'HANDS', 'TRASH', cM[0].items)
 
     # Market Square
-    exceptions.append(Exception(standard_condition(['DISCARD'],['Market Square']),moveException('HANDS', 'DISCARDS')))
+    exc.append(standardException(['DISCARD'], 'HANDS', 'DISCARDS',
+                                 ['Market Square']))
 
+
+# 7 Trashing
 t = Pred("^(?P<player>.*) trashes (?P<cards>.*)\.$", pred7Action, "TRASH")
 standardPreds.append(t)
 
-# 8
-def pred8Action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if chunkMoves[0].items.cardList()[0] not in BOONHEX:
-        gameStates[-1].move(chunkMoves[0].player, 'HANDS', 'DISCARDS', chunkMoves[0].items)
 
+def pred8Action(cM, gS, exc, tExc, pers):
+    if cM[0].items.primary() not in BOONHEX:
+        gS[-1].move(cM[0].player, 'HANDS', 'DISCARDS', cM[0].items)
+
+
+# 8 Discards
 t = Pred("^(?P<player>.*) discards (?P<cards>.*)\.$", pred8Action, "DISCARD")
 standardPreds.append(t)
+
 
 # 9
 t = Pred("^(?P<player>.*) plays (?P<cards>.*) again\.$", empty, "PLAY AGAIN")
 standardPreds.append(t)
 
+
 # 10
 t = Pred("^(?P<player>.*) plays (?P<cards>.*) a third time\.$", empty, "PLAY THIRD")
 standardPreds.append(t)
 
+
 # 11
-def pred11Action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    gameStates[-1].move(chunkMoves[0].player, 'HANDS', 'INPLAYS', chunkMoves[0].items)
+def pred11Action(cM, gS, exc, tExc, pers):
+    gS[-1].move(cM[0].player, 'HANDS', 'INPLAYS', cM[0].items)
 
 t = Pred("^(?P<player>.*) plays (?P<cards>.*)\.$", pred11Action, "PLAY")
 standardPreds.append(t)
 
 # 12
-def pred12Action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if chunkMoves[0].indent == 0:
+def pred12Action(cM, gS, exc, tExc, pers):
+    if cM[0].indent == 0:
         # Probably Scheme (or walled village / alch / treasury)
-        gameStates[-1].move(chunkMoves[0].player, 'INPLAYS', 'DECKS', chunkMoves[0].items)
+        gS[-1].move(cM[0].player, 'INPLAYS', 'DECKS', cM[0].items)
 
     else:
-        gameStates[-1].move(chunkMoves[0].player, 'HANDS', 'DECKS', chunkMoves[0].items)
+        gS[-1].move(cM[0].player, 'HANDS', 'DECKS', cM[0].items)
 
 t = Pred("^(?P<player>.*) topdecks (?P<cards>.*)\.$", pred12Action, "TOPDECK")
 standardPreds.append(t)
 
 # 13
-def pred13Action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    gameStates[-1].move(chunkMoves[0].player, 'DECKS', 'HANDS', chunkMoves[0].items)
+def pred13Action(cM, gS, exc, tExc, pers):
+    gS[-1].move(cM[0].player, 'DECKS', 'HANDS', cM[0].items)
 
 t = Pred("^(?P<player>.*) draws (?P<cards>.*) \(Wharf\)\.$", pred13Action, "WHARF DRAW")
 standardPreds.append(t)
 
 # 14
-def pred14Action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    gameStates[-1].move(chunkMoves[0].player, 'DECKS', 'HANDS', chunkMoves[0].items)
+def pred14Action(cM, gS, exc, tExc, pers):
+    gS[-1].move(cM[0].player, 'DECKS', 'HANDS', cM[0].items)
 
 t = Pred("^(?P<player>.*) draws (?P<cards>.*) \(Hireling\)\.$", pred14Action, "HIRELING DRAW")
 standardPreds.append(t)
 
 # 15
-def pred15Action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    gameStates[-1].move(chunkMoves[0].player, 'DECKS', 'HANDS', chunkMoves[0].items)
+def pred15Action(cM, gS, exc, tExc, pers):
+    gS[-1].move(cM[0].player, 'DECKS', 'HANDS', cM[0].items)
 
 t = Pred("^(?P<player>.*) draws (?P<cards>.*) \(Enchantress\)\.$", pred15Action, "WOODS DRAW")
 standardPreds.append(t)
 
 # 16
-def pred16Action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    gameStates[-1].move(chunkMoves[0].player, 'DECKS', 'HANDS', chunkMoves[0].items)
+def pred16Action(cM, gS, exc, tExc, pers):
+    gS[-1].move(cM[0].player, 'DECKS', 'HANDS', cM[0].items)
 
 t = Pred("^(?P<player>.*) draws (?P<cards>.*) \(Haunted Woods\)\.$", pred16Action, "ENCHANTRESS DRAW")
 standardPreds.append(t)
 
 # 17
-def pred17Action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    gameStates[-1].move(chunkMoves[0].player, 'DECKS', 'HANDS', chunkMoves[0].items)
+def pred17Action(cM, gS, exc, tExc, pers):
+    gS[-1].move(cM[0].player, 'DECKS', 'HANDS', cM[0].items)
 
 t = Pred("^(?P<player>.*) draws (?P<cards>.*) \(Caravan\)\.$", pred17Action, "CARAVAN DRAW")
 standardPreds.append(t)
 
 # 18
-def pred18Action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    gameStates[-1].move(chunkMoves[0].player, 'DECKS', 'HANDS', chunkMoves[0].items)
+def pred18Action(cM, gS, exc, tExc, pers):
+    gS[-1].move(cM[0].player, 'DECKS', 'HANDS', cM[0].items)
 
 t = Pred("^(?P<player>.*) gets +1 Buy, +1 Action and draws (?P<cards>.*) \(Tactician\)\.$", pred18Action, "TACTICIAN DRAW")
 standardPreds.append(t)
 
 # 19
-def pred19Action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    gameStates[-1].move(chunkMoves[0].player, 'DECKS', 'HANDS', chunkMoves[0].items)
+def pred19Action(cM, gS, exc, tExc, pers):
+    gS[-1].move(cM[0].player, 'DECKS', 'HANDS', cM[0].items)
 
 t = Pred("^(?P<player>.*) draws (?P<cards>.*) \(from (.*)\)$", pred19Action, "DRAW FROM")
 standardPreds.append(t)
 
 # 20
-def pred20Action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    gameStates[-1].move(chunkMoves[0].player, 'DECKS', 'HANDS', chunkMoves[0].items)
+def pred20Action(cM, gS, exc, tExc, pers):
+    gS[-1].move(cM[0].player, 'DECKS', 'HANDS', cM[0].items)
 
 t = Pred("^(?P<player>.*) draws (?P<cards>.*) \(Ghost Town\)\.$", pred20Action, "GT DRAW")
 standardPreds.append(t)
 
 # 21
-def pred21Action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    activePlayer = chunkMoves[0].player
+def pred21Action(cM, gS, exc, tExc, pers):
+    activePlayer = cM[0].player
     # Cleanup
-    if chunkMoves[0].indent == 0:
-        gameStates[-1].move(activePlayer, 'INPLAYS', 'DISCARDS', gameStates[-1].INPLAYS[activePlayer])
-        gameStates[-1].move(activePlayer, 'HANDS', 'DISCARDS', gameStates[-1].HANDS[activePlayer])
+    if cM[0].indent == 0:
+        gS[-1].move(activePlayer, 'INPLAYS', 'DISCARDS', gS[-1].INPLAYS[activePlayer])
+        gS[-1].move(activePlayer, 'HANDS', 'DISCARDS', gS[-1].HANDS[activePlayer])
 
-    gameStates[-1].move(activePlayer, 'DECKS', 'HANDS', chunkMoves[0].items)
+    gS[-1].move(activePlayer, 'DECKS', 'HANDS', cM[0].items)
 
 t = Pred("^(?P<player>.*) draws (?P<cards>.*)\.$", pred21Action, "DRAW")
 standardPreds.append(t)
@@ -3626,40 +3863,40 @@ t = Pred("^(?P<player>.*) looks at (?P<cards>.*)\.$", empty, "LOOK")
 standardPreds.append(t)
 
 # 25
-def pred25Action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    if chunkMoves[0].indent == 0 and \
-       standardCards[chunkMoves[0].items.cardList()[0]].simple_name == 'Faithful Hound':
-        gameStates[-1].move(chunkMoves[0].player, 'OTHERS', 'HANDS', chunkMoves[0].items)
+def pred25Action(cM, gS, exc, tExc, pers):
+    if cM[0].indent == 0 and \
+       standardCards[cM[0].items.cardList()[0]].simple_name == 'Faithful Hound':
+        gS[-1].move(cM[0].player, 'OTHERS', 'HANDS', cM[0].items)
     else:
-        gameStates[-1].move(chunkMoves[0].player, 'DECKS', 'HANDS', chunkMoves[0].items)
+        gS[-1].move(cM[0].player, 'DECKS', 'HANDS', cM[0].items)
 
 t = Pred("^(?P<player>.*) puts (?P<cards>.*) into their hand\.$", pred25Action, "PUT INHAND")
 standardPreds.append(t)
 
 # 26
-def pred26Action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    gameStates[-1].move(chunkMoves[0].player, 'INPLAYS', 'OTHERS', chunkMoves[0].items)
+def pred26Action(cM, gS, exc, tExc, pers):
+    gS[-1].move(cM[0].player, 'INPLAYS', 'OTHERS', cM[0].items)
 
 t = Pred("^(?P<player>.*) sets (?P<cards>.*) aside\.$", pred26Action, "SET ASIDE")
 standardPreds.append(t)
 
 # 27
-def pred27Action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    gameStates[-1].move(chunkMoves[0].player, 'HANDS', 'OTHERS', chunkMoves[0].items)
+def pred27Action(cM, gS, exc, tExc, pers):
+    gS[-1].move(cM[0].player, 'HANDS', 'OTHERS', cM[0].items)
 
 t = Pred("^(?P<player>.*) puts (?P<cards>.*) on their (.*)\.$", pred27Action, "PUT ONTO")
 standardPreds.append(t)
 
 # 28
-def pred28Action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    gameStates[-1].move(chunkMoves[0].player, 'OTHERS', 'INPLAYS', chunkMoves[0].items)
+def pred28Action(cM, gS, exc, tExc, pers):
+    gS[-1].move(cM[0].player, 'OTHERS', 'INPLAYS', cM[0].items)
 
 t = Pred("^(?P<player>.*) calls (?P<cards>.*)\.$", pred28Action, "CALL")
 standardPreds.append(t)
 
 # 29
-def pred29Action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    gameStates[-1].move(chunkMoves[0].player, 'DECKS', 'DISCARDS', gameStates[-1].DECKS[chunkMoves[0].player])
+def pred29Action(cM, gS, exc, tExc, pers):
+    gS[-1].move(cM[0].player, 'DECKS', 'DISCARDS', gS[-1].DECKS[cM[0].player])
 
 t = Pred("^(?P<player>.*) moves their deck to the discard\.$", pred29Action, "DISCARD DECK")
 standardPreds.append(t)
@@ -3669,8 +3906,8 @@ t = Pred("^(?P<player>.*) puts (?P<cards>.*) back onto their deck\.$", empty, "R
 standardPreds.append(t)
 
 # 31
-def pred31Action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    gameStates[-1].move(chunkMoves[0].player, 'DISCARDS', 'DECKS', chunkMoves[0].items)
+def pred31Action(cM, gS, exc, tExc, pers):
+    gS[-1].move(cM[0].player, 'DISCARDS', 'DECKS', cM[0].items)
 
 t = Pred("^(?P<player>.*) shuffles (?P<cards>.*) into their deck\.$", pred31Action, "SHUFFLE INTO")
 standardPreds.append(t)
@@ -3680,8 +3917,8 @@ t = Pred("^(?P<player>.*) inserts (?P<cards>.*) into their deck\.$", empty, "INS
 standardPreds.append(t)
 
 # 33
-def pred33Action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    gameStates[-1].move(chunkMoves[0].player, 'INPLAYS', 'SUPPLY', chunkMoves[0].items)
+def pred33Action(cM, gS, exc, tExc, pers):
+    gS[-1].move(cM[0].player, 'INPLAYS', 'SUPPLY', cM[0].items)
 
 t = Pred("^(?P<player>.*) returns (?P<cards>.*) to (.*)\.$", pred33Action, "RETURN TO")
 standardPreds.append(t)
@@ -3691,15 +3928,15 @@ t = Pred("^(?P<player>.*) returns (?P<cards>.*) set by (.*)\.$", empty, "RETURN 
 standardPreds.append(t)
 
 # 35
-def pred35Action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    gameStates[-1].move(chunkMoves[0].player, 'HANDS', 'SUPPLY', chunkMoves[0].items)
+def pred35Action(cM, gS, exc, tExc, pers):
+    gS[-1].move(cM[0].player, 'HANDS', 'SUPPLY', cM[0].items)
 
 t = Pred("^(?P<player>.*) returns (?P<cards>.*)\.$", pred35Action, "RETURN")
 standardPreds.append(t)
 
 # 36
-def pred36Action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    gameStates[-1].move(chunkMoves[0].player, 'SUPPLY', 'DISCARDS', chunkMoves[0].items)
+def pred36Action(cM, gS, exc, tExc, pers):
+    gS[-1].move(cM[0].player, 'SUPPLY', 'DISCARDS', cM[0].items)
 
 t = Pred("^(?P<player>.*) receives (?P<cards>.*)\.$", pred36Action, "RECEIVE.")
 standardPreds.append(t)
@@ -3709,12 +3946,16 @@ t = Pred("^(?P<player>.*) receives (?P<cards>.*)$", empty, "RECEIVE BOONHEX")
 standardPreds.append(t)
 
 # 38
-t = Pred("^(?P<player>.*) passes (?P<cards>.*) to (.*)\.$", empty, "PASS")
+def passAction(cM, gS, exc, tExc, pers):
+    gS[-1].HANDS[cM[0].player] -= cM[0].items
+    gS[-1].HANDS[1 - cM[0].player] += cM[0].items
+
+t = Pred("^(?P<player>.*) passes (?P<cards>.*) to (.*)\.$", passAction, "PASS")
 standardPreds.append(t)
 
 # 39
-def pred39Action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    gameStates[-1].move(chunkMoves[0].player, 'SUPPLY', 'DECKS', chunkMoves[0].items)
+def pred39Action(cM, gS, exc, tExc, pers):
+    gS[-1].move(cM[0].player, 'SUPPLY', 'DECKS', cM[0].items)
 
 t = Pred("^(?P<player>.*) starts with (?P<cards>.*)\.$", pred39Action, "STARTS")
 standardPreds.append(t)
@@ -3728,9 +3969,9 @@ t = Pred("^(?P<player>.*) buys Borrow but already had (?P<cards>.*)$", empty, "B
 standardPreds.append(t)
 
 # 42
-def buyAction(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
+def buyAction(cM, gS, exc, tExc, pers):
     # Trashing Hovel, plan etc.
-    exceptions.append(Exception(standard_condition(['TRASH']), moveException('HANDS', 'TRASH')))
+    exc.append(Exception(standard_condition(['TRASH']), moveException('HANDS', 'TRASH')))
 
 t = Pred("^(?P<player>.*) buys (?P<cards>.*)\.$", empty, "BUY")
 standardPreds.append(t)
@@ -3748,21 +3989,21 @@ t = Pred("^(?P<player>.*) reacts with (?P<cards>.*)\.$", empty, "REACT")
 standardPreds.append(t)
 
 # 46
-def pred46Action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    activePlayer = chunkMoves[0].player
+def pred46Action(cM, gS, exc, tExc, pers):
+    activePlayer = cM[0].player
     # Cleanup
-    if chunkMoves[0].indent == 0:
-        gameStates[-1].move(activePlayer, 'INPLAYS', 'DISCARDS', gameStates[-1].INPLAYS[activePlayer])
-        gameStates[-1].move(activePlayer, 'HANDS', 'DISCARDS', gameStates[-1].HANDS[activePlayer])
+    if cM[0].indent == 0:
+        gS[-1].move(activePlayer, 'INPLAYS', 'DISCARDS', gS[-1].INPLAYS[activePlayer])
+        gS[-1].move(activePlayer, 'HANDS', 'DISCARDS', gS[-1].HANDS[activePlayer])
 
-    gameStates[-1].move(activePlayer, 'DISCARDS', 'DECKS', gameStates[-1].DISCARDS[activePlayer])
+    gS[-1].move(activePlayer, 'DISCARDS', 'DECKS', gS[-1].DISCARDS[activePlayer])
 
 t = Pred("^(?P<player>.*) shuffles their deck\.$", pred46Action, "SHUFFLE")
 standardPreds.append(t)
 
 # 47
-def pred47Action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    gameStates[-1].move(chunkMoves[0].player, 'DECKS', 'HANDS', Cardstack({chunkMoves[0].items.cardList()[0]: 1}))
+def pred47Action(cM, gS, exc, tExc, pers):
+    gS[-1].move(cM[0].player, 'DECKS', 'HANDS', Cardstack({cM[0].items.cardList()[0]: 1}))
 
 t = Pred("^(?P<player>.*) wishes for (?P<cards>.*) and finds it\.$", pred47Action, "WISH SUCCESS")
 standardPreds.append(t)
@@ -3824,22 +4065,22 @@ t = Pred("^VP tokens\.$", empty, "SHIELDS")
 standardPreds.append(t)
 
 # 62
-def pred62Action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    gameStates[-1].move(chunkMoves[0].player, 'OTHERS', 'HANDS', chunkMoves[0].items)
+def pred62Action(cM, gS, exc, tExc, pers):
+    gS[-1].move(cM[0].player, 'OTHERS', 'HANDS', cM[0].items)
 
 t = Pred("^(?P<player>.*) puts (?P<cards>.*) in hand \(Gear\)\.$", pred62Action, "DRAW GEAR")
 standardPreds.append(t)
 
 # 63
-def pred63Action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    gameStates[-1].move(chunkMoves[0].player, 'OTHERS', 'HANDS', chunkMoves[0].items)
+def pred63Action(cM, gS, exc, tExc, pers):
+    gS[-1].move(cM[0].player, 'OTHERS', 'HANDS', cM[0].items)
 
 t = Pred("^(?P<player>.*) puts (?P<cards>.*) in hand \(Haven\)\.$", pred63Action, "DRAW HAVEN")
 standardPreds.append(t)
 
 # 64
-def pred64Action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    gameStates[-1].move(chunkMoves[0].player, 'OTHERS', 'HANDS', chunkMoves[0].items)
+def pred64Action(cM, gS, exc, tExc, pers):
+    gS[-1].move(cM[0].player, 'OTHERS', 'HANDS', cM[0].items)
 
 t = Pred("^(?P<player>.*) puts (?P<cards>.*) in hand \(Archive\)\.$", pred64Action, "DRAW ARCHIVE")
 standardPreds.append(t)
@@ -3873,22 +4114,23 @@ t = Pred("^(?P<player>.*) gets +1 Buy \(Bridge Troll\)\.$", empty, "DURATION TRO
 standardPreds.append(t)
 
 # 72
-def turn_start_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    exceptions.append(Exception(standard_condition(['PLAY']),moveException('OTHERS', 'INPLAYS')))
-    exceptions.append(Exception(standard_condition(['PUT INHAND'],['Horse Traders']),moveException('OTHERS', 'HANDS')))
+def turn_start_action(cM, gS, exc, tExc, pers):
+    exc.append(standardException(['PLAY'], 'OTHERS', 'INPLAYS'))
+    exc.append(standardException(['PUT INHAND'], 'OTHERS', 'HANDS',
+                                 ['Horse Traders']))
     # Probably Cobbler
-    def immediate_gain_condition(chunkMoves):
-        return standardPreds[chunkMoves[0].pred].name == 'GAIN' and chunkMoves[0].indent == 1
+    def immediate_gain_condition(cM):
+        return cM[0].predName() == 'GAIN' and cM[0].indent == 1
 
-    exceptions.append(Exception(immediate_gain_condition, moveException('SUPPLY', 'HANDS')))
-    exceptions.append(Exception(immediate_gain_condition, standardOnGains('DECKS', chunkMoves[0].items)))
+    exc.append(Exception(immediate_gain_condition, moveException('SUPPLY', 'HANDS')))
+    exc.append(Exception(immediate_gain_condition, standardOnGains('DECKS', cM[0].items)))
 
 t = Pred("^(?P<player>.*) starts their turn\.$", turn_start_action, "TURN START")
 standardPreds.append(t)
 
 # 73
-def generic_vp_action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    gameStates[-1].vps[chunkMoves[0].player] += int(chunkMoves[0].items[ARGUMENT_CARD].split('/')[0])
+def generic_vp_action(cM, gS, exc, tExc, pers):
+    gS[-1].vps[cM[0].player] += int(cM[0].items[ARGUMENT_CARD].split('/')[0])
 
 
 t = Pred("^(?P<player>.*) takes (?P<cards>.*) VP from (.*)\.$", generic_vp_action, "SHIELD GAIN")
@@ -3899,7 +4141,7 @@ t = Pred("^(?P<player>.*) moves (?P<cards>.*) VP from (.*) to (.*)\.$", empty, "
 standardPreds.append(t)
 
 # 75
-def obelisk_choice(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
+def obelisk_choice(cM, gS, exc, tExc, pers):
     pairs = [['Encampment', 'Plunder'],
              ['Patrician', 'Emporium'],
              ['Settlers', 'Bustling Village'],
@@ -3910,11 +4152,11 @@ def obelisk_choice(chunkMoves, gameStates, exceptions, turnExceptions, persisten
              ['Ruined Library', 'Ruined Village', 'Abandoned Mine', 'Ruined Market', 'Survivors'],
              ['Sauna', 'Avanto']]
 
-    target = chunkMoves[0].items
-    gameStates[-1].obelisk = target
+    target = cM[0].items
+    gS[-1].obelisk = target
     for pair in pairs:
         if target in pair:
-            gameStates[-1].obelisk = pair
+            gS[-1].obelisk = pair
             break
 
 
@@ -4070,8 +4312,8 @@ t = Pred("^Obelisk failed to select an Action Supply pile\.$", empty, "OBELISK F
 standardPreds.append(t)
 
 # 113
-def pred113Action(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    gameStates[-1].move(chunkMoves[0].player, 'SUPPLY', 'DECKS', chunkMoves[0].items)
+def pred113Action(cM, gS, exc, tExc, pers):
+    gS[-1].move(cM[0].player, 'SUPPLY', 'DECKS', cM[0].items)
 
 t = Pred("^(?P<player>.*) inherits (?P<cards>.*)\.$", pred113Action, "INHERIT")
 standardPreds.append(t)
@@ -4081,8 +4323,8 @@ t = Pred("^(?P<player>.*) fails to discard for The Sky's Gift$", empty, "SKY GIF
 standardPreds.append(t)
 
 # 115
-def predCryptAction(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    gameStates[-1].move(chunkMoves[0].player, 'OTHERS', 'HANDS', chunkMoves[0].items)
+def predCryptAction(cM, gS, exc, tExc, pers):
+    gS[-1].move(cM[0].player, 'OTHERS', 'HANDS', cM[0].items)
 
 t = Pred("^(?P<player>.*) puts (?P<cards>.*) in hand \(Crypt\)\.$", predCryptAction, "CRYPT")
 standardPreds.append(t)
@@ -4116,19 +4358,19 @@ t = Pred("^(?P<cards>.*) is enchanted by (.*)$", empty, "ENCHANTED")
 standardPreds.append(t)
 
 # 123
-def predDonateAction(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    def moveEverything(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-        gameStates[-1].move(chunkMoves[0].player, 'DECKS', 'HANDS',
-                            gameStates[-1].DECKS[chunkMoves[0].player])
-        gameStates[-1].move(chunkMoves[0].player, 'DISCARDS', 'HANDS',
-                            gameStates[-1].DISCARDS[chunkMoves[0].player])
+def predDonateAction(cM, gS, exc, tExc, pers):
+    def moveEverything(cM, gS, exc, tExc, pers):
+        gS[-1].move(cM[0].player, 'DECKS', 'HANDS',
+                            gS[-1].DECKS[cM[0].player])
+        gS[-1].move(cM[0].player, 'DISCARDS', 'HANDS',
+                            gS[-1].DISCARDS[cM[0].player])
 
-    def shuffleBack(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-        gameStates[-1].move(chunkMoves[0].player, 'HANDS', 'DECKS',
-                            gameStates[-1].HANDS[chunkMoves[0].player])
+    def shuffleBack(cM, gS, exc, tExc, pers):
+        gS[-1].move(cM[0].player, 'HANDS', 'DECKS',
+                            gS[-1].HANDS[cM[0].player])
 
-    exceptions.append(Exception(standard_condition(['PUT INHAND']), moveEverything))
-    exceptions.append(Exception(standard_condition(['SHUFFLE INTO']), shuffleBack))
+    exc.append(Exception(standard_condition(['PUT INHAND']), moveEverything))
+    exc.append(Exception(standard_condition(['SHUFFLE INTO']), shuffleBack))
 
 
 t = Pred("^Between Turns$", predDonateAction, "BETWEEN TURNS")
@@ -4139,23 +4381,26 @@ t = Pred("^(.*)$", empty, "OTHERS")
 standardPreds.append(t)
 
 
-standardPersistents = []
-
-def urchin_trash_condition(chunkMoves):
+def urchin_trash_condition(cM):
     out = 0
-    for index in range(1, len(chunkMoves)-1):
-        if standard_condition(['TRASH'],['Urchin'])(chunkMoves[index]) and out == 0:
+    for index in range(1, len(cM)-1):
+        if standardCondition(['TRASH'], ['Urchin'])(cM[index]) and out == 0:
             out = 1
 
-        if standard_condition(['GAIN'],['Mercenary'])(chunkMoves[index + 1]) and out == 1:
+        if standardCondition(['GAIN'], ['Mercenary'])(cM[index + 1]) and out == 1:
             out = 2
     return out == 2
 
-def urchin_trash_exception(chunkMoves, gameStates, exceptions, turnExceptions, persistents):
-    exceptions.append(Exception(['TRASH'],['Urchin']), moveException('INPLAYS', 'TRASH'))
+def urchin_trash_exception(cM, gS, exc, tExc, pers):
+    exc.append(Exception(['TRASH'], ['Urchin']), moveException('INPLAYS', 'TRASH'))
 
 standardPersistents.append(Exception(urchin_trash_condition, urchin_trash_exception))
-standardPersistents.append(Exception(standard_condition(['SET ASIDE'], ['Horse Traders']), moveException('HANDS', 'OTHERS')))
-standardPersistents.append(Exception(standard_condition(['RETURN TO'], ['Encampment']), moveException('OTHERS', 'SUPPLY')))
+standardPersistents.append(standardException(['SET ASIDE'], 'HANDS', 'OTHERS',
+                                             ['Horse Traders']))
+standardPersistents.append(standardException(['RETURN TO'], 'OTHERS', 'SUPPLY',
+                                             ['Encampment']))
 travellers = ['Page', 'Treasure Hunter', 'Warrior', 'Hero', 'Champion', 'Peasant', 'Soldier', 'Fugitive', 'Disciple', 'Teacher']
-standardPersistents.append(Exception(standard_condition(['RETURN'], travellers),  moveException('INPLAYS', 'SUPPLY')))
+standardPersistents.append(standardException(['RETURN'], 'INPLAYS', 'SUPPLY',
+                                             travellers))
+
+standardNames = [x.simple_name for x in standardCards]

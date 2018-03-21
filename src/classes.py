@@ -11,6 +11,9 @@ CLEANUP_PREDS = [21, 46]
 BOONHEX = range(373, 404)
 ZOMBIES = [450, 451, 452]
 standardCards = []
+standardPreds = []
+standardPersistents = []
+standardNames = []
 
 class Card:
     def __init__(self, simple_name, multi_name, phrase_name,
@@ -60,6 +63,9 @@ class ParsedLine:
 
     def __repr__(self):
         return str(self.player)+str(self.indent)+str(self.pred)+str(self.items)
+
+    def predName(self):
+        return standardPreds[self.pred].name
 
 class Cardstack:
     def __init__(self,cards):
@@ -137,6 +143,9 @@ class Cardstack:
                 newItems[item] = self.val[item]
 
         return Cardstack(newItems)
+
+    def primary(self):
+        return standardCards[self.cardList()[0]].simple_name
 
 class gameState:
     def __init__(self):
