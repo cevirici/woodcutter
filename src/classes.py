@@ -8,7 +8,6 @@ GAMESTART_PRED = 0
 NEWTURN_PRED = 1
 SHUFFLE_PRED = 46
 CLEANUP_PREDS = [21, 46]
-BOONHEX = range(373, 404)
 ZOMBIES = [450, 451, 452]
 standardCards = []
 standardPreds = []
