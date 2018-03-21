@@ -192,9 +192,9 @@ def render_axis_labels(turnOwners):
 
 def render_legend_boxes(involvedCards):
     # Name | Card Color | Border Color | Card Index
-    legendBoxes = [[standardCards[card].simple_name, 
-                    standardCards[card].card_color, 
-                    standardCards[card].border_color, 
+    legendBoxes = [[standardCards[card].simple_name,
+                    standardCards[card].card_color,
+                    standardCards[card].border_color,
                     card
                    ] for card in involvedCards]
 
@@ -270,7 +270,7 @@ def elaborate_story(players, moveTree):
 
         entryString = reduce(lambda x, y: re.sub(r'\(\.\*\)', y, x, 1), argumentsSplit, entryString)
 
-        entryString = re.sub(r'\\([\.\(\)])', r'\1', entryString)
+        entryString = re.sub(r'\\([\.\(\)\+])', r'\1', entryString)
         entryString = re.sub('\^|\$|\*', '', entryString)
 
         return entryString

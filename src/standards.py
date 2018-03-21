@@ -3450,7 +3450,7 @@ standardPreds.append(t)
 def pred18Action(cM, gS, exc, tExc, pers):
     gS[-1].move(cM[0].player, 'DECKS', 'HANDS', cM[0].items)
 
-t = Pred("^(?P<player>.*) gets +1 Buy, +1 Action and draws (?P<cards>.*) \(Tactician\)\.$", pred18Action, "TACTICIAN DRAW")
+t = Pred("^(?P<player>.*) gets \+1 Buy, \+1 Action and draws (?P<cards>.*) \(Tactician\)\.$", pred18Action, "TACTICIAN DRAW")
 standardPreds.append(t)
 
 # 19
@@ -3716,23 +3716,23 @@ t = Pred("^(?P<player>.*) puts (?P<cards>.*) in hand \(Archive\)\.$", pred64Acti
 standardPreds.append(t)
 
 # 65
-t = Pred("^(?P<player>.*) gets +1 Action and +1 Coin \(Fishing Village\)\.$", gainCash(1), "DURATION FV")
+t = Pred("^(?P<player>.*) gets \+1 Action and \+1 Coin \(Fishing Village\)\.$", gainCash(1), "DURATION FV")
 standardPreds.append(t)
 
 # 66
-t = Pred("^(?P<player>.*) gets +2 Coins \(Merchant Ship\)\.$", gainCash(2), "DURATION MS")
+t = Pred("^(?P<player>.*) gets \+2 Coins \(Merchant Ship\)\.$", gainCash(2), "DURATION MS")
 standardPreds.append(t)
 
 # 67
-t = Pred("^(?P<player>.*) gets +1 Coin \(Lighthouse\)\.$", gainCash(1), "DURATION LIGHTHOUSE")
+t = Pred("^(?P<player>.*) gets \+1 Coin \(Lighthouse\)\.$", gainCash(1), "DURATION LIGHTHOUSE")
 standardPreds.append(t)
 
 # 68
-t = Pred("^(?P<player>.*) gets +1 Coin \(Caravan Guard\)\.$", gainCash(1), "DURATION CGUARD")
+t = Pred("^(?P<player>.*) gets \+1 Coin \(Caravan Guard\)\.$", gainCash(1), "DURATION CGUARD")
 standardPreds.append(t)
 
 # 69
-t = Pred("^(?P<player>.*) gets +3 Coins \(Swamp Hag\)\.$", gainCash(3), "DURATION SHAG")
+t = Pred("^(?P<player>.*) gets \+3 Coins \(Swamp Hag\)\.$", gainCash(3), "DURATION SHAG")
 standardPreds.append(t)
 
 # 70
@@ -3740,7 +3740,7 @@ t = Pred("^(?P<player>.*) summons (?P<cards>.*)\.$", empty, "SUMMON")
 standardPreds.append(t)
 
 # 71
-t = Pred("^(?P<player>.*) gets +1 Buy \(Bridge Troll\)\.$", empty, "DURATION TROLL")
+t = Pred("^(?P<player>.*) gets \+1 Buy \(Bridge Troll\)\.$", empty, "DURATION TROLL")
 standardPreds.append(t)
 
 # 72
@@ -3878,15 +3878,15 @@ t = Pred("^(?P<player>.*) isn't empty\.$", empty, "NOT EMPTY")
 standardPreds.append(t)
 
 # 97
-t = Pred("^(?P<player>.*) gets +1 Action \(from (?P<cards>.*)\)$", empty, "ACTION TOKEN")
+t = Pred("^(?P<player>.*) gets \+1 Action \(from (?P<cards>.*)\)$", empty, "ACTION TOKEN")
 standardPreds.append(t)
 
 # 98
-t = Pred("^(?P<player>.*) gets +1 Buy \(from (?P<cards>.*)\)$", empty, "BUY TOKEN")
+t = Pred("^(?P<player>.*) gets \+1 Buy \(from (?P<cards>.*)\)$", empty, "BUY TOKEN")
 standardPreds.append(t)
 
 # 99
-t = Pred("^(?P<player>.*) gets +1 Coin \(from (?P<cards>.*)\)$", empty, "COIN TOKEN")
+t = Pred("^(?P<player>.*) gets \+1 Coin \(from (?P<cards>.*)\)$", empty, "COIN TOKEN")
 standardPreds.append(t)
 
 # 100
@@ -3960,7 +3960,7 @@ t = Pred("^(?P<player>.*) puts (?P<cards>.*) in hand \(Crypt\)\.$", predCryptAct
 standardPreds.append(t)
 
 # 116
-t = Pred("^(?P<player>.*) gets +1 Coin \(Guardian\)\.$", empty, "DURATION GUARDIAN")
+t = Pred("^(?P<player>.*) gets \+1 Coin \(Guardian\)\.$", empty, "DURATION GUARDIAN")
 standardPreds.append(t)
 
 # 117
@@ -3976,11 +3976,11 @@ t = Pred("^Druid sets (?P<cards>.*) aside\.$", empty, "DRUID BOONS")
 standardPreds.append(t)
 
 # 120
-t = Pred("^(?P<player>.*) gets +3 Coins \(Raider\)\.$", empty, "DURATION RAIDER")
+t = Pred("^(?P<player>.*) gets \+3 Coins \(Raider\)\.$", empty, "DURATION RAIDER")
 standardPreds.append(t)
 
 # 121
-t = Pred("^(?P<player>.*) gets +3 Coins \(Secret Cave\)\.$", empty, "DURATION CAVE")
+t = Pred("^(?P<player>.*) gets \+3 Coins \(Secret Cave\)\.$", empty, "DURATION CAVE")
 standardPreds.append(t)
 
 # 122
@@ -4034,4 +4034,3 @@ standardPersistents.append(standardException(['RETURN'], 'INPLAYS', 'SUPPLY',
                                              travellers))
 
 standardNames = [x.simple_name for x in standardCards]
-
