@@ -78,7 +78,7 @@ class Parser:
         except:
             lowlim -= 1
 
-        for i in range(lowlim,len(m.groups())+1):
+        for i in range(lowlim, len(m.groups())+1):
             cards.insert(ARGUMENT_CARD,m.group(i))
 
         parsedLine = ParsedLine(player, indent, pred, cards)
