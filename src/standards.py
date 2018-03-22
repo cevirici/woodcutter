@@ -1512,7 +1512,13 @@ t = Card('Armory', 'Armories', 'an Armory', 4, 0, 'c4c0b4', '54564e', armory_act
 standardCards.append(t)
 
 # 177: Band of Misfits
-t = Card('Band of Misfits', 'Bands of Misfits', 'a Band of Misfits', 5, 0, 'c4c0b4', '56505c', empty)
+def BoM_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        exc.append(standardException(['PLAY'], 'SUPPLY', 'SUPPLY'))
+        exc.append(Exception(standardCondition(['PLAY']), standardOnPlay))
+
+
+t = Card('Band of Misfits', 'Bands of Misfits', 'a Band of Misfits', 5, 0, 'c4c0b4', '56505c', BoM_action)
 standardCards.append(t)
 
 # 178: Bandit Camp
@@ -2662,7 +2668,7 @@ t = Card('Orchard', 'Orchards', 'an Orchard', 0, 2, '65ab6f', '707c5c', empty, o
 standardCards.append(t)
 
 # 353: Overlord
-t = Card('Overlord', 'Overlords', 'an Overlord', 8, 0, 'c4c0b4', '9a8a90', empty)
+t = Card('Overlord', 'Overlords', 'an Overlord', 8, 0, 'c4c0b4', '9a8a90', BoM_action)
 standardCards.append(t)
 
 # 354: Palace
@@ -3032,7 +3038,7 @@ def monastery_action(cM, gS, exc, tExc, pers):
             coppersToKill = min(coppersToKill, inPlayCoppers)
 
             if coppersToKill > 0:
-                copperStack = Cardstack({copperId: coppersToKill})
+                copperStack = Cardstack({copperID: coppersToKill})
                 itemsSansCoppers = cM[0].items - copperStack
 
                 gS[-1].move(cM[0].player, 'HANDS', 'TRASH', itemsSansCoppers)
