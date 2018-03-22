@@ -383,14 +383,15 @@ def vassal_action(cM, gS, exc, tExc, pers):
         exc.append(exc_revealDiscard)
         discardedCard = standardCards[CARD_CARD].simple_name
         for subchunk in cM[1:]:
-            if subchunk[0].predName == 'DISCARD':
+            if subchunk[0].predName() == 'DISCARD':
                 discardedCard = subchunk[0].items.primary()
                 break
 
         # You're fucked up, vassal.
-        tExc.append(standardException(['PLAY'], 'DISCARDS', 'INPLAYS', [discardedCard]))
         tExc.append(Exception(standardCondition(['PLAY'], [discardedCard]),
-                              standardOnPlay))
+                              moveException('DISCARDS', 'INPLAYS'), len(cM)+1))
+        tExc.append(Exception(standardCondition(['PLAY'], [discardedCard]),
+                              standardOnPlay, len(cM)+1))
 
 
 t = Card('Vassal', 'Vassals', 'a Vassal', 3, 0, 'c4c0b4', 'ba6816', vassal_action)

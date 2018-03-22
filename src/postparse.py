@@ -82,7 +82,7 @@ def get_decision_state(moveTree, supply):
         turnExceptions = []
         def parse_chunk(chunk, exceptions, turnExceptions, persistents):
             subexceptions = []
-            print(exceptions)
+            print(turnExceptions)
             global index
             print(index)
             index += 1
@@ -91,7 +91,7 @@ def get_decision_state(moveTree, supply):
             passedExceptions = [exception for exception in exceptions + persistents
                                 if exception.condition(chunk) == True]
             #One-time
-            passedTurnExceptions = [exception for exception in turnExceptions if exception.condition(chunk) == True]
+            passedTurnExceptions = [exception for exception in turnExceptions if exception.condition(chunk) is True]
 
             if passedExceptions + passedTurnExceptions:
                 for exception in passedExceptions + passedTurnExceptions:
@@ -106,6 +106,12 @@ def get_decision_state(moveTree, supply):
                     if card != ARGUMENT_CARD:
                         for i in range(chunk[0].items[card]):
                             standardCards[card].action(chunk, gameStates, subexceptions, turnExceptions, persistents)
+
+            for exception in turnExceptions:
+                if exception.expiry > 0:
+                    exception.expiry -= 1
+                    if exception.expiry == 0:
+                        turnExceptions.remove(exception)
 
             for subchunk in chunk[1:]:
                 parse_chunk(subchunk, subexceptions, turnExceptions, persistents)

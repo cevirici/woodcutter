@@ -33,13 +33,11 @@ class Card:
         return [self.simple_name, self.multi_name, self.phrase_name]
 
 class Exception:
-    def __init__(self, condition, action, name='Exception'):
+    def __init__(self, condition, action, expiry=-1):
         self.condition = condition
         self.action = action
-        self.name = name
+        self.expiry = expiry
 
-    def __repr__(self):
-        return self.name
 
 class Pred:
     def __init__(self, regex, action, name):
