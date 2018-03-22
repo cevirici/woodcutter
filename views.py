@@ -7,19 +7,23 @@ from django.views.decorators.csrf import csrf_exempt
 from .src import *
 from .models import GameLog
 
+
 def index(request):
     return HttpResponse("Test.")
 
+
 def inputFields(request):
-    return render(request,'woodcutter/inputform.html')
+    return render(request, 'woodcutter/inputform.html')
+
 
 def main(request):
-    return render(request,'woodcutter/main.html')
+    return render(request, 'woodcutter/main.html')
+
 
 @csrf_exempt
 def submit(request):
     p = Parser()
-    arr = [request.POST['fileone'],request.POST['filetwo']]
+    arr = [request.POST['fileone'], request.POST['filetwo']]
     ret = p.combined_parse(arr)
     sup = p.parse_supply(request.POST['supply'])
     players = request.POST['players']
@@ -32,13 +36,14 @@ def submit(request):
                                         log=ret[0],
                                         supply=sup,
                                         players=players)
-    else:
-        existinglog.log = ret[0]
-        existinglog.supply = sup
-        existinglog.players = players
-        existinglog.save()
+    # else:
+        # existinglog.log = ret[0]
+        # existinglog.supply = sup
+        # existinglog.players = players
+        # existinglog.save()
 
     return HttpResponseRedirect(reverse('woodcutter:display', args=(ret[1],)))
+
 
 def display(request, game_id):
     log = get_object_or_404(GameLog, game_id=game_id)
