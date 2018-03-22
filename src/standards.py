@@ -2560,8 +2560,15 @@ standardCards.append(t)
 # 341: Engineer
 def engineer_action(cM, gS, exc, tExc, pers):
     if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exc.append(standardException(['TRASH'], 'INPLAYS', 'TRASH',
-                                     ['Engineer']))
+        def engineerTrashCondition(cM):
+            return cM[0].indent == 0 and \
+                   cM[0].predName() == 'TRASH' and \
+                   cM[0].items.primary() == 'Engineer'
+
+        if cM[0].indent == 0:
+            tExc.append(Exception(engineerTrashCondition, moveException('INPLAYS', 'TRASH')))
+        else:
+            exc.append(standardException(['TRASH'], 'INPLAYS', 'TRASH', ['Engineer']))
 
 
 t = Card('Engineer', 'Engineers', 'an Engineer', 4, 0, 'c4c0b4', '733719', engineer_action)

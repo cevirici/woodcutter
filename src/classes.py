@@ -142,7 +142,10 @@ class Cardstack:
         return Cardstack(newItems)
 
     def primary(self):
-        return standardCards[self.cardList()[0]].simple_name
+        if len(self.cardList()) > 0:
+            return standardCards[self.cardList()[0]].simple_name
+        else:
+            return 'card'
 
 class gameState:
     def __init__(self):
