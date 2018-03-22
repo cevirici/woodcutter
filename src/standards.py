@@ -3,11 +3,11 @@ from .lists import *
 from copy import deepcopy
 
 '''GAAAAH FUCK HERMIT
-AND BOM
 AND DURATIONS
 AND INHERITANCE
 AND ROCKS
-AND ENCHANTRESS'''
+AND ENCHANTRESS
+AND FOOL'''
 
 pred_parse_order = list(range(26)) + [119] + list(range(26, 125))
 
@@ -98,12 +98,12 @@ def standard_boonhex(cM, gS, exc, tExc, pers):
     elif whichBoon == 'Greed':
         exc.append(standardException(['GAIN'], 'SUPPLY', 'DECKS', ['Copper']))
         exc.append(Exception(standardCondition(['GAIN'], ['Copper']),
-                             standardOnGains('DECKS', cM[0].items)))
+                             standardOnGains('DECKS', {standardNames.index('Copper'): 1})))
 
     elif whichBoon == 'Plague':
         exc.append(standardException(['GAIN'], 'SUPPLY', 'HANDS', ['Curse']))
         exc.append(Exception(standardCondition(['GAIN'], ['Curse']),
-                             standardOnGains('HANDS', cM[0].items)))
+                             standardOnGains('DECKS', {standardNames.index('Curse'): 1})))
 
     elif whichBoon == 'Bad Omens':
         exc.append(exc_revealDiscard)
@@ -1634,7 +1634,13 @@ t = Card('Dame Sylvia', 'Dame Sylvias', 'a Dame Sylvia', 5, -1, 'c4c0b4', '744c3
 standardCards.append(t)
 
 # 189: Death Cart
-t = Card('Death Cart', 'Death Carts', 'a Death Cart', 4, 0, 'c4c0b4', '826636', empty)
+def deathcart_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        exc.append(standardException(['TRASH'], 'INPLAYS', 'TRASH', ['Death Cart']))
+        exc.append(exc_standardTrash)
+
+
+t = Card('Death Cart', 'Death Carts', 'a Death Cart', 4, 0, 'c4c0b4', '826636', deathcart_action)
 standardCards.append(t)
 
 
@@ -3808,6 +3814,52 @@ def turn_start_action(cM, gS, exc, tExc, pers):
 
     exc.append(Exception(immediate_gain_condition, moveException('SUPPLY', 'HANDS')))
     exc.append(Exception(immediate_gain_condition, standardOnGains('DECKS', cM[0].items)))
+
+    # Lost In The Woods
+    def litw_action(outerCM, outerGS, outerExc):
+        def out_function(cM, gS, exc, tExc, pers):
+            whichBoon = standardCards[CARD_CARD]
+            for subchunk in outerCM[1:]:
+                if subchunk[0].predName() in ['RECEIVE BOONHEX', 'TAKES BOONHEX']:
+                    whichBoon = subchunk[0].items.primary()
+                    break
+
+            if whichBoon == 'The Sun\'s Gift':
+                outerExc.append(exc_revealTopdeck)
+                outerExc.append(exc_revealDiscard)
+
+            elif whichBoon == 'The Moon\'s Gift':
+                outerExc.append(exc_harbinger)
+
+            elif whichBoon == 'Locusts':
+                outerExc.append(exc_revealTrash)
+
+            elif whichBoon == 'War':
+                outerExc.append(exc_revealTrash)
+                outerExc.append(exc_revealDiscard)
+
+            elif whichBoon == 'Greed':
+                outerExc.append(standardException(['GAIN'], 'SUPPLY', 'DECKS', ['Copper']))
+                outerExc.append(Exception(standardCondition(['GAIN'], ['Copper']),
+                                          standardOnGains('DECKS', {standardNames.index('Copper'): 1})))
+
+            elif whichBoon == 'Plague':
+                outerExc.append(standardException(['GAIN'], 'SUPPLY', 'HANDS', ['Curse']))
+                outerExc.append(Exception(standardCondition(['GAIN'], ['Curse']),
+                                          standardOnGains('DECKS', {standardNames.index('Curse'): 1})))
+
+            elif whichBoon == 'Bad Omens':
+                outerExc.append(exc_revealDiscard)
+                outerExc.append(exc_harbinger)
+
+            elif whichBoon == 'Famine':
+                outerExc.append(exc_revealDiscard)
+                outerExc.append(standardException(['SHUFFLE INTO'], 'DECKS', 'DECKS'))
+
+        return out_function
+
+    exc.append(Exception(standardCondition(['TAKES BOONHEX']), litw_action(cM, gS, exc)))
+
 
 t = Pred("^(?P<player>.*) starts their turn\.$", turn_start_action, "TURN START")
 standardPreds.append(t)
