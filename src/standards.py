@@ -2465,8 +2465,14 @@ standardCards.append(t)
 t = Card('Annex', 'Annexes', 'an Annex', 8, 2, 'a9a39d', '7a5a36', empty)
 standardCards.append(t)
 
+
 # 321: Archive
-t = Card('Archive', 'Archives', 'an Archive', 5, 0, 'dda561', '7b5d47', empty)
+def archive_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        exc.append(standardException(['SET ASIDE'], 'DECKS', 'OTHERS'))
+
+
+t = Card('Archive', 'Archives', 'an Archive', 5, 0, 'dda561', '7b5d47', archive_action)
 standardCards.append(t)
 
 # 322: Aqueduct
