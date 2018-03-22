@@ -68,7 +68,7 @@ def parse_game(parsedLog):
     return moveTree
 
 
-parseOK = True
+index = 0
 def get_decision_state(moveTree, supply):
     startState = gameState()
     startState.add(0, 'SUPPLY', supply)
@@ -82,6 +82,10 @@ def get_decision_state(moveTree, supply):
         turnExceptions = []
         def parse_chunk(chunk, exceptions, turnExceptions, persistents):
             subexceptions = []
+            print(exceptions)
+            global index
+            print(index)
+            index += 1
             gameStates.append(deepcopy(gameStates[-1]))
 
             passedExceptions = [exception for exception in exceptions + persistents

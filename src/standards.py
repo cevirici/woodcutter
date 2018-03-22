@@ -62,9 +62,12 @@ def standardOnGains(src, gainedCard):
         gS[-1].move(cM[0].player, src, 'TRASH', gainedCard)
 
     def out_function(cM, gS, exc, tExc, pers):
-        gainedName = gainedCard.primary()
-        exc.append(Exception(standardCondition(['TOPDECK']), topdeckerMove))
-        exc.append(Exception(standardCondition(['TRASH']), trasherMove))
+        gainedCardNames = [standardCards[card].simple_name for card in gainedCard]
+        gainedCardNames.append('card')
+        exc.append(Exception(standardCondition(['TOPDECK'], gainedCardNames),
+                                               topdeckerMove))
+        exc.append(Exception(standardCondition(['TRASH'], gainedCardNames),
+                                               trasherMove))
         exc.append(standardException(['PUT INHAND'], src, 'HANDS', ['Villa']))
 
     return out_function
@@ -716,6 +719,7 @@ standardCards.append(t)
 def nv_action(cM, gS, exc, tExc, pers):
     if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
         exc.append(standardException(['PUT INHAND'], 'OTHERS', 'HANDS'))
+        exc.append(standardException(['SET ASIDE WITH'], 'DECKS', 'OTHERS'))
 
 
 t = Card('Native Village', 'Native Villages', 'a Native Village', 2, 0, 'c4c0b4', '6f919f', nv_action)
@@ -3777,6 +3781,7 @@ standardPreds.append(t)
 # 72
 def turn_start_action(cM, gS, exc, tExc, pers):
     exc.append(standardException(['PLAY'], 'OTHERS', 'INPLAYS'))
+    exc.append(Exception(standardCondition(['PLAY']), standardOnPlay))
     exc.append(standardException(['PUT INHAND'], 'OTHERS', 'HANDS',
                                  ['Horse Traders']))
     # Probably Cobbler
@@ -3955,6 +3960,7 @@ standardPreds.append(t)
 # 108
 t = Pred("^(?P<player>.*) repays (?P<cards>.*) debt \((.*) remaining\)\.$", empty, "REPAY DEBT PARTIAL")
 standardPreds.append(t)
+
 
 # 109
 def setAsideWith_action(cM, gS, exc, tExc, pers):
