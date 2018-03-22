@@ -530,7 +530,17 @@ standardCards.append(t)
 # 52: Replace
 def replace_action(cM, gS, exc, tExc, pers):
     if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exc.append(exc_harbinger)
+        gainedCard = CARD_CARD
+        for subchunk in cM[1:]:
+            if subchunk[0].predName() == 'GAIN' and \
+               subchunk[0].player == cM[0].player:
+                gainedCard = subchunk[0].items.cardList()[0]
+        gainedCardStack = Cardstack({gainedCard: 1})
+
+        def topdeckGainedCard(cM, gS, exc, tExc, pers):
+            gS[-1].move(cM[0].player, 'DISCARDS', 'DECKS', gainedCardStack)
+
+        exc.append(Exception(standardCondition(['TOPDECK']), topdeckGainedCard))
 
 
 t = Card('Replace', 'Replaces', 'a Replace', 5, 0, 'c4c0b4', '564850', replace_action)
