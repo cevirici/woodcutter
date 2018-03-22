@@ -63,10 +63,8 @@ def standardOnGains(src, gainedCard):
 
     def out_function(cM, gS, exc, tExc, pers):
         gainedName = gainedCard.primary()
-        exc.append(Exception(standardCondition(['TOPDECK'], [gainedName]),
-                             topdeckerMove))
-        exc.append(Exception(standardCondition(['TRASH'], [gainedName]),
-                             trasherMove))
+        exc.append(Exception(standardCondition(['TOPDECK']), topdeckerMove))
+        exc.append(Exception(standardCondition(['TRASH']), trasherMove))
         exc.append(standardException(['PUT INHAND'], src, 'HANDS', ['Villa']))
 
     return out_function
@@ -3367,8 +3365,8 @@ def standardGains(source, destination='DISCARDS'):
                 standardOnGains('HANDS', exceptionalStuff)(cM, gS, exc, tExc, pers)
 
         if targetStuff.count() > 0:
-            gS[-1].move(cM[0].player, source, 'DISCARDS', targetStuff)
-            standardOnGains('DISCARDS', targetStuff)(cM, gS, exc, tExc, pers)
+            gS[-1].move(cM[0].player, source, destination, targetStuff)
+            standardOnGains(destination, targetStuff)(cM, gS, exc, tExc, pers)
 
     return out_function
 
@@ -3377,12 +3375,7 @@ t = Pred("^(?P<player>.*) buys and gains (?P<cards>.*)\.$", standardGains('SUPPL
 standardPreds.append(t)
 
 # 3
-def pred3Action(cM, gS, exc, tExc, pers):
-    gS[-1].move(cM[0].player, 'SUPPLY', 'DECKS', cM[0].items)
-    standardOnGains('DECKS', cM[0].items)(cM, gS, exc, tExc, pers)
-
-
-t = Pred("^(?P<player>.*) gains (?P<cards>.*) onto their drawpile\.$", standardGains('SUPPLY'), "GAIN TOPDECK")
+t = Pred("^(?P<player>.*) gains (?P<cards>.*) onto their drawpile\.$", standardGains('SUPPLY', 'DECKS'), "GAIN TOPDECK")
 standardPreds.append(t)
 
 # 4
