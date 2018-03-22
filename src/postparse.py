@@ -266,8 +266,9 @@ def full_printout(moveTree, gameStates):
 
     outfile = open('log.txt', 'w')
 
-    def print_chunk(chunk):
+    def print_chunk(chunk, turnIndex):
         global index
+        outfile.write('TURN {} \n'.format(turnIndex))
         outfile.write(str(index))
         outfile.write('{}>'.format('-'*chunk[0].indent))
         outfile.write(standardPreds[chunk[0].pred].name)
@@ -277,8 +278,10 @@ def full_printout(moveTree, gameStates):
         outfile.write(str(gameStates[index]))
         index += 1
         for subchunk in chunk[1:]:
-            print_chunk(subchunk)
+            print_chunk(subchunk, turnIndex)
 
+    turnIndex = 0
     for chunk in moveTree:
-        print_chunk(chunk)
+        print_chunk(chunk, turnIndex)
+        turnIndex += 1
     outfile.close()

@@ -1218,8 +1218,15 @@ def harvest_action(cM, gS, exc, tExc, pers):
 t = Card('Harvest', 'Harvests', 'a Harvest', 5, 0, 'c4c0b4', 'cd9f49', harvest_action)
 standardCards.append(t)
 
+
 # 136: Horse Traders
-t = Card('Horse Traders', 'Horse Traders', 'a Horse Traders', 4, 0, '8ca2be', '595561', empty)
+def horseTraders_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() == 'REACT':
+        tExc.append(standardException(['SET ASIDE'], 'HANDS', 'OTHERS',
+                                      ['Horse Traders']))
+
+
+t = Card('Horse Traders', 'Horse Traders', 'a Horse Traders', 4, 0, '8ca2be', '595561', horseTraders_action)
 standardCards.append(t)
 
 # 137: Horn of Plenty
@@ -2202,7 +2209,6 @@ standardCards.append(t)
 # 285: Save
 def save_action(cM, gS, exc, tExc, pers):
     if cM[0].predName() in ['BUY']:
-        exc.append(standardException(['SET ASIDE WITH'], 'HANDS', 'OTHERS'))
         tExc.append(standardException(['PUT INHAND'], 'OTHERS', 'HANDS'))
 
 t = Card('Save', 'Saves', 'a Save', 1, 2, 'a9a39d', '814d3b', save_action)
@@ -3285,7 +3291,11 @@ t = Card('Governor', 'Governors', 'a Governor', 5, 0, 'c4c0b4', '8f9989', empty)
 standardCards.append(t)
 
 # 456: Prince
-t = Card('Prince', 'Princes', 'a Prince', 8, 0, 'c4c0b4', 'a4863c', empty)
+def prince_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        exc.append(standardException(['SET ASIDE'], 'HANDS', 'OTHERS'))
+
+t = Card('Prince', 'Princes', 'a Prince', 8, 0, 'c4c0b4', 'a4863c', prince_action)
 standardCards.append(t)
 
 # 457: Sauna
@@ -3954,7 +3964,11 @@ t = Pred("^(?P<player>.*) repays (?P<cards>.*) debt \((.*) remaining\)\.$", empt
 standardPreds.append(t)
 
 # 109
-t = Pred("^(?P<player>.*) sets (?P<cards>.*) aside with (.*)\.$", empty, "SET ASIDE WITH")
+def setAsideWith_action(cM, gS, exc, tExc, pers):
+    standardMove('HANDS', 'OTHERS', cM, gS)
+
+
+t = Pred("^(?P<player>.*) sets (?P<cards>.*) aside with (.*)\.$", setAsideWith_action, "SET ASIDE WITH")
 standardPreds.append(t)
 
 # 110
@@ -4053,8 +4067,6 @@ def urchin_trash_exception(cM, gS, exc, tExc, pers):
     exc.append(Exception(['TRASH'], ['Urchin']), moveException('INPLAYS', 'TRASH'))
 
 standardPersistents.append(Exception(urchin_trash_condition, urchin_trash_exception))
-standardPersistents.append(standardException(['SET ASIDE'], 'HANDS', 'OTHERS',
-                                             ['Horse Traders']))
 standardPersistents.append(standardException(['RETURN TO'], 'OTHERS', 'SUPPLY',
                                              ['Encampment']))
 travellers = ['Page', 'Treasure Hunter', 'Warrior', 'Hero', 'Champion', 'Peasant', 'Soldier', 'Fugitive', 'Disciple', 'Teacher']
