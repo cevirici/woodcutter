@@ -127,7 +127,7 @@ class Cardstack:
         return outstr
 
     def count(self):
-        return sum([self.val[item] for item in self.val])
+        return sum([self.val[item] for item in self.val if item != ARGUMENT_CARD])
 
     def cardList(self):
         return list(self.val)

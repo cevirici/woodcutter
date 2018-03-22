@@ -38,7 +38,8 @@ def moveException(src, dest):
 
 
 def standardMove(src, dest, cM, gS):
-    gS[-1].move(cM[0].player, src, dest, cM[0].items)
+    if cM[0].items.count() > 0:
+        gS[-1].move(cM[0].player, src, dest, cM[0].items)
 
 
 def standardException(predList, src, dest, targetList=[]):
@@ -3413,7 +3414,7 @@ standardPreds.append(t)
 
 
 def pred8Action(cM, gS, exc, tExc, pers):
-    if cM[0].items.primary() not in BOONHEX:
+    if cM[0].items.count() > 0:
         gS[-1].move(cM[0].player, 'HANDS', 'DISCARDS', cM[0].items)
 
 
@@ -4062,8 +4063,10 @@ def urchin_trash_condition(cM):
             out = 2
     return out == 2
 
+
 def urchin_trash_exception(cM, gS, exc, tExc, pers):
     exc.append(Exception(['TRASH'], ['Urchin']), moveException('INPLAYS', 'TRASH'))
+
 
 standardPersistents.append(Exception(urchin_trash_condition, urchin_trash_exception))
 standardPersistents.append(standardException(['RETURN TO'], 'OTHERS', 'SUPPLY',

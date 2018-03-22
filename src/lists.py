@@ -365,7 +365,8 @@ treasures = ['Copper',
              'Pouch',
              'Stash']
 ZOMBIES = [450, 451, 452]
-BOONHEX = ['The Earth\'s Gift',
+BOONHEX = [
+           'The Earth\'s Gift',
            'The Field\'s Gift',
            'The Flame\'s Gift',
            'The Forest\'s Gift',
