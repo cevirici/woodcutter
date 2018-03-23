@@ -770,6 +770,7 @@ def generalized_pirateship(value):
     def pirateship_action(cM, gS, exc, tExc, pers):
         if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
             exc.append(exc_revealTrash)
+            exc.append(exc_revealDiscard)
             exc.append(exc_standardTrash)
             gainCash(value)(cM, gS, exc, tExc, pers)
 
