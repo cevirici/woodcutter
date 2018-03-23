@@ -3098,14 +3098,14 @@ standardCards.append(t)
 # 425: Pixie
 def pixie_action(cM, gS, exc, tExc, pers):
     if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        whichBoon = sC[CARD_CARD]
+        whichBoon = standardCards[CARD_CARD]
         for subchunk in cM[1:]:
             if subchunk[0].predName() in ['RECEIVE BOONHEX', 'TAKES BOONHEX']:
                 whichBoon = subchunk[0].items.primary()
                 break
 
-        if whichBoon.simple_name == 'The Flame\'s Gift':
-            pixieStack = {standardNames.index('Pixie'): 1}
+        if whichBoon == 'The Flame\'s Gift':
+            pixieStack = Cardstack({standardNames.index('Pixie'): 1})
             otherThings = cM[0].items - pixieStack
 
             def pixieTrash(pixieStack, otherThings):
