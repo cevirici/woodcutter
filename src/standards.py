@@ -1576,7 +1576,8 @@ def knightsTrashCondition(knightPlayer):
 
 def knightsSuicideCondition(knightPlayer):
     def out_function(cM):
-        return cM[0].predName() == 'TRASH' and cM[0].player == knightPlayer
+        isKnight = cM[0].items.primary() in knights
+        return cM[0].predName() == 'TRASH' and cM[0].player == knightPlayer and isKnight
     return out_function
 
 
@@ -1850,11 +1851,11 @@ def michael_action(cM, gS, exc, tExc, pers):
         return out_function
 
     if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exc.append(exc_revealDiscard)
-        exc.append(exc_revealTrash)
+        exc.append(Exception(knightsTrashCondition(cM[0].player),
+                             moveException('DECKS', 'TRASH')))
         exc.append(exc_standardTrash)
         exc.append(Exception(standardCondition(['REVEAL']),
-                             michaelRevealException(exceptions)))
+                             michaelRevealException(exc)))
         exc.append(Exception(knightsSuicideCondition(cM[0].player),
                              moveException('INPLAYS', 'TRASH')))
 
@@ -3895,16 +3896,6 @@ standardPreds.append(t)
 
 # 75
 def obelisk_choice(cM, gS, exc, tExc, pers):
-    pairs = [['Encampment', 'Plunder'],
-             ['Patrician', 'Emporium'],
-             ['Settlers', 'Bustling Village'],
-             ['Catapult', 'Rocks'],
-             ['Gladiator', 'Fortune'],
-             ['Dame Anna', 'Dame Josephine', 'Dame Molly', 'Dame Natalie', 'Dame Sylvia'
-              , 'Sir Bailey', 'Sir Destry', 'Sir Martin', 'Sir Michael', 'Sir Vander'],
-             ['Ruined Library', 'Ruined Village', 'Abandoned Mine', 'Ruined Market', 'Survivors'],
-             ['Sauna', 'Avanto']]
-
     target = cM[0].items
     gS[-1].obelisk = target
     for pair in pairs:

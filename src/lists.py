@@ -396,3 +396,14 @@ BOONHEX = [
            'Twice Miserable',
            'Envious',
            'Deluded']
+pairs = [['Encampment', 'Plunder'],
+         ['Patrician', 'Emporium'],
+         ['Settlers', 'Bustling Village'],
+         ['Catapult', 'Rocks'],
+         ['Gladiator', 'Fortune'],
+         ['Dame Anna', 'Dame Josephine', 'Dame Molly', 'Dame Natalie', 'Dame Sylvia'
+          , 'Sir Bailey', 'Sir Destry', 'Sir Martin', 'Sir Michael', 'Sir Vander'],
+         ['Ruined Library', 'Ruined Village', 'Abandoned Mine', 'Ruined Market', 'Survivors'],
+         ['Sauna', 'Avanto']]
+knights = ['Dame Anna', 'Dame Josephine', 'Dame Molly', 'Dame Natalie', 'Dame Sylvia'
+          , 'Sir Bailey', 'Sir Destry', 'Sir Martin', 'Sir Michael', 'Sir Vander']
