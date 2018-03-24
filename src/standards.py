@@ -3079,6 +3079,7 @@ standardCards.append(t)
 def necromancer_action(cM, gS, exc, tExc, pers):
     if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
         exc.append(standardException(['PLAY'], 'TRASH', 'TRASH'))
+        exc.append(Exception(standardCondition(['PLAY']),  standardOnPlay))
 
 
 t = Card('Necromancer', 'Necromancers', 'a Necromancer', 4, 0, 'c4c0b4', '525a36', necromancer_action)
@@ -3298,7 +3299,7 @@ def zombiemason_action(cM, gS, exc, tExc, pers):
         exc.append(standardException(['TRASH'], 'DECKS', 'TRASH'))
         exc.append(exc_standardTrash)
 
-t = Card('Zombie Mason', 'Zombie Masons', 'a Zombie Mason', 3, 1, 'c4c0b4', '5f513d', empty)
+t = Card('Zombie Mason', 'Zombie Masons', 'a Zombie Mason', 3, 1, 'c4c0b4', '5f513d', zombiemason_action)
 standardCards.append(t)
 
 # 451: Zombie Spy
@@ -3380,6 +3381,7 @@ def newTurnAction(cM, gS, exc, tExc, pers):
     for i in range(2):
         gS[-1].coins[i] = 0
         gS[-1].coinsLower[i] = 0
+    gS[-1].activePlayer = cM[0].player
 
 
 t = Pred("^Turn (?P<cards>.*) - (?P<player>.*)$", newTurnAction, "NEW TURN")
@@ -3547,13 +3549,14 @@ standardPreds.append(t)
 
 # 21
 def pred21Action(cM, gS, exc, tExc, pers):
-    activePlayer = cM[0].player
+    activePlayer = gS[-1].activePlayer
     # Cleanup
     if cM[0].indent == 0:
-        gS[-1].move(activePlayer, 'INPLAYS', 'DISCARDS', gS[-1].INPLAYS[activePlayer])
-        gS[-1].move(activePlayer, 'HANDS', 'DISCARDS', gS[-1].HANDS[activePlayer])
+        if cM[0].player == activePlayer:
+            gS[-1].move(cM[0].player, 'INPLAYS', 'DISCARDS', gS[-1].INPLAYS[cM[0].player])
+            gS[-1].move(cM[0].player, 'HANDS', 'DISCARDS', gS[-1].HANDS[cM[0].player])
 
-    gS[-1].move(activePlayer, 'DECKS', 'HANDS', cM[0].items)
+    gS[-1].move(cM[0].player, 'DECKS', 'HANDS', cM[0].items)
 
 t = Pred("^(?P<player>.*) draws (?P<cards>.*)\.$", pred21Action, "DRAW")
 standardPreds.append(t)

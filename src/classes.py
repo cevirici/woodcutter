@@ -163,6 +163,7 @@ class gameState:
         self.vps = [0, 0]
         self.obelisk = []
         self.valid = True
+        self.activePlayer = 0
 
     def __str__(self):
         outstr = ''
