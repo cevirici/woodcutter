@@ -70,6 +70,7 @@ def standardOnGains(src, gainedCard):
         exc.append(Exception(standardCondition(['TRASH'], gainedCardNames),
                                                trasherMove))
         exc.append(standardException(['PUT INHAND'], src, 'HANDS', ['Villa']))
+        exc.append(standardException(['RETURN'], src, 'SUPPLY'))
 
     return out_function
 
@@ -2766,7 +2767,7 @@ def arch_worth(gameState, player):
     playerDeck = gameState.crunch(['DECKS', 'DISCARDS', 'HANDS', 'OTHERS', 'INPLAYS'], [player])
     counts = sorted([playerDeck[card] for card in playerDeck if
                      standardCards[card].simple_name in actionList], reverse=True)
-    counts = counts + [0,0]
+    counts = counts + [0, 0]
 
     return 3 * counts[1]
 
@@ -2968,7 +2969,13 @@ t = Card('Blessed Village', 'Blessed Villages', 'a Blessed Village', 4, 0, 'c4c0
 standardCards.append(t)
 
 # 406: Changeling
-t = Card('Changeling', 'Changelings', 'a Changeling', 3, 0, '30484e', '183442', empty)
+def changeling_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        exc.append(exc_inplayTrash)
+        exc.append(exc_standardTrash)
+
+
+t = Card('Changeling', 'Changelings', 'a Changeling', 3, 0, '30484e', '183442', changeling_action)
 standardCards.append(t)
 
 # 407: Cemetery
