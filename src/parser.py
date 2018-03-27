@@ -54,9 +54,16 @@ def parse_card_phrase(cardlist):
 
 def parse_line(line):
     indent = get_indent(line)
-
-    line = line.strip()
     line = re.sub('<.*?>|&bull;|&sdot;', '', line)
+    line = line.strip()
+
+    parsedLine = parse_line_contents(line)
+    parsedLine.indent = indent
+
+    return parsedLine
+
+
+def parse_line_contents(line):
     pred = standardPreds[-1]
     for predIndex in pred_parse_order:
         if re.match(standardPreds[predIndex].regex, line) is not None:
@@ -81,7 +88,7 @@ def parse_line(line):
     for i in range(lowlim, len(m.groups())+1):
         cards.insert(ARGUMENT_CARD, m.group(i))
 
-    parsedLine = ParsedLine(player, indent, pred, cards)
+    parsedLine = ParsedLine(player, 0, pred, cards)
 
     return parsedLine
 
