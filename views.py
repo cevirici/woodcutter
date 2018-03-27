@@ -171,6 +171,7 @@ def error_500(request):
     return render(request, 'woodcutter/error_500.html', data)
 
 
+@csrf_exempt
 def edit_log(request):
     gameid = request.POST['gameid']
     lineNumber = request.POST['lineNumber']
