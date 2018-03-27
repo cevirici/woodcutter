@@ -81,7 +81,9 @@ def get_decision_state(moveTree, supply):
     gameStates = [startState]
     for turn in moveTree:
         turnExceptions = []
+
         def parse_chunk(chunk, exceptions, turnExceptions, persistents):
+            index += 1
             subexceptions = []
             gameStates.append(deepcopy(gameStates[-1]))
 
@@ -117,12 +119,14 @@ def get_decision_state(moveTree, supply):
 
     return gameStates
 
+
 def get_turn_points(moveTree):
     #Position of last decision in each turn, including the pregame turn
     def get_chunk_length(chunk):
         return sum([get_chunk_length(x) for x in chunk[1:]]) + 1
     lens = [get_chunk_length(chunk) for chunk in moveTree]
     return [sum(lens[:i+1])-1 for i in range(len(lens))]
+
 
 def get_cleanup_points(moveTree):
     #Look for the first nonindented shuffle/draw
@@ -141,8 +145,10 @@ def get_cleanup_points(moveTree):
 
     return [abs(find_cleanup_chunk(chunk)) for chunk in moveTree]
 
+
 def get_turn_owners(moveTree):
     return [chunk[0].player for chunk in moveTree]
+
 
 def get_shuffled_turns(moveTree):
     def had_shuffled(player, chunk):
@@ -156,6 +162,7 @@ def get_shuffled_turns(moveTree):
 
     return [[had_shuffled(p,x) for x in moveTree] for p in range(2)]
 
+
 def get_involved_cards(gameStates):
     involvedCards = set()
 
@@ -166,6 +173,7 @@ def get_involved_cards(gameStates):
     involvedCards.sort()
     return involvedCards
 
+
 def find_turn_decks(turnPoints, gameStates):
     turnDecks = [[] for i in range(2)]
     for point in turnPoints:
@@ -173,6 +181,7 @@ def find_turn_decks(turnPoints, gameStates):
             turnDecks[p].append(gameStates[point+1].crunch(['DECKS','HANDS','INPLAYS','DISCARDS','OTHERS'],[p]))
 
     return [turnDecks]
+
 
 def find_gained_cards(turnPoints, gameStates):
     netGains = [[Cardstack({})] for i in range(2)]
@@ -200,6 +209,7 @@ def find_gained_cards(turnPoints, gameStates):
             stepGains[p].append(stepGain)
 
     return [netTrashes, stepGains, netGains]
+
 
 def find_shuffle_progress(turnPoints, cleanupPoints, gameStates):
     # subset?

@@ -76,7 +76,7 @@ def standardOnGains(src, gainedCard):
 
 
 def standard_boonhex(cM, gS, exc, tExc, pers):
-    whichBoon = standardCards[CARD_CARD]
+    whichBoon = standardCards[CARD_CARD].simple_name
     for subchunk in cM[1:]:
         if subchunk[0].predName() in ['RECEIVE BOONHEX', 'TAKES BOONHEX']:
             whichBoon = subchunk[0].items.primary()
@@ -2948,6 +2948,7 @@ standardCards.append(t)
 t = Card('Lost In The Woods', 'Lost In The Woods', 'Lost In The Woods', 0, -1, 'ceb0a4', '527052', empty)
 standardCards.append(t)
 
+
 def playing_boonhex(cM, gS, exc, tExc, pers):
     if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
         standard_boonhex(cM, gS, exc, tExc, pers)
@@ -4149,6 +4150,7 @@ def urchin_trash_condition(cM):
 
 
 def urchin_trash_exception(cM, gS, exc, tExc, pers):
+    standardOnPlay(cM, gS, exc, tExc, pers)
     exc.append(standardException(['TRASH'], 'INPLAYS', 'TRASH', ['Urchin']))
 
 
