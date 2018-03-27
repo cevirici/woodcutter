@@ -22,10 +22,9 @@ def main(request):
 
 @csrf_exempt
 def submit(request):
-    p = Parser()
     arr = [request.POST['fileone'], request.POST['filetwo']]
-    ret = p.combined_parse(arr)
-    sup = p.parse_supply(request.POST['supply'])
+    ret = combined_parse(arr)
+    sup = parse_supply(request.POST['supply'])
     players = request.POST['players']
 
     gameid = ret[1]
