@@ -4149,7 +4149,7 @@ def urchin_trash_condition(cM):
 
 
 def urchin_trash_exception(cM, gS, exc, tExc, pers):
-    exc.append(Exception(['TRASH'], ['Urchin']), moveException('INPLAYS', 'TRASH'))
+    exc.append(standardException(['TRASH'], 'INPLAYS', 'TRASH', ['Urchin']))
 
 
 standardPersistents.append(Exception(urchin_trash_condition, urchin_trash_exception))
