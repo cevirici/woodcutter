@@ -83,7 +83,6 @@ def get_decision_state(moveTree, supply):
         turnExceptions = []
 
         def parse_chunk(chunk, exceptions, turnExceptions, persistents):
-            index += 1
             subexceptions = []
             gameStates.append(deepcopy(gameStates[-1]))
 
