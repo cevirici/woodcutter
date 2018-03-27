@@ -68,14 +68,14 @@ def parse_line(line):
     lowlim = 3
     try:
         player = m.group('player')
-    except Exception:
+    except BaseException:
         lowlim -= 1
 
     cards = Cardstack({})
     try:
         c_raw = m.group('cards')
         cards = parse_card_phrase(c_raw)
-    except Exception:
+    except BaseException:
         lowlim -= 1
 
     for i in range(lowlim, len(m.groups())+1):
