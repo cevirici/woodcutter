@@ -2,12 +2,27 @@
 
 .axis, .axislabel, .box, .controlbox, .graph, .graph-control, 
 .graph-layer, .inner-color, .kingdom-card, .legendbox, .modal, 
-.modalcontrolbox, .scale-bar, .settingsbox,
+.modalcontrolbox, .scale-bar, .settingsbox, .story-tool,
 .story-sidebar-block, .vpbox{
 	-moz-transition: all 0.5s;
 	-o-transition: all 0.5s;
 	-webkit-transition: all 0.5s;
 	transition: all 0.5s;	
+
+	-webkit-transform: translateZ(0);
+	-moz-transform: translateZ(0);
+	-o-transform: translateZ(0);
+	transform: translateZ(0);
+}
+
+
+/*********** Faster Animations ***********/
+
+.story-tool > img{
+	-moz-transition: all 0.2s;
+	-o-transition: all 0.2s;
+	-webkit-transition: all 0.2s;
+	transition: all 0.2s;	
 
 	-webkit-transform: translateZ(0);
 	-moz-transform: translateZ(0);
@@ -409,10 +424,49 @@ modals{
 
 /*********** Log ***********/
 
-.story{
+.story-block{
 	position: relative;
 	width: 40%;
 	height: 95%;
+
+	display: flex;
+	flex-direction: column;
+}
+
+.story-topbar{
+	width: 95%;
+	height: 7%;
+
+	display: flex;
+	flex-direction: row-reverse;
+}
+
+.story-tool{
+	position: relative;
+	width: 4vh;
+	height: 4vh;
+}
+.story-tool:hover > img:nth-child(3){
+	opacity: 0;
+}
+.story-tool.active > img:nth-child(3){
+	opacity: 0;
+}
+.story-tool.active > img:nth-child(2){
+	opacity: 0;
+}
+
+.story-tool > img{
+	position: absolute;
+	width: 100%;
+	height: 100%;
+
+	opacity: 1;
+}
+
+.story-main{
+	width: 100%;
+	height: 90%;
 
 	display: flex;
 }

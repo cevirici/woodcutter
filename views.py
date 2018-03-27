@@ -71,9 +71,11 @@ def display(request, game_id):
     allCards = find_turn_decks(turnPoints, gameStates)
     gainedCards = find_gained_cards(turnPoints, gameStates)
 
-    cleanupPoints = [x+y for x,y in zip(get_cleanup_points(moveTree), [-1] + turnPoints)]
+    cleanupPoints = [x+y for x, y in zip(get_cleanup_points(moveTree),
+                     [-1] + turnPoints)]
     cleanupPoints[0] = turnPoints[0] + 1
-    progressCards = find_shuffle_progress(turnPoints, cleanupPoints, gameStates)
+    progressCards = find_shuffle_progress(turnPoints, cleanupPoints,
+                                          gameStates)
 
     vpCards = find_vp(turnPoints, gameStates)
 
@@ -94,14 +96,15 @@ def display(request, game_id):
     bgData_bot = render_graph_background(turnOwners, shuffledTurns, 1)
     legendBoxes = render_legend_boxes(involvedCards)
     sidebarLabels = render_story_sidebar_labels(turnOwners, turnPoints)
-    story = elaborate_story(players, moveTree)
+    storyRaw = elaborate_story(players, moveTree)
+    story = storyRaw[0]
+    storyPlain = storyRaw[1]
 
-    #DEBUG BLOCK
     full_printout(moveTree, gameStates)
 
     kingdom = render_kingdom(moveData[1])
 
-    titleString = 'Game #{}: {} - {}'.format(game_id, players[0],players[1])
+    titleString = 'Game #{}: {} - {}'.format(game_id, players[0], players[1])
 
     context = {
         'title_string': titleString,
@@ -122,13 +125,14 @@ def display(request, game_id):
         'legendBoxes': legendBoxes,
         'story_lines': story,
         'sidebar_labels': sidebarLabels,
-        'kingdomCards': kingdom
+        'kingdomCards': kingdom,
+        'storyPlain': storyPlain
     }
 
     return render(request, 'woodcutter/display.html', context)
 
-def error_list(request):
 
+def error_list(request):
     for log in GameLog.objects.all():
         moveData = unpack(log.log, log.supply)
         players = log.players.split('~')
@@ -161,6 +165,13 @@ def error_404(request):
     data = {}
     return render(request, 'woodcutter/error_404.html', data)
 
+
 def error_500(request):
     data = {}
     return render(request, 'woodcutter/error_500.html', data)
+
+
+def edit_log(request):
+    gameid = request.POST['gameid']
+    lineNumber = request.POST['lineNumber']
+    rawinput = request.POST['input']

@@ -7,6 +7,9 @@
 		<link rel='stylesheet' href="{% static 'woodcutter/renderstyle.css' %}">
 		<link rel='stylesheet' href="{% static 'woodcutter/perfect-scrollbar.css' %}">
 		<script src="{% static 'woodcutter/perfect-scrollbar.min.js' %}"></script>
+		<script type='text/javascript'>
+			var storyAll = {{ storyPlain|safe }}
+		</script>
 	</head>
 	<body>
 		<content>
@@ -146,21 +149,30 @@
 					</div>
 				</div>
 
-				<div class = 'story'>
-					<div class = 'story-container'>
-						{% for line in story_lines %}
-						<div class = 'story-line{% if line.2 == 0 %} alternate{% endif %}' style = 'padding-left:{{ line.0 }}%' turn = {{ line.3 }}>
-							{{ line.1 | safe }}
+				<div class = 'story-block'>
+					<div class = 'story-topbar'>
+						<div class = 'story-tool fix'>
+							<img src="{% static 'woodcutter/fixicon_blue.png' %}">
+							<img src="{% static 'woodcutter/fixicon_yellow.png' %}">
+							<img src="{% static 'woodcutter/fixicon.png' %}">
 						</div>
-						{% endfor %}
 					</div>
-					
-					<div class = 'story-sidebar'>
-						{% for sidebar_label in sidebar_labels %}
-						<div class = 'story-sidebar-block{% if sidebar_label.2 == 0 %} alternate{% endif %}' style = 'flex-grow:{{ sidebar_label.3 }}' turn = {{ sidebar_label.0 }}>
-							{{ sidebar_label.1 }}
+					<div class = 'story-main'>
+						<div class = 'story-container'>
+							{% for line in story_lines %}
+							<div class = 'story-line{% if line.2 == 0 %} alternate{% endif %}' style = 'padding-left:{{ line.0 }}%' turn = {{ line.3 }}>
+								{{ line.1 | safe }}
+							</div>
+							{% endfor %}
 						</div>
-						{% endfor %}
+						
+						<div class = 'story-sidebar'>
+							{% for sidebar_label in sidebar_labels %}
+							<div class = 'story-sidebar-block{% if sidebar_label.2 == 0 %} alternate{% endif %}' style = 'flex-grow:{{ sidebar_label.3 }}' turn = {{ sidebar_label.0 }}>
+								{{ sidebar_label.1 }}
+							</div>
+							{% endfor %}
+						</div>
 					</div>
 				</div>
 			</div>
