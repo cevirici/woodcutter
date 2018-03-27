@@ -180,15 +180,17 @@ def render_graph_background(turnOwners, stripes, player):
     # Should Highlight | Should Stripe
     return [[turnOwners[i] == player, stripes[player][i]] for i in range(len(turnOwners))]
 
+
 def render_axis_labels(turnOwners):
     axisLabels = ['||']
     t = 0
-    for turn in range(1,len(turnOwners)):
+    for turn in range(1, len(turnOwners)):
         if turnOwners[turn] == 0 and turnOwners[turn-1] != 0:
             t += 1
         axisLabels.append(str(t)+'<br>'+'abcdef'[turnOwners[turn]])
 
     return axisLabels
+
 
 def render_legend_boxes(involvedCards):
     # Name | Card Color | Border Color | Card Index
@@ -196,16 +198,17 @@ def render_legend_boxes(involvedCards):
                     standardCards[card].card_color,
                     standardCards[card].border_color,
                     card
-                   ] for card in involvedCards]
+                    ] for card in involvedCards]
 
     return legendBoxes
 
+
 def render_story_sidebar_labels(turnOwners, turnPoints):
     # Turn | Label | Owner | Grow Amount
-    sidebarLabels = [[0,'start', 1, 0]]
+    sidebarLabels = [[0, 'start', 1, 0]]
 
     t = 0
-    for turn in range(1,len(turnOwners)):
+    for turn in range(1, len(turnOwners)):
         if turnOwners[turn] == 0 and turnOwners[turn-1] != 0:
             t += 1
         sidebarLabels.append([turn,
@@ -215,6 +218,7 @@ def render_story_sidebar_labels(turnOwners, turnPoints):
                               ])
 
     return sidebarLabels
+
 
 def elaborate_cards(cardlist, fancy):
     phrases = []
@@ -239,8 +243,10 @@ def elaborate_cards(cardlist, fancy):
 
     if len(phrases) > 1:
         phrases[-1] = 'and ' + phrases[-1]
+        for phrase in phrases[1:-1]:
+            phrase = ', ' + phrase
 
-    return ', '.join(phrases)
+    return ''.join(phrases)
 
 
 def elaborate_story(players, moveTree):
