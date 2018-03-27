@@ -176,7 +176,7 @@ def error_500(request):
 @csrf_exempt
 def edit_log(request):
     gameid = request.POST['gameid']
-    lineNumber = request.POST['lineNumber']
+    lineNumber = int(request.POST['lineNumber'])
     rawinput = request.POST['input']
 
     log = get_object_or_404(GameLog, game_id=gameid)
