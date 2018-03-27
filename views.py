@@ -48,6 +48,7 @@ def display(request, game_id):
     log = get_object_or_404(GameLog, game_id=game_id)
 
     moveData = unpack(log.log, log.supply)
+    indents = [parsedLine.indent for parsedLine in moveData[0]]
     players = log.players.split('~')
 
     moveTree = parse_game(moveData[0])
@@ -126,7 +127,8 @@ def display(request, game_id):
         'sidebar_labels': sidebarLabels,
         'kingdomCards': kingdom,
         'storyPlain': storyPlain,
-        'gameid': game_id
+        'gameid': game_id,
+        'indents': indents
     }
 
     return render(request, 'woodcutter/display.html', context)
@@ -176,9 +178,6 @@ def edit_log(request):
     gameid = request.POST['gameid']
     lineNumber = request.POST['lineNumber']
     rawinput = request.POST['input']
-    print(gameid)
-    print(lineNumber)
-    print(rawinput)
 
     log = get_object_or_404(GameLog, game_id=gameid)
     logStrings = log.log.split('~')
