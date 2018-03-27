@@ -187,7 +187,7 @@ def edit_log(request):
     newLine.indent = hex(newLine.indent)[2:]
     newLine.pred = '{:0>2}'.format(hex(standardPreds
                                        .index(newLine.pred))[2:])
-    newLine.player = hex(players.index(newLine.player))[2:]
+    newLine.player = hex(players.index(newLine.player) + 1)[2:]
 
     logStrings[lineNumber] = str(newLine)
 
