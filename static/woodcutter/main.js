@@ -227,11 +227,13 @@ $('body')
 
 var fixMode = false;
 
+
 $('.story-tool.fix')
     .click(function(){
         fixMode = !fixMode;
         $(this).toggleClass('active');
     });
+
 
 $('.story-line')
     .click(function(){
@@ -242,3 +244,28 @@ $('.story-line')
                            '">');
         }
     });
+
+
+$(document).on('keydown', 'input', function(e) {
+    if(e.which == 10 || e.which == 13) {
+        var inputText = $(this).val();
+        console.log(inputText);
+        $.ajax({
+            url: '/woodcutter/editlog/',
+            data: {
+                'gameid': gameid,
+                'lineNumber': $('.story-line').index($(this).prev()),
+                'input': inputText
+            },
+            dataType: 'json',            
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded"
+            },
+            method: 'POST',
+            success: function (response){
+                console.log('done');
+                console.log(response);
+            }
+        });
+    }
+});

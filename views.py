@@ -125,7 +125,8 @@ def display(request, game_id):
         'story_lines': story,
         'sidebar_labels': sidebarLabels,
         'kingdomCards': kingdom,
-        'storyPlain': storyPlain
+        'storyPlain': storyPlain,
+        'gameid': game_id
     }
 
     return render(request, 'woodcutter/display.html', context)
@@ -174,3 +175,21 @@ def edit_log(request):
     gameid = request.POST['gameid']
     lineNumber = request.POST['lineNumber']
     rawinput = request.POST['input']
+    print(gameid)
+    print(lineNumber)
+    print(rawinput)
+
+    log = get_object_or_404(GameLog, game_id=gameid)
+    logStrings = log.log.split('~')
+    players = log.players.split('~')
+
+    newLine = parse_line(rawinput)
+    newLine.indent = hex(newLine.indent)[2:]
+    newLine.pred = '{:0>2}'.format(hex(standardPreds
+                                       .index(newLine.pred))[2:])
+    newLine.player = hex(players.index(newLine.player))[2:]
+
+    logStrings[lineNumber] = str(newLine)
+
+    log.log = '~'.join(logStrings)
+    log.save()

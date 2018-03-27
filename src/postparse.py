@@ -3,6 +3,7 @@ import copy
 from .classes import *
 from .standards import *
 
+
 def unpack(logstring, supplystring):
     t = logstring.split('~')
     g = []
@@ -12,25 +13,26 @@ def unpack(logstring, supplystring):
         pred = int(c[2:4], 16)
         cardString = c[4:]
 
-        if len(cardString)>0:
+        if len(cardString) > 0:
             cards = [x.split(':') for x in cardString.split('|')]
             for card in cards:
-                if int(card[1],16) != ARGUMENT_CARD:
+                if int(card[1], 16) != ARGUMENT_CARD:
                     card[0] = int(card[0])
-            stack = Cardstack({int(x[1],16):x[0] for x in cards})
+            stack = Cardstack({int(x[1], 16): x[0] for x in cards})
         else:
             stack = Cardstack({})
 
-        g.append(ParsedLine(player,indent,pred,stack))
+        g.append(ParsedLine(player, indent, pred, stack))
 
     t = supplystring.split('~')
     s = Cardstack({})
     for c in t:
-        card = int(c[0:3],16)
+        card = int(c[0:3], 16)
         amount = int(c[3:5])
-        s+=Cardstack({card:amount})
+        s += Cardstack({card: amount})
 
-    return [g,s]
+    return [g, s]
+
 
 def parse_game(parsedLog):
     moveTree = []
@@ -50,7 +52,7 @@ def parse_game(parsedLog):
                 currentTurn = [currentMove]
             else:
                 pointer = currentTurn
-                #grrr
+                # grrr
                 if currentMove.indent > lastIndent + 1:
                     indentBugDiff = currentMove.indent - lastIndent - 1
                     indentBugThreshold = currentMove.indent
@@ -68,7 +70,6 @@ def parse_game(parsedLog):
     return moveTree
 
 
-index = 0
 def get_decision_state(moveTree, supply):
     startState = gameState()
     startState.add(0, 'SUPPLY', supply)
@@ -201,7 +202,7 @@ def find_gained_cards(turnPoints, gameStates):
     return [netTrashes, stepGains, netGains]
 
 def find_shuffle_progress(turnPoints, cleanupPoints, gameStates):
-    #subset?
+    # subset?
     turnPointsPlus = [-1] + turnPoints
 
     decks = [[] for i in range(2)]
@@ -235,10 +236,8 @@ def find_shuffle_progress(turnPoints, cleanupPoints, gameStates):
 
     return [discards, actives, decks]
 
-def find_vp(turnPoints, gameStates):
-    landmarks = ['Bandit Fort', 'Fountain', 'Keep', 'Museum', 'Obelisk',
-                 'Orchard', 'Palace', 'Tower', 'Triumphal Arch', 'Wall', 'Wolf Den']
 
+def find_vp(turnPoints, gameStates):
     vpCounts = [[] for i in range(2)]
     vpWorths = [[] for i in range(2)]
     for point in turnPoints:

@@ -303,6 +303,7 @@ def elaborate_story(players, moveTree):
 
     return [lines, rawlines]
 
+
 def render_kingdom(supply):
     # Kingdom | Nonsupply | Others (Cards)
     # Card | Index

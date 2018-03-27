@@ -131,8 +131,8 @@ def combined_parse(inStrings):
 
         combined.player = hex(combined.player)[2:]
         combined.indent = hex(combined.indent)[2:]
-        combined.pred = '{:0>2}'.format(hex(
-                                 standardPreds.index(combined.pred))[2:])
+        combined.pred = '{:0>2}'.format(hex(standardPreds
+                                            .index(combined.pred))[2:])
         a.append(str(combined))
 
     outstr = '~'.join(a)
