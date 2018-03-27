@@ -3376,7 +3376,7 @@ t = Card('Dismantle', 'Dismantles', 'a Dismantle', 4, 0, 'c4c0b4', '8DAEB6', emp
 standardCards.append(t)
 
 # 463: Debt
-t = Card('Debt', 'Debt', 'Debt', 0, 0, '666666', '666666', empty)
+t = Card('Debt', 'Debt', 'Debt', 0, 0, 'C73400', 'A02900', empty)
 standardCards.append(t)
 
 
