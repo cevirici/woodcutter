@@ -1,6 +1,6 @@
 /*********** Everything Animated ***********/
 
-.axis, .axislabel, .box, .controlbox, .graph, .graph-control, 
+.axis, .axislabel, .box, .controlbox, .graph,
 .graph-layer, .inner-color, .kingdom-card, .legendbox, .modal, 
 .modalcontrolbox, .scale-bar, .settingsbox, .story-tool,
 .story-sidebar-block, .vpbox{
@@ -18,7 +18,7 @@
 
 /*********** Faster Animations ***********/
 
-.story-tool > img{
+.graph-control, .story-tool > img{
 	-moz-transition: all 0.2s;
 	-o-transition: all 0.2s;
 	-webkit-transition: all 0.2s;

@@ -250,22 +250,18 @@ $(document).on('keydown', 'input', function(e) {
     if(e.which == 10 || e.which == 13) {
         var inputText = $(this).val();
         console.log(inputText);
-        $.ajax({
-            url: '/woodcutter/editlog/',
-            data: {
+        $.post('../../editlog',
+            {
                 'gameid': gameid,
                 'lineNumber': $('.story-line').index($(this).prev()),
                 'input': inputText
             },
-            dataType: 'json',            
-            headers: {
-                "Content-Type": "application/x-www-form-urlencoded"
-            },
-            method: 'POST',
-            success: function (response){
+            function (data, status){
                 console.log('done');
-                console.log(response);
+                console.log(data);
             }
+        ).fail(function(jqXHR, textStatus, errorThrown){
+            console.log(errorThrown);
         });
     }
 });
