@@ -291,6 +291,7 @@ def elaborate_story(players, moveTree):
         plainString = reduce(lambda x, y: re.sub(r'\(\.\*\)', y, x, 1), argumentsSplit, plainString)
         plainString = re.sub(r'\\([\.\(\)\+])', r'\1', plainString)
         plainString = re.sub('\^|\$|\*', '', plainString)
+        plainString = ">"*entry.indent + plainString
 
         return [entryString, plainString]
 

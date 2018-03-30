@@ -183,8 +183,10 @@ def edit_log(request):
     logStrings = log.log.split('~')
     players = log.players.split('~')
 
+    newIndent = len(re.match('^>*', rawinput).group(0))
+    rawinput = rawinput[newIndent:]
     newLine = parse_line_contents(rawinput)
-    newLine.indent = hex(newLine.indent)[2:]
+    newLine.indent = newIndent
     newLine.pred = '{:0>2}'.format(hex(standardPreds
                                        .index(newLine.pred))[2:])
     newLine.player = hex(players.index(newLine.player) + 1)[2:]
