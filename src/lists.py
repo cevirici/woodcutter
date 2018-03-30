@@ -396,8 +396,6 @@ BOONHEX = [
            'Twice Miserable',
            'Envious',
            'Deluded']
-
-
 pairs = [['Encampment', 'Plunder'],
          ['Patrician', 'Emporium'],
          ['Settlers', 'Bustling Village'],
@@ -407,11 +405,10 @@ pairs = [['Encampment', 'Plunder'],
           , 'Sir Bailey', 'Sir Destry', 'Sir Martin', 'Sir Michael', 'Sir Vander'],
          ['Ruined Library', 'Ruined Village', 'Abandoned Mine', 'Ruined Market', 'Survivors'],
          ['Sauna', 'Avanto']]
-
-
-knights = ['Dame Anna', 'Dame Josephine', 'Dame Molly', 'Dame Natalie', 'Dame Sylvia'
-          , 'Sir Bailey', 'Sir Destry', 'Sir Martin', 'Sir Michael', 'Sir Vander']
-
-
+knights = ['Dame Anna', 'Dame Josephine', 'Dame Molly', 'Dame Natalie',
+           'Dame Sylvia', 'Sir Bailey', 'Sir Destry', 'Sir Martin',
+           'Sir Michael', 'Sir Vander']
 landmarks = ['Bandit Fort', 'Fountain', 'Keep', 'Museum', 'Obelisk',
-             'Orchard', 'Palace', 'Tower', 'Triumphal Arch', 'Wall', 'Wolf Den']
+             'Orchard', 'Palace', 'Tower', 'Triumphal Arch',
+             'Wall', 'Wolf Den']
+pred_parse_order = list(range(26)) + [119] + list(range(26, 125))

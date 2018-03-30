@@ -187,11 +187,15 @@ def edit_log(request):
     rawinput = rawinput[newIndent:]
     newLine = parse_line_contents(rawinput)
     newLine.indent = newIndent
-    newLine.pred = '{:0>2}'.format(hex(standardPreds
-                                       .index(newLine.pred))[2:])
-    newLine.player = hex(players.index(newLine.player) + 1)[2:]
+    newLine.pred = standardPreds.index(newLine.pred)
+    newLine.player = players.index(newLine.player)
+    returnData = '~'.join(elaborate_line(players, newLine))
+
+    newLine.pred = '{:0>2}'.format(hex(newLine.pred)[2:])
+    newLine.player = hex(newLine.player + 1)[2:]
 
     logStrings[lineNumber] = str(newLine)
 
     log.log = '~'.join(logStrings)
     log.save()
+    return HttpResponse(returnData)

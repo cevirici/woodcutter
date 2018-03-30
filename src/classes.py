@@ -48,6 +48,7 @@ class Pred:
     def __repr__(self):
         return self.regex
 
+
 class ParsedLine:
     def __init__(self, player, indent, pred, items):
         self.player = player
@@ -63,6 +64,7 @@ class ParsedLine:
 
     def predName(self):
         return standardPreds[self.pred].name
+
 
 class Cardstack:
     def __init__(self,cards):
@@ -146,6 +148,7 @@ class Cardstack:
             return standardCards[self.cardList()[0]].simple_name
         else:
             return 'card'
+
 
 class gameState:
     def __init__(self):

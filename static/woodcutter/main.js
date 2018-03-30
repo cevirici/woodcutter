@@ -1,7 +1,7 @@
 
 /*********** Card Layer Highlighting ***********/
 
-var highlightTimer;
+var highlightTimer, longClickTimer;
 
 function rehighlight(){
     $('.graph-layer').css('opacity',1);
@@ -239,7 +239,11 @@ $('.story-line')
     .click(function(){
         if (fixMode){
             $('.story-edit').remove();
-            $(this).after('<input type = "text" class = "story-edit" value="' + 
+            var editClass = 'story-edit'
+            if (!$(this).hasClass('alternate')){
+                editClass += ' alternate' 
+            }
+            $(this).after('<input type = "text" class = "'+editClass+'" value="' + 
                            storyAll[$('.story-line').index(this)] + 
                            '">');
         }
@@ -248,17 +252,20 @@ $('.story-line')
 
 $(document).on('keydown', 'input', function(e) {
     if(e.which == 10 || e.which == 13) {
-        var inputText = $(this).val();
-        console.log(inputText);
+        var selectedInput = $(this);
+        var inputText = selectedInput.val();
+        var lineNumber = $('.story-line').index(selectedInput.prev())
         $.post('../../editlog',
             {
                 'gameid': gameid,
-                'lineNumber': $('.story-line').index($(this).prev()),
+                'lineNumber': lineNumber,
                 'input': inputText
             },
             function (data, status){
-                console.log('done');
-                console.log(data);
+                returnData = data.split('~');
+                selectedInput.prev().html(returnData[0]);
+                storyAll[lineNumber] = returnData[1];
+                selectedInput.remove();
             }
         ).fail(function(jqXHR, textStatus, errorThrown){
             console.log(errorThrown);

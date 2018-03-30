@@ -249,54 +249,55 @@ def elaborate_cards(cardlist, fancy):
     return ''.join(phrases)
 
 
+def elaborate_line(players, entry):
+    argumentsSplit = []
+
+    if ARGUMENT_CARD in entry.items:
+        argumentsSplit = entry.items[ARGUMENT_CARD].split('/')
+
+    entryString = standardPreds[entry.pred].regex
+
+    PLAYER_COLORS = ['#4277FE', '#FF4545']
+    PLAYER_OUTLINES = ['#CECECE', '#CECECE']
+    playerDiv = makeDiv('story-color',
+                        {'background': PLAYER_COLORS[entry.player],
+                         'outline-color': PLAYER_OUTLINES[entry.player]
+                         },
+                        innerHTML=players[entry.player])
+
+    plainString = re.sub(r'\^?\(\?P<player>\.\*\)', players[entry.player], entryString)
+    entryString = re.sub(r'\^?\(\?P<player>\.\*\)', playerDiv, entryString)
+
+    elab = elaborate_cards(entry.items, True)
+    plainElab = elaborate_cards(entry.items, False)
+    if elab:
+        entryString = re.sub(r'\(\?P<cards>(\.\*)\)', elab, entryString)
+        plainString = re.sub(r'\(\?P<cards>(\.\*)\)', plainElab, plainString)
+    elif argumentsSplit:
+        if re.search(r'\(\?P<cards>(\.\*)\)', entryString) is not None:
+            rightArgs = argumentsSplit.pop(0)
+            entryString = re.sub(r'\(\?P<cards>(\.\*)\)', rightArgs, entryString)
+            plainString = re.sub(r'\(\?P<cards>(\.\*)\)', rightArgs, plainString)
+
+    entryString = reduce(lambda x, y: re.sub(r'\(\.\*\)', y, x, 1), argumentsSplit, entryString)
+    entryString = re.sub(r'\\([\.\(\)\+])', r'\1', entryString)
+    entryString = re.sub('\^|\$|\*', '', entryString)
+
+    plainString = reduce(lambda x, y: re.sub(r'\(\.\*\)', y, x, 1), argumentsSplit, plainString)
+    plainString = re.sub(r'\\([\.\(\)\+])', r'\1', plainString)
+    plainString = re.sub('\^|\$|\*', '', plainString)
+    plainString = ">"*entry.indent + plainString
+
+    return [entryString, plainString]
+
+
 def elaborate_story(players, moveTree):
     # Indents | Line | Owner | Turn Number
     lines = []
     rawlines = []
 
-    def parseLine(entry):
-        argumentsSplit = []
-
-        if ARGUMENT_CARD in entry.items:
-            argumentsSplit = entry.items[ARGUMENT_CARD].split('/')
-
-        entryString = standardPreds[entry.pred].regex
-
-        PLAYER_COLORS = ['#4277FE', '#FF4545']
-        PLAYER_OUTLINES = ['#CECECE', '#CECECE']
-        playerDiv = makeDiv('story-color',
-                            {'background': PLAYER_COLORS[entry.player],
-                             'outline-color': PLAYER_OUTLINES[entry.player]
-                             },
-                            innerHTML=players[entry.player])
-
-        plainString = re.sub(r'\^?\(\?P<player>\.\*\)', players[entry.player], entryString)
-        entryString = re.sub(r'\^?\(\?P<player>\.\*\)', playerDiv, entryString)
-
-        elab = elaborate_cards(entry.items, True)
-        plainElab = elaborate_cards(entry.items, False)
-        if elab:
-            entryString = re.sub(r'\(\?P<cards>(\.\*)\)', elab, entryString)
-            plainString = re.sub(r'\(\?P<cards>(\.\*)\)', plainElab, plainString)
-        elif argumentsSplit:
-            if re.search(r'\(\?P<cards>(\.\*)\)', entryString) is not None:
-                rightArgs = argumentsSplit.pop(0)
-                entryString = re.sub(r'\(\?P<cards>(\.\*)\)', rightArgs, entryString)
-                plainString = re.sub(r'\(\?P<cards>(\.\*)\)', rightArgs, plainString)
-
-        entryString = reduce(lambda x, y: re.sub(r'\(\.\*\)', y, x, 1), argumentsSplit, entryString)
-        entryString = re.sub(r'\\([\.\(\)\+])', r'\1', entryString)
-        entryString = re.sub('\^|\$|\*', '', entryString)
-
-        plainString = reduce(lambda x, y: re.sub(r'\(\.\*\)', y, x, 1), argumentsSplit, plainString)
-        plainString = re.sub(r'\\([\.\(\)\+])', r'\1', plainString)
-        plainString = re.sub('\^|\$|\*', '', plainString)
-        plainString = ">"*entry.indent + plainString
-
-        return [entryString, plainString]
-
     def parseChunk(chunk, owner, turn):
-        parsedChunk = parseLine(chunk[0])
+        parsedChunk = elaborate_line(players, chunk[0])
         lines.append([(chunk[0].indent + 2) * 2, parsedChunk[0], owner, turn])
         rawlines.append(parsedChunk[1])
 

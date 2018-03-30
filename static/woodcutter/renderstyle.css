@@ -34,7 +34,7 @@
 /*********** Everything Fonty ***********/
 
 .inner-color, .controlbox, .kingdom-card, .kingdom-label, .modalcontrolbox,
-.settingsbox, .story-color, .story-line, .story-sidebar-block, .wrap{
+.settingsbox, .story-color, .story-edit, .story-line, .story-sidebar-block, .wrap{
 	color: #FFFFFF;
 	font: 1.5vh Segoe UI;
 	text-shadow: 1px 1px 0 #000;
@@ -480,7 +480,7 @@ modals{
 	overflow: hidden;
 }
 
-.story-line{
+.story-line, .story-edit{
 	width: 100%;
 	background: #272822;
 	padding: 0.2vh 0;
@@ -491,8 +491,14 @@ modals{
 	justify-content: flex-start;
 	align-items: center;
 }
-.story-line.alternate{
+.story-line.alternate, .story-edit.alternate{
 	background: #595959;
+}
+
+.story-edit{
+	padding-left: 4.5%;
+
+	border: none;
 }
 
 .story-color{

@@ -9,10 +9,10 @@ AND ROCKS
 AND ENCHANTRESS
 AND FOOL'''
 
-pred_parse_order = list(range(26)) + [119] + list(range(26, 125))
 
 def empty(cM, gS, exc, tExc, pers):
     pass
+
 
 def standardCondition(predList, targetList=[]):
     def out_function(cM):
