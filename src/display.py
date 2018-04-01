@@ -173,12 +173,13 @@ def render_vp_row(vpCards, side):
                     {}0) 10%,  {}0) 15%);".format(
                         rgbString, rgbString, rgbString, rgbString)
 
-                borderGradient = stripeyGradient(cardData.border_color)
-                innerGradient = stripeyGradient(cardData.card_color)
+                if colHeights[xpos] > 0:
+                    borderGradient = stripeyGradient(cardData.border_color)
+                    innerGradient = stripeyGradient(cardData.card_color)
 
-                layerStrings[card] += draw_graph_box(
-                    card, 'vpbox', xpos, colHeights[xpos] - 1, side,
-                    False, borderGradient, innerGradient, '', cardHeight, 1)
+                    layerStrings[card] += draw_graph_box(
+                        card, 'vpbox', xpos, colHeights[xpos] - 1, side,
+                        False, borderGradient, innerGradient, '', cardHeight, 1)
                 colHeights[xpos] += worth
 
         if rawvp < 0:
