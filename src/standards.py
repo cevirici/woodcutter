@@ -1463,7 +1463,7 @@ def silkroad_worth(gameState, player):
     playerDeck = gameState.crunch(['DECKS', 'DISCARDS', 'HANDS',
                                    'OTHERS', 'INPLAYS'], [player])
     return sum([playerDeck[item] for item in playerDeck if
-                standardCards[item].simple_name in victoryCards])
+                standardCards[item].simple_name in victoryCards])//4
 
 
 t = Card('Silk Road', 'Silk Roads', 'a Silk Road', 4, 0, '9cbe8a', '948452', empty, silkroad_worth)
