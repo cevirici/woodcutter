@@ -227,7 +227,6 @@ $('body')
 
 var fixMode = false;
 
-
 $('.story-tool.fix')
     .click(function(){
         fixMode = !fixMode;
@@ -264,6 +263,8 @@ $(document).on('keydown', 'input', function(e) {
             function (data, status){
                 returnData = data.split('~');
                 selectedInput.prev().html(returnData[0]);
+                selectedInput.prev().css('padding-left',
+                    ((parseInt(returnData[2])+2) * 2).toString() + '%');
                 storyAll[lineNumber] = returnData[1];
                 selectedInput.remove();
             }

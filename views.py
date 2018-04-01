@@ -105,9 +105,12 @@ def display(request, game_id):
     kingdom = render_kingdom(moveData[1])
 
     titleString = 'Game #{}: {} - {}'.format(game_id, players[0], players[1])
+    kingdomColors = relevantColors(moveData[1])
 
     context = {
         'title_string': titleString,
+        'gameStates': exportGameStates(gameStates),
+        'relevantColors': kingdomColors,
         'graph_all_top': graph_all_top,
         'graph_all_bot': graph_all_bot,
         'graph_gained_top': graph_gained_top,
@@ -128,7 +131,6 @@ def display(request, game_id):
         'kingdomCards': kingdom,
         'storyPlain': storyPlain,
         'gameid': game_id,
-        'indents': indents
     }
 
     return render(request, 'woodcutter/display.html', context)
@@ -190,6 +192,7 @@ def edit_log(request):
     newLine.pred = standardPreds.index(newLine.pred)
     newLine.player = players.index(newLine.player)
     returnData = '~'.join(elaborate_line(players, newLine))
+    returnData += '~{}'.format(newLine.indent)
 
     newLine.pred = '{:0>2}'.format(hex(newLine.pred)[2:])
     newLine.player = hex(newLine.player + 1)[2:]

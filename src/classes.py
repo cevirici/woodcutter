@@ -170,8 +170,9 @@ class gameState:
 
     def __str__(self):
         outstr = ''
-        for zone in ['SUPPLY', 'DECKS', 'HANDS', 'INPLAYS', 'DISCARDS', 'OTHERS', 'TRASH']:
-            outstr +='\n    '+zone
+        for zone in ['SUPPLY', 'DECKS', 'HANDS', 'INPLAYS',
+                     'DISCARDS', 'OTHERS', 'TRASH']:
+            outstr += '\n    '+zone
             for part in getattr(self, zone):
                 outstr += '\n    ' + part.debugstr()
 
@@ -201,3 +202,10 @@ class gameState:
                 outlist += getattr(self, zone)[0]
 
         return outlist
+
+    def export(self):
+        zones = ['SUPPLY', 'DECKS', 'HANDS', 'INPLAYS',
+                 'DISCARDS', 'OTHERS', 'TRASH']
+        zoneStrings = [[str(part) for part in getattr(self, zone)]
+                       for zone in zones]
+        return zoneStrings

@@ -191,7 +191,8 @@ def render_vp_row(vpCards, side):
                 colHeights[xpos] -= 1
 
     for layer in layerStrings:
-        layerStrings[layer] = makeDiv('graph-layer card' + str(layer), innerHTML=layerStrings[layer])
+        layerStrings[layer] = makeDiv('graph-layer card' + str(layer),
+                                      innerHTML=layerStrings[layer])
 
     labelStrings = makeDiv('graph-layer', innerHTML=labelStrings)
     return [layerStrings.values(), labelStrings]
@@ -341,3 +342,12 @@ def render_kingdom(supply):
     supplyCards = sorted(supplyCards, key=lambda x: (x.cost, x.simple_name))
     return [[[card, standardCards.index(card)] for
              card in supplyCards if card.supply_type == i] for i in range(3)]
+
+
+def exportGameStates(gameStates):
+    return [gameState.export() for gameState in gameStates]
+
+
+def relevantColors(supply):
+    return {card: [standardCards[card].card_color,
+            standardCards[card].border_color] for card in supply}

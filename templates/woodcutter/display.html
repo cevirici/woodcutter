@@ -213,7 +213,8 @@
     <script src="{% static 'woodcutter/main.js' %}"></script>
     <script type='text/javascript'>
         var storyAll = {{ storyPlain|safe }};
-        var indents = {{ indents }};
         var gameid = {{ gameid }};
+        var gameStates = {{ gameStates|safe }};
+        var cardColors = {{ relevantColors|safe }};
     </script>
 </html>
