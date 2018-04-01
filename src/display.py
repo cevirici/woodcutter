@@ -20,9 +20,9 @@ def makeDiv(classes, styles={}, otherAttrs={}, innerHTML=''):
 
 
 def draw_graph_box(card, style, xpos, ypos, side, isDark,
-                   borderColor, innerColor, label, height):
+                   borderColor, innerColor, label, height, baseheight):
     direction = ['bottom', 'top'][side]
-    actualY = (height * 1.3) * ypos + 0.5 * (ypos//5)
+    actualY = (baseheight * 1.3) * ypos + 0.5 * (ypos//5)
     actualX = 2.5 * xpos + 0.4
 
     boxString = makeDiv(style,
@@ -45,7 +45,7 @@ def draw_graph_box(card, style, xpos, ypos, side, isDark,
     return boxString
 
 
-def draw_standard_box(card, style, xpos, ypos, side, height=1.4):
+def draw_standard_box(card, style, xpos, ypos, side, height=1.4, baseheight=1.4):
     cardData = standardCards[card]
     cardName = cardData.simple_name
     cardColor = '#{}'.format(cardData.card_color)
@@ -56,7 +56,7 @@ def draw_standard_box(card, style, xpos, ypos, side, height=1.4):
     isDark = sum(innerColorRGB) > 383
 
     return draw_graph_box(card, style, xpos, ypos, side, isDark,
-                          borderColor, cardColor, cardLabel, height)
+                          borderColor, cardColor, cardLabel, height, baseheight)
 
 
 def render_graph_row(stacks, styles, side):
@@ -139,14 +139,14 @@ def render_vp_row(vpCards, side):
 
                 layerStrings[card] += draw_standard_box(
                     card, 'vpbox', xpos, colHeights[xpos], side,
-                    cardHeight)
+                    cardHeight, 1)
                 colHeights[xpos] += worth
 
         if rawvp > 0:
             for j in range(rawvp):
                 layerStrings[ARGUMENT_CARD] += draw_graph_box(
                     ARGUMENT_CARD, 'vpbox', xpos, colHeights[xpos], side,
-                    False, '#119911', '#88BB88', '', 1)
+                    False, '#119911', '#88BB88', '', 1, 1)
 
                 colHeights[xpos] += 1
 
@@ -178,14 +178,14 @@ def render_vp_row(vpCards, side):
 
                 layerStrings[card] += draw_graph_box(
                     card, 'vpbox', xpos, colHeights[xpos] - 1, side,
-                    False, borderGradient, innerGradient, '', cardHeight)
+                    False, borderGradient, innerGradient, '', cardHeight, 1)
                 colHeights[xpos] += worth
 
         if rawvp < 0:
             for j in range(rawvp):
                 layerStrings[ARGUMENT_CARD] += draw_graph_box(
                     ARGUMENT_CARD, 'vpbox', xpos, colHeights[xpos], side,
-                    False, '#991199', '#BB88BB', '', 1)
+                    False, '#991199', '#BB88BB', '', 1, 1)
 
                 colHeights[xpos] -= 1
 
