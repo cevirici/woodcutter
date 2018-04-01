@@ -5,16 +5,59 @@ from .standards import *
 from functools import reduce
 from itertools import product
 
+
 def makeDiv(classes, styles={}, otherAttrs={}, innerHTML=''):
     styleString = ' '.join(['{} : {};'.format(x, styles[x]) for x in styles])
     otherAttrString = ' '.join(['{} = {}'.format(x,otherAttrs[x]) for x in otherAttrs])
     if innerHTML != '':
         innerHTML = '{}\n'.format(innerHTML.replace('\n', '\n\t'))
 
-    return '\n<div class = \'{}\'{}{}>{}</div>'.format(classes, 
-                                                       ' style="{}"'.format(styleString) if styleString else '',
-                                                       ' ' + otherAttrString if otherAttrString else '',
-                                                       innerHTML)
+    return '\n<div class = \'{}\'{}{}>{}</div>'.format(
+                classes,
+                ' style="{}"'.format(styleString) if styleString else '',
+                ' ' + otherAttrString if otherAttrString else '',
+                innerHTML)
+
+
+def draw_graph_box(card, style, xpos, ypos, side, isDark,
+                   borderColor, innerColor, label, height):
+    direction = ['bottom', 'top'][side]
+    actualY = (height * 1.3) * ypos + 0.5 * (ypos//5)
+    actualX = 2.5 * xpos + 0.4
+
+    boxString = makeDiv(style,
+                        {'background': '{}'.format(borderColor),
+                         direction: '{}vh'.format(actualY),
+                         'left': '{}vh'.format(actualX),
+                         'height': '{}vh'.format(height)
+                         },
+                        {'card': card,
+                         'side': 2 * (0.5 - side),
+                         'xcoord': xpos,
+                         'ycoord': ypos,
+                         'currenty': ypos
+                         },
+                        makeDiv('box-inner dark' if isDark else 'box-inner',
+                                styles={'background': '{}'.format(innerColor)},
+                                innerHTML=label
+                                )
+                        )
+    return boxString
+
+
+def draw_standard_box(card, style, xpos, ypos, side, height=1.4):
+    cardData = standardCards[card]
+    cardName = cardData.simple_name
+    cardColor = '#{}'.format(cardData.card_color)
+    borderColor = '#{}'.format(cardData.border_color)
+    cardLabel = ''.join([word[0] for word in cardName.split(' ')[:2]])
+
+    innerColorRGB = [int(cardColor[i:i+2], 16) for i in range(1, 7, 2)]
+    isDark = sum(innerColorRGB) > 383
+
+    return draw_graph_box(card, style, xpos, ypos, side, isDark,
+                          borderColor, cardColor, cardLabel, height)
+
 
 def render_graph_row(stacks, styles, side):
     involvedCards = set()
@@ -28,7 +71,6 @@ def render_graph_row(stacks, styles, side):
     for card in involvedCards:
         layerStrings[card] = ''
 
-    direction = ['bottom', 'top'][side]
     colHeights = [0 for i in range(len(stacks[0][0]))]
 
     for i in range(len(stacks)):
@@ -39,36 +81,18 @@ def render_graph_row(stacks, styles, side):
             colCards = sorted(col.cardList())
 
             for card in colCards:
-                cardName = standardCards[card].simple_name
-                cardColor = standardCards[card].card_color
-                cardColorRGB = [int(cardColor[i:i+2], 16) for i in range(0, 6, 2)]
-                cardLabel = ''.join([word[0] for word in cardName.split(' ')[:2]])
-                isDark = sum(cardColorRGB) > 383
-
                 for j in range(col[card]):
-                    cardData = standardCards[card]
-                    layerStrings[card] += \
-                        makeDiv('box' + (' ' + styles[i] if styles[i] else ''),
-                                {'background': '#{}'.format(cardData.border_color),
-                                 direction: '{}vh'.format(1.75 * colHeights[xpos] + 0.5 * (colHeights[xpos]//5)),
-                                 'left': '{}vh'.format(2.5 * xpos + 0.4)},
-                                {'card': card,
-                                 'side': 2 * (0.5 - side),
-                                 'xcoord': xpos,
-                                 'ycoord': colHeights[xpos],
-                                 'currenty': colHeights[xpos]
-                                 },
-                                makeDiv('box-inner dark' if isDark else 'box-inner',
-                                        styles={'background': '#{}'.format(cardData.card_color)},
-                                        innerHTML=cardLabel
-                                        )
-                                )
+                    fullStyle = 'box' + (' ' + styles[i] if styles[i] else '')
+                    layerStrings[card] += draw_standard_box(
+                        card, fullStyle, xpos, colHeights[xpos], side)
                     colHeights[xpos] += 1
 
     for layer in layerStrings:
-        layerStrings[layer] = makeDiv('graph-layer card' + str(layer), innerHTML=layerStrings[layer])
+        layerStrings[layer] = makeDiv('graph-layer card' + str(layer),
+                                      innerHTML=layerStrings[layer])
 
     return layerStrings.values()
+
 
 def render_vp_row(vpCards, side):
     stack = vpCards[0]
@@ -92,82 +116,78 @@ def render_vp_row(vpCards, side):
     halfside = stack[side]
     for xpos in range(len(halfside)):
         col = halfside[xpos]
-        colCards = sorted(col.cardList())
-        rawvp = 0
-        for card in colCards:
-            if card != ARGUMENT_CARD:
-                worth = worths[side][xpos][card]
 
-                for j in range(col[card]):
-                    cardData = standardCards[card]
-                    passedBreaks = (colHeights[xpos] + worth - 1)//5 - colHeights[xpos]//5
-
-                    layerStrings[card] += makeDiv('vpbox',
-                                            {'background': '#{}'.format(cardData.border_color),
-                                             direction: '{}vh'.format(1.3 * colHeights[xpos] + colHeights[xpos]//5 * 0.5),
-                                             'left': '{}vh'.format(2.5 * xpos + 0.4),
-                                             'height': '{}vh'.format(1.3 * worth - 0.3 + passedBreaks * 0.5)},
-                                            {'card': card,
-                                             'side': 2 * (0.5 - side),
-                                             'xcoord': xpos,
-                                             'ycoord': colHeights[xpos],
-                                             'currenty': colHeights[xpos],
-                                             'worth': worth
-                                             },
-                                             makeDiv('box-inner', styles={'background': '#{}'.format(cardData.card_color)})
-                                             )
-                    colHeights[xpos] += worth
+        def getWorths(card):
+            if card in worths[side][xpos]:
+                return worths[side][xpos][card]
             else:
-                rawvp = int(col[card])
+                return 0
+
+        colCards = sorted(col.cardList())
+        positiveCards = [c for c in colCards if getWorths(c) > 0]
+        negativeCards = [c for c in colCards if getWorths(c) < 0]
+        rawvp = 0
+        if ARGUMENT_CARD in colCards:
+            rawvp = int(col[ARGUMENT_CARD])
+
+        for card in positiveCards:
+            worth = worths[side][xpos][card]
+            for j in range(col[card]):
+                cardData = standardCards[card]
+                passedBreaks = (colHeights[xpos] + worth - 1)//5 - colHeights[xpos]//5
+                cardHeight = 1.3 * worth - 0.3 + passedBreaks * 0.5
+
+                layerStrings[card] += draw_standard_box(
+                    card, 'vpbox', xpos, colHeights[xpos], side,
+                    cardHeight)
+                colHeights[xpos] += worth
 
         if rawvp > 0:
             for j in range(rawvp):
-                cardData = standardCards[ARGUMENT_CARD]
-                passedBreaks = (colHeights[xpos] + 1)//5 - colHeights[xpos]//5
+                layerStrings[ARGUMENT_CARD] += draw_graph_box(
+                    ARGUMENT_CARD, 'vpbox', xpos, colHeights[xpos], side,
+                    False, '#119911', '#88BB88', '', 1)
 
-                layerStrings[ARGUMENT_CARD] += makeDiv('vpbox',
-                                             {'background': '#191',
-                                              direction: '{}vh'.format(1.3 * colHeights[xpos] + colHeights[xpos]//5 * 0.5),
-                                              'left': '{}vh'.format(2.5 * xpos + 0.4),
-                                              'height': '{}vh'.format(1)},
-                                             {'card': ARGUMENT_CARD,
-                                              'side': 2 * (0.5 - side),
-                                              'xcoord': xpos,
-                                              'ycoord': colHeights[xpos],
-                                              'currenty': colHeights[xpos],
-                                              'worth': 1
-                                              },
-                                              makeDiv('box-inner', styles={'background': '#494'})
-                                              )
                 colHeights[xpos] += 1
-        else:
-            for j in range(rawvp):
-                cardData = standardCards[ARGUMENT_CARD]
-                passedBreaks = colHeights[xpos]//5 - (colHeights[xpos] - 1)//5
-
-                layerStrings[ARGUMENT_CARD] += makeDiv('vpbox',
-                                             {'background': '#911',
-                                              direction: '{}vh'.format(1.3 * (colHeights[xpos] - 1) + (colHeights[xpos]-1)//5 * 0.5),
-                                              'left': '{}vh'.format(2.5 * xpos + 0.4),
-                                              'height': '{}vh'.format(1)},
-                                             {'card': ARGUMENT_CARD,
-                                              'side': 2 * (0.5 - side),
-                                              'xcoord': xpos,
-                                              'ycoord': colHeights[xpos],
-                                              'currenty': colHeights[xpos],
-                                              'worth': 1
-                                              },
-                                              makeDiv('box-inner', styles={'background': '#944'})
-                                              )
-                colHeights[xpos] -= 1
 
         tot = sum([halfside[xpos][card] * worths[side][xpos][card] for card in
                   halfside[xpos] if card != ARGUMENT_CARD]) + rawvp
         labelStrings += makeDiv('vplabel',
-                                {direction: '{}vh'.format(1.3 * colHeights[xpos] + (colHeights[xpos]-1)//5 * 0.5),
+                                {direction: '{}vh'.format(1.3 * colHeights[xpos] +
+                                                          (colHeights[xpos]-1)//5 * 0.5),
                                  'left': '{}vh'.format(2.5 * xpos)},
                                 {},
                                 str(tot))
+
+        for card in negativeCards:
+            worth = worths[side][xpos][card]
+            for j in range(col[card]):
+                cardData = standardCards[card]
+                passedBreaks = (colHeights[xpos] - 1)//5 - (colHeights[xpos] + worth)//5
+                cardHeight = 1.3 * (- worth) - 0.3 + passedBreaks * 0.5
+
+                def stripeyGradient(color):
+                    RGB = [int(color[i:i+2], 16) for i in range(0, 6, 2)]
+                    rgbString = 'rgba({}, {}, {}, '.format(RGB[0], RGB[1], RGB[2])
+                    return "repeating-linear-gradient(45deg, {}1), {}1) 10%,\
+                    {}0) 10%,  {}0) 15%);".format(
+                        rgbString, rgbString, rgbString, rgbString)
+
+                borderGradient = stripeyGradient(cardData.border_color)
+                innerGradient = stripeyGradient(cardData.card_color)
+
+                layerStrings[card] += draw_graph_box(
+                    card, 'vpbox', xpos, colHeights[xpos] - 1, side,
+                    False, borderGradient, innerGradient, '', cardHeight)
+                colHeights[xpos] += worth
+
+        if rawvp < 0:
+            for j in range(rawvp):
+                layerStrings[ARGUMENT_CARD] += draw_graph_box(
+                    ARGUMENT_CARD, 'vpbox', xpos, colHeights[xpos], side,
+                    False, '#991199', '#BB88BB', '', 1)
+
+                colHeights[xpos] -= 1
 
     for layer in layerStrings:
         layerStrings[layer] = makeDiv('graph-layer card' + str(layer), innerHTML=layerStrings[layer])

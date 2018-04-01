@@ -257,7 +257,7 @@ def find_vp(turnPoints, gameStates):
             currWorths = Cardstack({})
             for card in rawDeck:
                 worth = standardCards[card].worth(gameStates[point+1], p)
-                if worth > 0:
+                if worth != 0:
                     currCounts.insert(card, rawDeck[card])
                     currWorths.insert(card, worth)
 
