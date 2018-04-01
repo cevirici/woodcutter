@@ -153,7 +153,7 @@ def render_vp_row(vpCards, side):
         tot = sum([halfside[xpos][card] * worths[side][xpos][card] for card in
                   halfside[xpos] if card != ARGUMENT_CARD]) + rawvp
         labelStrings += makeDiv('vplabel',
-                                {direction: '{}vh'.format(2 + 1.3 * colHeights[xpos] +
+                                {direction: '{}vh'.format(0.5 + 1.3 * colHeights[xpos] +
                                                           (colHeights[xpos]-1)//5 * 0.5),
                                  'left': '{}vh'.format(2.5 * xpos)},
                                 {},
