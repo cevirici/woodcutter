@@ -291,7 +291,7 @@ def elaborate_line(players, entry):
 
     # Masq Story Exception
     if entry.pred == PASS_PRED:
-        argumentsSplit[0] = players[argumentsSplit[0]]
+        argumentsSplit[0] = players[int(argumentsSplit[0])-1]
 
     entryString = standardPreds[entry.pred].regex
 
