@@ -3377,7 +3377,11 @@ t = Card('Dismantle', 'Dismantles', 'a Dismantle', 4, 0, 'c4c0b4', '8DAEB6', emp
 standardCards.append(t)
 
 # 463: Debt
-t = Card('Debt', 'Debt', 'Debt', 0, 0, 'C73400', 'A02900', empty)
+t = Card('Debt', 'Debt', '1 Debt', 0, 0, 'C73400', 'A02900', empty)
+standardCards.append(t)
+
+# 464: Lowercase Debt
+t = Card('debt', 'debt', '1 debt', 0, 0, 'C73400', 'A02900', empty)
 standardCards.append(t)
 
 
@@ -4036,15 +4040,15 @@ t = Pred("^Outpost fails because (?P<player>.*) has already played it\.$", empty
 standardPreds.append(t)
 
 # 106
-t = Pred("^(?P<player>.*) takes (?P<cards>.*) debt\.$", empty, "TAKE DEBT")
+t = Pred("^(?P<player>.*) takes (?P<cards>.*)\.$", empty, "TAKE DEBT")
 standardPreds.append(t)
 
 # 107
-t = Pred("^(?P<player>.*) repays (?P<cards>.*) debt\.$", empty, "REPAY DEBT")
+t = Pred("^(?P<player>.*) repays (?P<cards>.*)\.$", empty, "REPAY DEBT")
 standardPreds.append(t)
 
 # 108
-t = Pred("^(?P<player>.*) repays (?P<cards>.*) debt \((.*) remaining\)\.$", empty, "REPAY DEBT PARTIAL")
+t = Pred("^(?P<player>.*) repays (?P<cards>.*) \((.*) remaining\)\.$", empty, "REPAY DEBT PARTIAL")
 standardPreds.append(t)
 
 
