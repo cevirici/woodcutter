@@ -318,8 +318,10 @@ function updateBoardPosition(chunk){
                     item = partItems[itemIndex].split(':');
                     quantity = parseInt(item[0]);
                     itemID = parseInt(item[1], 16);
-                    partString += "<div class='decksLabel'>"+quantity+"</div>";
-                    partString += drawStandardBox(itemID);
+                    partString += "<div class = 'deckswrapper'>" +
+                                  "<div class='deckslabel'>"+quantity+"</div>" +
+                                  drawStandardBox(itemID) +
+                                  "</div>";
                 }
 
                 partDiv.html(partString);

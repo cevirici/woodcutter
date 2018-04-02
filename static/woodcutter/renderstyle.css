@@ -689,3 +689,9 @@ modals{
     text-align: right;
     padding-right: 0.2vh;
 }
+
+.deckswrapper{
+    width: 3.7vh;
+    
+    display: flex;
+}
