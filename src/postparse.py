@@ -72,7 +72,9 @@ def parse_game(parsedLog):
 
 def get_decision_state(moveTree, supply):
     startState = gameState()
-    startState.add(0, 'SUPPLY', supply)
+    for card in supply:
+        if standardCards[card].simple_name not in DONT_LOAD:
+            startState.add(0, 'SUPPLY', Cardstack({card: supply[card]}))
     # Zombies
     if ZOMBIES[0] in supply:
         startState.move(0, 'SUPPLY', 'TRASH',
