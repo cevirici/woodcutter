@@ -194,8 +194,13 @@ def render_vp_row(vpCards, side):
         layerStrings[layer] = makeDiv('graph-layer card' + str(layer),
                                       innerHTML=layerStrings[layer])
 
+    sortedStrings = [layerStrings[card] for card in positiveCards]
+    if ARGUMENT_CARD in layerStrings:
+        sortedStrings.append(layerStrings[ARGUMENT_CARD])
+    sortedStrings += [layerStrings[card] for card in negativeCards]
+
     labelStrings = makeDiv('graph-layer', innerHTML=labelStrings)
-    return [layerStrings.values(), labelStrings]
+    return [sortedStrings, labelStrings]
 
 
 def render_graph_background(turnOwners, stripes, player):

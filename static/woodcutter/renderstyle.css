@@ -212,6 +212,11 @@ modals{
 	color: #FFFFFF;
 	font: 1.2vh Consolas;
 	text-align: center;
+
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
 }
 .axislabel:hover{
 	background: #CC9922!important;
@@ -260,6 +265,11 @@ modals{
 
 	color: #FFFFFF;
 	font: 1.1vh Consolas;
+
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
 }
 .box-inner.dark{
 	color: #000000;
