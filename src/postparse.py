@@ -161,7 +161,7 @@ def get_shuffled_turns(moveTree):
             else:
                 return False
 
-    return [[had_shuffled(p,x) for x in moveTree] for p in range(2)]
+    return [[had_shuffled(p, x) for x in moveTree] for p in range(2)]
 
 
 def get_involved_cards(gameStates):

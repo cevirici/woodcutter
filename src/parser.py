@@ -107,7 +107,7 @@ def translate_file(inString):
         if t.player == -1:
             t.player = backup_player
         else:
-            if t.pred != standardPreds[1]:
+            if t.pred != standardPreds[NEWTURN_PRED]:
                 if t.player not in player_list:
                     player_list.append(t.player)
             else:
@@ -115,6 +115,14 @@ def translate_file(inString):
                                re.match('^'+player, t.player) is not None]
                 match_names.sort(key=lambda x: -len(x))
                 t.player = match_names[0]
+
+        # Masq Pass exception
+        if t.pred == PASS_PRED:
+            target = t.items[ARGUMENT_CARD]
+            match_names = [player for player in player_list if
+                           re.match('^'+player, target) is not None]
+            match_names.sort(key=lambda x: -len(x))
+            t.items[ARGUMENT_CARD] = match_names[0]
 
         backup_player = t.player
         t.player = player_list.index(t.player)
