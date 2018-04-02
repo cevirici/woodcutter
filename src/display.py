@@ -112,20 +112,22 @@ def render_vp_row(vpCards, side):
     colHeights = [0 for i in range(len(stack[0]))]
 
     labelStrings = ''
+    allPositiveCards = []
+    allNegativeCards = []
+
+    def getWorths(side, xpos, card):
+        if card in worths[side][xpos]:
+            return worths[side][xpos][card]
+        else:
+            return 0
 
     halfside = stack[side]
     for xpos in range(len(halfside)):
         col = halfside[xpos]
 
-        def getWorths(card):
-            if card in worths[side][xpos]:
-                return worths[side][xpos][card]
-            else:
-                return 0
-
         colCards = sorted(col.cardList())
-        positiveCards = [c for c in colCards if getWorths(c) > 0]
-        negativeCards = [c for c in colCards if getWorths(c) < 0]
+        positiveCards = [c for c in colCards if getWorths(side, xpos, c) > 0]
+        negativeCards = [c for c in colCards if getWorths(side, xpos, c) < 0]
         rawvp = 0
         if ARGUMENT_CARD in colCards:
             rawvp = int(col[ARGUMENT_CARD])
@@ -190,14 +192,19 @@ def render_vp_row(vpCards, side):
 
                 colHeights[xpos] -= 1
 
+        allPositiveCards += [card for card in positiveCards if
+                             card not in allPositiveCards]
+        allNegativeCards += [card for card in negativeCards if
+                             card not in allNegativeCards]
+
     for layer in layerStrings:
         layerStrings[layer] = makeDiv('graph-layer card' + str(layer),
                                       innerHTML=layerStrings[layer])
 
-    sortedStrings = [layerStrings[card] for card in positiveCards]
+    sortedStrings = [layerStrings[card] for card in allPositiveCards]
     if ARGUMENT_CARD in layerStrings:
         sortedStrings.append(layerStrings[ARGUMENT_CARD])
-    sortedStrings += [layerStrings[card] for card in negativeCards]
+    sortedStrings += [layerStrings[card] for card in allNegativeCards]
 
     labelStrings = makeDiv('graph-layer', innerHTML=labelStrings)
     return [sortedStrings, labelStrings]
