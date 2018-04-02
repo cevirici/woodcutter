@@ -62,13 +62,20 @@ def standardOnGains(src, gainedCard):
     def trasherMove(cM, gS, exc, tExc, pers):
         gS[-1].move(cM[0].player, src, 'TRASH', gainedCard)
 
+    def specificCondition(predList, gainedCard):
+        def out_function(cM):
+            if standardPreds[cM[0].pred].name not in predList:
+                return False
+            return cM[0].items.getval() == gainedCard.getval()
+        return out_function
+
     def out_function(cM, gS, exc, tExc, pers):
         gainedCardNames = [standardCards[card].simple_name for card in gainedCard]
         gainedCardNames.append('card')
-        exc.append(Exception(standardCondition(['TOPDECK'], gainedCardNames),
-                                               topdeckerMove))
-        exc.append(Exception(standardCondition(['TRASH'], gainedCardNames),
-                                               trasherMove))
+        exc.append(Exception(specificCondition(['TOPDECK'], gainedCard),
+                             topdeckerMove))
+        exc.append(Exception(specificCondition(['TRASH'], gainedCard),
+                             trasherMove))
         exc.append(standardException(['PUT INHAND'], src, 'HANDS', ['Villa']))
         exc.append(standardException(['RETURN'], src, 'SUPPLY'))
 
@@ -108,7 +115,8 @@ def standard_boonhex(cM, gS, exc, tExc, pers):
 
     elif whichBoon == 'Bad Omens':
         exc.append(exc_revealDiscard)
-        exc.append(exc_harbinger)
+        exc.append(standardException(['TOPDECK'], 'DISCARDS', 'DECKS', 
+                                     ['Copper']))
 
     elif whichBoon == 'Famine':
         exc.append(exc_revealDiscard)
