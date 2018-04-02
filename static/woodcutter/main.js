@@ -273,3 +273,69 @@ $(document).on('keydown', 'input', function(e) {
         });
     }
 });
+
+
+/*********** Story Deck Display ***********/
+
+function drawStandardBox(card){
+    innerColor = cardColors[card][0];
+    borderColor = cardColors[card][1];
+    cardName = cardColors[card][2];
+    nameWords = cardName.split(' ');
+    cardLabel = ''
+    for (i = 0; i < Math.min(2, nameWords.length); i++){
+        cardLabel += nameWords[i][0];
+    }
+
+    colorSum = 0;
+    for (i = 0; i < 6; i+= 2){
+        colorSum += parseInt(innerColor.slice(i, i+2), 16);
+    }
+    isDark = (colorSum > 383);
+
+    innerClass = (isDark ? 'box-inner dark' : 'box-inner');
+
+    innerString = "<div class='"+ innerClass +"' style='background: #"+ innerColor +";'>"
+                  + cardLabel + '</div>';
+    fullBox = "<div class='decksbox' style='background: #"+ borderColor +";'>"
+               + innerString +"</div>";
+    return fullBox
+}
+
+
+function updateBoardPosition(chunk){
+    for (zoneIndex = 0; zoneIndex < chunk.length; zoneIndex++){
+        zone = chunk[zoneIndex];
+        for (partIndex = 0; partIndex < zone.length; partIndex++){
+            part = zone[partIndex];
+            partDiv = $('.decks-row').eq(zoneIndex)
+                            .find('.part').eq(partIndex);
+
+            if (part.length > 0){
+                partItems = part.split('|');
+                partString = '';
+                for (itemIndex = 0; itemIndex < partItems.length; itemIndex++){
+                    item = partItems[itemIndex].split(':');
+                    quantity = parseInt(item[0]);
+                    itemID = parseInt(item[1], 16);
+                    partString += "<div class='decksLabel'>"+quantity+"</div>";
+                    partString += drawStandardBox(itemID);
+                }
+
+                partDiv.html(partString);
+            } else {
+                partDiv.html('');
+            }
+        }
+    }
+}
+
+
+$('.story-line').hover(function(){
+    lineIndex = $(this).index('.story-line');
+    console.log(lineIndex);
+    updateBoardPosition(gameStates[lineIndex + 1]);
+    $('.decks-display').css('opacity', '1');
+}, function(){
+    $('.decks-display').css('opacity', '0');
+});
