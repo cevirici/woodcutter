@@ -289,6 +289,9 @@ def elaborate_line(players, entry):
     if ARGUMENT_CARD in entry.items:
         argumentsSplit = entry.items[ARGUMENT_CARD].split('/')
 
+    # Masq Story Exception
+    argumentsSplit[0] = players[argumentsSplit[0]]
+
     entryString = standardPreds[entry.pred].regex
 
     PLAYER_COLORS = ['#4277FE', '#FF4545']
