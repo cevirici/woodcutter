@@ -290,7 +290,7 @@ def elaborate_line(players, entry):
         argumentsSplit = entry.items[ARGUMENT_CARD].split('/')
 
     # Masq Story Exception
-    if entry.pred = PASS_PRED:
+    if entry.pred == PASS_PRED:
         argumentsSplit[0] = players[argumentsSplit[0]]
 
     entryString = standardPreds[entry.pred].regex
