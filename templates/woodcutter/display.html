@@ -1,251 +1,253 @@
+{% extends 'woodcutter/base.html' %}
 {% load static %}
-<html>
-    <head>
-        <title>{{ title_string|safe }}</title>
-        <meta name='viewport' content='width=device-width, initial-scale=1'>
-        <script src="{% static 'woodcutter/jquery-3.2.1.min.js' %}"></script>
-        <link rel='stylesheet' href="{% static 'woodcutter/renderstyle.css' %}">
-        <link rel='stylesheet' href="{% static 'woodcutter/perfect-scrollbar.css' %}">
-        <script src="{% static 'woodcutter/perfect-scrollbar.min.js' %}"></script>
-    </head>
-    <body>
-        <content>
-            <div class = 'topbar'>
-                {{ title_string|safe }}
+
+{% block header %}
+    <title>{{ title_string|safe }}</title>
+    <script src="{% static 'woodcutter/jquery-3.2.1.min.js' %}"></script>
+    <link rel='stylesheet' href="{% static 'woodcutter/renderstyle.css' %}">
+    <link rel='stylesheet' href="{% static 'woodcutter/perfect-scrollbar.css' %}">
+    <script src="{% static 'woodcutter/perfect-scrollbar.min.js' %}"></script>
+{% endblock %}
+
+{% block content %}
+    <content>
+        <div class = 'topbar'>
+            {{ title_string|safe }}
+        </div>
+        <div class = 'container'>
+            <div class = 'graph-control-container' >
+                <div class = 'graph-control' ></div>
+                <div class = 'graph-control' ></div>
             </div>
-            <div class = 'container'>
-                <div class = 'graph-control-container' >
-                    <div class = 'graph-control' ></div>
-                    <div class = 'graph-control' ></div>
-                </div>
-                <div class = 'graph-window'>
-                    <div class = 'graph' >
-                        <div class = 'graph-container' graphname = 'all'>
-                            <div class = 'row fullwidth'>
-                                {% for layerString in graph_all_top %}
-                                {{ layerString | safe }}
-                                {% endfor %}
-                            </div>
-                            <div class = 'axis'></div>
-                            <div class = 'row fullwidth'>
-                                {% for layerString in graph_all_bot %}
-                                {{ layerString | safe }}
-                                {% endfor %}
-                            </div>
+            <div class = 'graph-window'>
+                <div class = 'graph' >
+                    <div class = 'graph-container' graphname = 'all'>
+                        <div class = 'row fullwidth'>
+                            {% for layerString in graph_all_top %}
+                            {{ layerString | safe }}
+                            {% endfor %}
                         </div>
-                        
-                        <div class = 'graph-container' graphname = 'gained'>
-                            <div class = 'row fullwidth'>
-                                {% for layerString in graph_gained_top %}
-                                {{ layerString | safe }}
-                                {% endfor %}
-                            </div>
-                            <div class = 'axis'></div>
-                            <div class = 'row fullwidth'>
-                                {% for layerString in graph_gained_bot %}
-                                {{ layerString | safe }}
-                                {% endfor %}
-                            </div>
+                        <div class = 'axis'></div>
+                        <div class = 'row fullwidth'>
+                            {% for layerString in graph_all_bot %}
+                            {{ layerString | safe }}
+                            {% endfor %}
                         </div>
+                    </div>
+                    
+                    <div class = 'graph-container' graphname = 'gained'>
+                        <div class = 'row fullwidth'>
+                            {% for layerString in graph_gained_top %}
+                            {{ layerString | safe }}
+                            {% endfor %}
+                        </div>
+                        <div class = 'axis'></div>
+                        <div class = 'row fullwidth'>
+                            {% for layerString in graph_gained_bot %}
+                            {{ layerString | safe }}
+                            {% endfor %}
+                        </div>
+                    </div>
 
-                        <div class = 'graph-container' graphname = 'shuffle'>
-                            <div class = 'row fullwidth'>
-                                {% for layerString in graph_progress_top %}
-                                {{ layerString | safe }}
-                                {% endfor %}
-                            </div>
-                            <div class = 'axis'></div>
-                            <div class = 'row fullwidth'>
-                                {% for layerString in graph_progress_bot %}
-                                {{ layerString | safe }}
-                                {% endfor %}
-                            </div>
+                    <div class = 'graph-container' graphname = 'shuffle'>
+                        <div class = 'row fullwidth'>
+                            {% for layerString in graph_progress_top %}
+                            {{ layerString | safe }}
+                            {% endfor %}
                         </div>
-
-                        <div class = 'graph-container' graphname = 'vp'>
-                            <div class = 'row fullwidth'>
-                                {% for layerString in graph_vps_top %}
-                                {{ layerString | safe }}
-                                {% endfor %}
-                                {{ graph_vps_labels_top | safe }}
-                            </div>
-                            <div class = 'axis'></div>
-                            <div class = 'row fullwidth'>
-                                {% for layerString in graph_vps_bot %}
-                                {{ layerString | safe }}
-                                {% endfor %}
-                                {{ graph_vps_labels_bot | safe }}
-                            </div>
+                        <div class = 'axis'></div>
+                        <div class = 'row fullwidth'>
+                            {% for layerString in graph_progress_bot %}
+                            {{ layerString | safe }}
+                            {% endfor %}
                         </div>
+                    </div>
 
-                        <div class = 'graph-background' >
-                            <div class = 'row fullwidth'>
-                                {% for data in bgData_top %}
-                                <div class = 'col{% if data.0 %} active{% endif %}'>
-                                    <div class = 'leftstripe{% if data.1 %} active{% endif %}'></div>
-                                </div>
-                                {% endfor %}
+                    <div class = 'graph-container' graphname = 'vp'>
+                        <div class = 'row fullwidth'>
+                            {% for layerString in graph_vps_top %}
+                            {{ layerString | safe }}
+                            {% endfor %}
+                            {{ graph_vps_labels_top | safe }}
+                        </div>
+                        <div class = 'axis'></div>
+                        <div class = 'row fullwidth'>
+                            {% for layerString in graph_vps_bot %}
+                            {{ layerString | safe }}
+                            {% endfor %}
+                            {{ graph_vps_labels_bot | safe }}
+                        </div>
+                    </div>
+
+                    <div class = 'graph-background' >
+                        <div class = 'row fullwidth'>
+                            {% for data in bgData_top %}
+                            <div class = 'col{% if data.0 %} active{% endif %}'>
+                                <div class = 'leftstripe{% if data.1 %} active{% endif %}'></div>
                             </div>
-                            <div class = 'axis' style = 'visibility: visible'>
-                                {% for axisLabel in axisLabels %}
-                                <div class = 'axislabel'>
-                                    {{ axisLabel | safe }}
-                                </div>
-                                {% endfor %}
+                            {% endfor %}
+                        </div>
+                        <div class = 'axis' style = 'visibility: visible'>
+                            {% for axisLabel in axisLabels %}
+                            <div class = 'axislabel'>
+                                {{ axisLabel | safe }}
                             </div>
-                            <div class = 'row fullwidth'>
-                                {% for data in bgData_bot %}
-                                <div class = 'col{% if data.0 %} active{% endif %}'>
-                                    <div class = 'leftstripe{% if data.1 %} active{% endif %}'></div>
-                                </div>
-                                {% endfor %}
+                            {% endfor %}
+                        </div>
+                        <div class = 'row fullwidth'>
+                            {% for data in bgData_bot %}
+                            <div class = 'col{% if data.0 %} active{% endif %}'>
+                                <div class = 'leftstripe{% if data.1 %} active{% endif %}'></div>
                             </div>
+                            {% endfor %}
                         </div>
                     </div>
                 </div>
+            </div>
 
-                <div class = 'scale-bar'>
-                    <div class = 'scale-bg'></div>
-                    <div class = 'scale-nub'></div>
+            <div class = 'scale-bar'>
+                <div class = 'scale-bg'></div>
+                <div class = 'scale-nub'></div>
+            </div>
+
+            <div class = 'middle-stack'>
+                <div class = 'legend'>
+                    {% for legendbox in legendBoxes %}
+                    <div class = 'legendbox' style = 'background: #{{ legendbox.2 }};' card = {{ legendbox.3}}>
+                        <div class = 'inner-color' style = 'background: #{{ legendbox.1 }};''>
+                            <span class = 'wrap'>{{ legendbox.0 }}</span>
+                        </div>
+                    </div>
+                    {% endfor %}
                 </div>
 
-                <div class = 'middle-stack'>
-                    <div class = 'legend'>
-                        {% for legendbox in legendBoxes %}
-                        <div class = 'legendbox' style = 'background: #{{ legendbox.2 }};' card = {{ legendbox.3}}>
-                            <div class = 'inner-color' style = 'background: #{{ legendbox.1 }};''>
-                                <span class = 'wrap'>{{ legendbox.0 }}</span>
-                            </div>
+                <div class = 'controls'>
+                    <div class = 'controlbox' control = 'all'>
+                        <span class='wrap'>All Cards</span>
+                    </div>
+                    <div class = 'controlbox faded' control = 'gained'>
+                        <span class='wrap'>Gained or Trashed</span>
+                    </div>
+                    <div class = 'controlbox faded' control = 'shuffle'>
+                        <span class='wrap'>Shuffle Progress</span>
+                    </div>
+                    <div class = 'controlbox faded' control = 'vp'>
+                        <span class='wrap'>VP</span>
+                    </div>
+                </div>
+                <div class = 'controls'>
+                    <div class = 'settingsbox visibility'>
+                        <span class='wrap'>Reset Visibility</span>
+                    </div>
+                </div>
+                <div class = 'controls'>
+                    <div class = 'modalcontrolbox faded' control = 'kingdom-display'>
+                        <span class='wrap'>Display Kingdom</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class = 'story-block'>
+                <div class = 'story-topbar'>
+                    <div class = 'story-tool fix'>
+                        <img src="{% static 'woodcutter/fixicon_blue.png' %}">
+                        <img src="{% static 'woodcutter/fixicon_yellow.png' %}">
+                        <img src="{% static 'woodcutter/fixicon.png' %}">
+                    </div>
+                </div>
+                <div class = 'story-main'>
+                    <div class = 'story-container'>
+                        {% for line in story_lines %}
+                        <div class = 'story-line{% if line.2 == 0 %} alternate{% endif %}' style = 'padding-left:{{ line.0 }}%' turn = {{ line.3 }}>
+                            {{ line.1 | safe }}
                         </div>
                         {% endfor %}
                     </div>
-
-                    <div class = 'controls'>
-                        <div class = 'controlbox' control = 'all'>
-                            <span class='wrap'>All Cards</span>
+                    
+                    <div class = 'story-sidebar'>
+                        {% for sidebar_label in sidebar_labels %}
+                        <div class = 'story-sidebar-block{% if sidebar_label.2 == 0 %} alternate{% endif %}' style = 'flex-grow:{{ sidebar_label.3 }}' turn = {{ sidebar_label.0 }}>
+                            {{ sidebar_label.1 }}
                         </div>
-                        <div class = 'controlbox faded' control = 'gained'>
-                            <span class='wrap'>Gained or Trashed</span>
-                        </div>
-                        <div class = 'controlbox faded' control = 'shuffle'>
-                            <span class='wrap'>Shuffle Progress</span>
-                        </div>
-                        <div class = 'controlbox faded' control = 'vp'>
-                            <span class='wrap'>VP</span>
-                        </div>
-                    </div>
-                    <div class = 'controls'>
-                        <div class = 'settingsbox visibility'>
-                            <span class='wrap'>Reset Visibility</span>
-                        </div>
-                    </div>
-                    <div class = 'controls'>
-                        <div class = 'modalcontrolbox faded' control = 'kingdom-display'>
-                            <span class='wrap'>Display Kingdom</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class = 'story-block'>
-                    <div class = 'story-topbar'>
-                        <div class = 'story-tool fix'>
-                            <img src="{% static 'woodcutter/fixicon_blue.png' %}">
-                            <img src="{% static 'woodcutter/fixicon_yellow.png' %}">
-                            <img src="{% static 'woodcutter/fixicon.png' %}">
-                        </div>
-                    </div>
-                    <div class = 'story-main'>
-                        <div class = 'story-container'>
-                            {% for line in story_lines %}
-                            <div class = 'story-line{% if line.2 == 0 %} alternate{% endif %}' style = 'padding-left:{{ line.0 }}%' turn = {{ line.3 }}>
-                                {{ line.1 | safe }}
-                            </div>
-                            {% endfor %}
-                        </div>
-                        
-                        <div class = 'story-sidebar'>
-                            {% for sidebar_label in sidebar_labels %}
-                            <div class = 'story-sidebar-block{% if sidebar_label.2 == 0 %} alternate{% endif %}' style = 'flex-grow:{{ sidebar_label.3 }}' turn = {{ sidebar_label.0 }}>
-                                {{ sidebar_label.1 }}
-                            </div>
-                            {% endfor %}
-                        </div>
+                        {% endfor %}
                     </div>
                 </div>
             </div>
-        </content>
-        <modals>
-            <div class = 'modal kingdom-display'>
-                <div class = 'title'>Kingdom</div>
-                <div class = 'kingdom-label'>Kingdom:</div>
-                <div class = 'kingdom-container longer'>
-                    {% for card in kingdomCards.0 %}
-                    <div class = 'kingdom-card' style = 'background: #{{ card.0.border_color }};' card = {{ card.1 }}>
-                        <div class = 'inner-color' style = 'background: #{{ card.0.card_color }};'> 
-                            {{ card.0.simple_name }} 
-                        </div>
+        </div>
+    </content>
+    <modals>
+        <div class = 'modal kingdom-display'>
+            <div class = 'title'>Kingdom</div>
+            <div class = 'kingdom-label'>Kingdom:</div>
+            <div class = 'kingdom-container longer'>
+                {% for card in kingdomCards.0 %}
+                <div class = 'kingdom-card' style = 'background: #{{ card.0.border_color }};' card = {{ card.1 }}>
+                    <div class = 'inner-color' style = 'background: #{{ card.0.card_color }};'> 
+                        {{ card.0.simple_name }} 
                     </div>
-                    {% endfor %}
                 </div>
-                <div class = 'kingdom-label'>Nonsupply:</div>
-                <div class = 'kingdom-container'>
-                    {% for card in kingdomCards.1 %}
-                    <div class = 'kingdom-card' style = 'background: #{{ card.0.border_color }};' card = {{ card.1 }}>
-                        <div class = 'inner-color' style = 'background: #{{ card.0.card_color }};'> 
-                            {{ card.0.simple_name }} 
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
-                <div class = 'kingdom-label'>Extras and Landscapes:</div>
-                <div class = 'kingdom-container'>
-                    {% for card in kingdomCards.2 %}
-                    <div class = 'kingdom-card' style = 'background: #{{ card.0.border_color }};' card = {{ card.1 }}>
-                        <div class = 'inner-color' style = 'background: #{{ card.0.card_color }};'> 
-                            {{ card.0.simple_name }} 
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
+                {% endfor %}
             </div>
-            <div class = 'modal decks-display'>
-                <div class = 'title'>Current Board Position</div>
-                <div class = 'decks-label'>Supply:</div>
-                <div class = 'decks-row'>
-                    <div class = 'part'></div>
+            <div class = 'kingdom-label'>Nonsupply:</div>
+            <div class = 'kingdom-container'>
+                {% for card in kingdomCards.1 %}
+                <div class = 'kingdom-card' style = 'background: #{{ card.0.border_color }};' card = {{ card.1 }}>
+                    <div class = 'inner-color' style = 'background: #{{ card.0.card_color }};'> 
+                        {{ card.0.simple_name }} 
+                    </div>
                 </div>
-                <div class = 'decks-label'>Decks:</div>
-                <div class = 'decks-row'>
-                    <div class = 'part'></div>
-                    <div class = 'part'></div>
-                </div>
-                <div class = 'decks-label'>Hands:</div>
-                <div class = 'decks-row'>
-                    <div class = 'part'></div>
-                    <div class = 'part'></div>
-                </div>
-                <div class = 'decks-label'>Inplays:</div>
-                <div class = 'decks-row'>
-                    <div class = 'part'></div>
-                    <div class = 'part'></div>
-                </div>
-                <div class = 'decks-label'>Discards:</div>
-                <div class = 'decks-row'>
-                    <div class = 'part'></div>
-                    <div class = 'part'></div>
-                </div>
-                <div class = 'decks-label'>Others:</div>
-                <div class = 'decks-row'>
-                    <div class = 'part'></div>
-                    <div class = 'part'></div>
-                </div>
-                <div class = 'decks-label'>Trash:</div>
-                <div class = 'decks-row'>
-                    <div class = 'part'></div>
-                </div>
+                {% endfor %}
             </div>
-        </modals>
-    </body>
+            <div class = 'kingdom-label'>Extras and Landscapes:</div>
+            <div class = 'kingdom-container'>
+                {% for card in kingdomCards.2 %}
+                <div class = 'kingdom-card' style = 'background: #{{ card.0.border_color }};' card = {{ card.1 }}>
+                    <div class = 'inner-color' style = 'background: #{{ card.0.card_color }};'> 
+                        {{ card.0.simple_name }} 
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        <div class = 'modal decks-display'>
+            <div class = 'title'>Current Board Position</div>
+            <div class = 'decks-label'>Supply:</div>
+            <div class = 'decks-row'>
+                <div class = 'part'></div>
+            </div>
+            <div class = 'decks-label'>Decks:</div>
+            <div class = 'decks-row'>
+                <div class = 'part'></div>
+                <div class = 'part'></div>
+            </div>
+            <div class = 'decks-label'>Hands:</div>
+            <div class = 'decks-row'>
+                <div class = 'part'></div>
+                <div class = 'part'></div>
+            </div>
+            <div class = 'decks-label'>Inplays:</div>
+            <div class = 'decks-row'>
+                <div class = 'part'></div>
+                <div class = 'part'></div>
+            </div>
+            <div class = 'decks-label'>Discards:</div>
+            <div class = 'decks-row'>
+                <div class = 'part'></div>
+                <div class = 'part'></div>
+            </div>
+            <div class = 'decks-label'>Others:</div>
+            <div class = 'decks-row'>
+                <div class = 'part'></div>
+                <div class = 'part'></div>
+            </div>
+            <div class = 'decks-label'>Trash:</div>
+            <div class = 'decks-row'>
+                <div class = 'part'></div>
+            </div>
+        </div>
+    </modals>
+{% endblock %}
+{% block postblock %}
     <script src="{% static 'woodcutter/main.js' %}"></script>
     <script type='text/javascript'>
         var storyAll = {{ storyPlain|safe }};
@@ -253,4 +255,4 @@
         var gameStates = {{ gameStates|safe }};
         var cardColors = {{ relevantColors|safe }};
     </script>
-</html>
+{% endblock %}
