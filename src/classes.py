@@ -68,10 +68,10 @@ class ParsedLine:
 
 
 class Cardstack:
-    def __init__(self,cards):
+    def __init__(self, cards):
         self.val = cards
 
-    def __add__(self,other):
+    def __add__(self, other):
         t = deepcopy(self.val)
         for c in other:
             if c != ARGUMENT_CARD:
@@ -81,16 +81,15 @@ class Cardstack:
                     t[c] = other.val[c]
         return Cardstack(t)
 
-    def __sub__(self,other):
+    def __sub__(self, other):
         t = deepcopy(self.val)
         for c in other:
             if c != ARGUMENT_CARD:
                 if c in t:
                     t[c] -= other.val[c]
 
-        t = {c:v for c,v in t.items() if v > 0}
+        t = {c: v for c, v in t.items() if v > 0}
         return Cardstack(t)
-
 
     def __iter__(self):
         for card in list(self.val):
@@ -107,7 +106,6 @@ class Cardstack:
                 self.val[item] += '/'+str(number)
             else:
                 self.val[item] = str(number)
-
 
     def __str__(self):
         t = ['{}:{}'.format(self.val[i], hex(i)[2:]) for i in self.val]
