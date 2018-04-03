@@ -1,6 +1,6 @@
 /*********** Everything Animated ***********/
 
-.axis, .axislabel, .box, .controlbox, .graph,
+.axis, .box, .controlbox, .graph,
 .graph-layer, .inner-color, .kingdom-card, .legendbox, .modal, 
 .modalcontrolbox, .scale-bar, .settingsbox,
 .story-tool, .story-sidebar-block, .vpbox{
@@ -50,7 +50,7 @@
 /*********** Structure ***********/
 
 body{
-    background: #141411;
+    background: #231F26;
     overflow: hidden;
 }
 
@@ -142,9 +142,11 @@ modals{
 
 .graph-control{
     height: 2%;
-    background: #595959;
+    background: rgba(0, 0, 0, 0);
 
     pointer-events: auto;
+
+    border: 0.4vh solid #595959;
 }
 .graph-control.highlight{
     background: #66D9EF!important;
@@ -226,10 +228,10 @@ modals{
 .col{
     min-width: 2.5vh;
     height: 200%;
-    background: #272827;
+    background: #2A2D2F;
 }
 .col.active{
-    background: #383838;
+    background: #363940;
 }
 
 .leftstripe{
@@ -493,7 +495,7 @@ modals{
 
 .story-line, .story-edit{
     width: 100%;
-    background: #272822;
+    background: #2A2D2F;
     padding: 0.2vh 0;
     box-sizing: border-box;
 
@@ -667,6 +669,13 @@ modals{
     justify-content: center;
     flex-grow: 1;
 }
+.part.first{
+    background: #293249;
+}
+.part.second{
+    background: #462225;
+}
+
 
 .decksbox{
     width: 1.8vh;
