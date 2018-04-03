@@ -67,7 +67,7 @@ def standardOnGains(src, gainedCard):
             if standardPreds[cM[0].pred].name not in predList:
                 return False
             return (cM[0].items - gainedCard).count() == 0 or\
-                cM[0].items.primary == 'card'
+                cM[0].items.primary() == 'card'
         return out_function
 
     def out_function(cM, gS, exc, tExc, pers):
