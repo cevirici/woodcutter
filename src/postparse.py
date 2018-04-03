@@ -122,7 +122,7 @@ def get_decision_state(moveTree, supply):
 
 
 def get_turn_points(moveTree):
-    #Position of last decision in each turn, including the pregame turn
+    # Position of last decision in each turn, including the pregame turn
     def get_chunk_length(chunk):
         return sum([get_chunk_length(x) for x in chunk[1:]]) + 1
     lens = [get_chunk_length(chunk) for chunk in moveTree]
@@ -130,7 +130,7 @@ def get_turn_points(moveTree):
 
 
 def get_cleanup_points(moveTree):
-    #Look for the first nonindented shuffle/draw
+    # Look for the first nonindented shuffle/draw
     def find_cleanup_chunk(chunk):
         if chunk[0].indent == 0 and chunk[0].pred in CLEANUP_PREDS:
             return 1
@@ -192,9 +192,11 @@ def find_gained_cards(turnPoints, gameStates):
     for index in range(len(turnPoints) - 1):
         for p in range(2):
             startDeck = gameStates[turnPoints[index] + 1].crunch(
-                        ['DECKS','HANDS','INPLAYS','DISCARDS','OTHERS'],[p])
+                        ['DECKS', 'HANDS', 'INPLAYS',
+                         'DISCARDS', 'OTHERS'], [p])
             endDeck = gameStates[turnPoints[index + 1] + 1].crunch(
-                      ['DECKS','HANDS','INPLAYS','DISCARDS','OTHERS'],[p])
+                      ['DECKS', 'HANDS', 'INPLAYS',
+                       'DISCARDS', 'OTHERS'], [p])
             netGain = endDeck - startDeck
             netTrash = startDeck - endDeck
 

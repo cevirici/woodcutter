@@ -107,6 +107,9 @@ def display(request, game_id):
     titleString = 'Game #{}: {} - {}'.format(game_id, players[0], players[1])
     kingdomColors = relevantColors(moveData[1])
 
+    cards = [x.simple_name for x in standardCards]
+    print("['"+"',\n'".join(cards)+"']")
+
     context = {
         'title_string': titleString,
         'gameStates': exportGameStates(gameStates),

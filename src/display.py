@@ -78,7 +78,8 @@ def render_graph_row(stacks, styles, side):
         halfside = stack[side]
         for xpos in range(len(halfside)):
             col = halfside[xpos]
-            colCards = sorted(col.cardList())
+            colCards = sorted(col.cardList(), key=lambda x: card_order.index(
+                                              standardCards[x].simple_name))
 
             for card in colCards:
                 for j in range(col[card]):
@@ -125,7 +126,8 @@ def render_vp_row(vpCards, side):
     for xpos in range(len(halfside)):
         col = halfside[xpos]
 
-        colCards = sorted(col.cardList())
+        colCards = sorted(col.cardList(), key=lambda x: card_order.index(
+                                          standardCards[x].simple_name))
         positiveCards = [c for c in colCards if getWorths(side, xpos, c) > 0]
         negativeCards = [c for c in colCards if getWorths(side, xpos, c) < 0]
         rawvp = 0
@@ -233,7 +235,7 @@ def render_legend_boxes(involvedCards):
                     standardCards[card].border_color,
                     card
                     ] for card in involvedCards]
-
+    legendBoxes.sort(key=lambda x: card_order.index(x[0]))
     return legendBoxes
 
 
