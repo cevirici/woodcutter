@@ -62,6 +62,9 @@ def standardOnGains(src, gainedCard):
     def trasherMove(cM, gS, exc, tExc, pers):
         gS[-1].move(cM[0].player, src, 'TRASH', gainedCard)
 
+    def returnMove(cM, gS, exc, tExc, pers):
+        gS[-1].move(cM[0].player, src, 'SUPPLY', gainedCard)
+
     def specificCondition(predList, gainedCard):
         def out_function(cM):
             if standardPreds[cM[0].pred].name not in predList:
@@ -75,8 +78,10 @@ def standardOnGains(src, gainedCard):
                              topdeckerMove))
         exc.append(Exception(specificCondition(['TRASH'], gainedCard),
                              trasherMove))
-        exc.append(standardException(['PUT INHAND'], src, 'HANDS', ['Villa']))
-        exc.append(standardException(['RETURN'], src, 'SUPPLY'))
+        exc.append(Exception(specificCondition(['RETURN'], gainedCard),
+                             returnMove))
+        if gainedCard.primary() == 'Villa':
+            exc.append(standardException(['PUT INHAND'], src, 'HANDS', ['Villa']))
 
     return out_function
 
@@ -3405,6 +3410,7 @@ def standardGains(source, destination='DISCARDS'):
 
     return out_function
 
+
 # 2
 t = Pred("^(?P<player>.*) buys and gains (?P<cards>.*)\.$", standardGains('SUPPLY'), "BUY AND GAIN")
 standardPreds.append(t)
@@ -3569,7 +3575,9 @@ def pred25Action(cM, gS, exc, tExc, pers):
     if cM[0].indent == 0 and cM[0].items.primary() == 'Faithful Hound':
         gS[-1].move(cM[0].player, 'OTHERS', 'HANDS', cM[0].items)
     else:
-        gS[-1].move(cM[0].player, 'DECKS', 'HANDS', cM[0].items)
+        # Villa's handled somewhere else
+        if cM[0].items.primary() != 'Villa':
+            gS[-1].move(cM[0].player, 'DECKS', 'HANDS', cM[0].items)
 
 t = Pred("^(?P<player>.*) puts (?P<cards>.*) into their hand\.$", pred25Action, "PUT INHAND")
 standardPreds.append(t)
