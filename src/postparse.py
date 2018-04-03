@@ -87,18 +87,27 @@ def get_decision_state(moveTree, supply):
         def parse_chunk(chunk, exceptions, turnExceptions, persistents):
             subexceptions = []
             gameStates.append(deepcopy(gameStates[-1]))
+            print(len(exceptions))
 
-            passedExceptions = [exception for exception in exceptions + persistents
-                                if exception.condition(chunk) == True]
-            #One-time
-            passedTurnExceptions = [exception for exception in turnExceptions if exception.condition(chunk) is True]
+            passedExceptions = [exc for exc in exceptions + persistents
+                                if exc.condition(chunk)]
+            passedTurnExceptions = [exception for exception in turnExceptions
+                                    if exception.condition(chunk)]
 
             if passedExceptions + passedTurnExceptions:
+                maxPrio = max([exc.priority for exc
+                               in passedExceptions + passedTurnExceptions])
+                passedExceptions = [exc for exc in passedExceptions if
+                                    exc.priority == maxPrio]
+                passedTurnExceptions = [exc for exc in passedTurnExceptions if
+                                        exc.priority == maxPrio]
+
                 for exception in passedExceptions + passedTurnExceptions:
                     exception.action(chunk, gameStates, subexceptions, turnExceptions, persistents)
 
                 for exception in passedTurnExceptions:
-                    turnExceptions.remove(exception)
+                    if exception in turnExceptions:
+                        turnExceptions.remove(exception)
             else:
                 standardPreds[chunk[0].pred].action(chunk, gameStates, subexceptions, turnExceptions, persistents)
 

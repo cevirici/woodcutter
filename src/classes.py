@@ -15,6 +15,7 @@ standardPreds = []
 standardPersistents = []
 standardNames = []
 
+
 class Card:
     def __init__(self, simple_name, multi_name, phrase_name,
                  cost, supply_type, border_color, card_color,
@@ -33,11 +34,13 @@ class Card:
     def names(self):
         return [self.simple_name, self.multi_name, self.phrase_name]
 
+
 class Exception:
-    def __init__(self, condition, action, expiry=-1):
+    def __init__(self, condition, action, expiry=-1, priority=0):
         self.condition = condition
         self.action = action
         self.expiry = expiry
+        self.priority = priority
 
 
 class Pred:

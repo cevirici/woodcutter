@@ -108,7 +108,6 @@ def display(request, game_id):
     kingdomColors = relevantColors(moveData[1])
 
     cards = [x.simple_name for x in standardCards]
-    print("['"+"',\n'".join(cards)+"']")
 
     context = {
         'title_string': titleString,

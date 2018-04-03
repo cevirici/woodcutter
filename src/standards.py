@@ -71,8 +71,6 @@ def standardOnGains(src, gainedCard):
         return out_function
 
     def out_function(cM, gS, exc, tExc, pers):
-        gainedCardNames = [standardCards[card].simple_name for card in gainedCard]
-        gainedCardNames.append('card')
         exc.append(Exception(specificCondition(['TOPDECK'], gainedCard),
                              topdeckerMove))
         exc.append(Exception(specificCondition(['TRASH'], gainedCard),
@@ -81,47 +79,6 @@ def standardOnGains(src, gainedCard):
         exc.append(standardException(['RETURN'], src, 'SUPPLY'))
 
     return out_function
-
-
-def standard_boonhex(cM, gS, exc, tExc, pers):
-    whichBoon = standardCards[CARD_CARD].simple_name
-    for subchunk in cM[1:]:
-        if subchunk[0].predName() in ['RECEIVE BOONHEX', 'TAKES BOONHEX']:
-            whichBoon = subchunk[0].items.primary()
-            break
-
-    if whichBoon == 'The Sun\'s Gift':
-        exc.append(exc_revealTopdeck)
-        exc.append(exc_revealDiscard)
-
-    elif whichBoon == 'The Moon\'s Gift':
-        exc.append(exc_harbinger)
-
-    elif whichBoon == 'Locusts':
-        exc.append(exc_revealTrash)
-
-    elif whichBoon == 'War':
-        exc.append(exc_revealTrash)
-        exc.append(exc_revealDiscard)
-
-    elif whichBoon == 'Greed':
-        exc.append(standardException(['GAIN'], 'SUPPLY', 'DECKS', ['Copper']))
-        exc.append(Exception(standardCondition(['GAIN'], ['Copper']),
-                             standardOnGains('DECKS', {standardNames.index('Copper'): 1})))
-
-    elif whichBoon == 'Plague':
-        exc.append(standardException(['GAIN'], 'SUPPLY', 'HANDS', ['Curse']))
-        exc.append(Exception(standardCondition(['GAIN'], ['Curse']),
-                             standardOnGains('DECKS', {standardNames.index('Curse'): 1})))
-
-    elif whichBoon == 'Bad Omens':
-        exc.append(exc_revealDiscard)
-        exc.append(standardException(['TOPDECK'], 'DISCARDS', 'DECKS', 
-                                     ['Copper']))
-
-    elif whichBoon == 'Famine':
-        exc.append(exc_revealDiscard)
-        exc.append(standardException(['SHUFFLE INTO'], 'DECKS', 'DECKS'))
 
 
 def standardOnPlay(cM, gS, exc, tExc, pers):
@@ -2958,24 +2915,14 @@ t = Card('Lost In The Woods', 'Lost In The Woods', 'Lost In The Woods', 0, -1, '
 standardCards.append(t)
 
 
-def playing_boonhex(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        standard_boonhex(cM, gS, exc, tExc, pers)
-
-
-def gaining_boonhex(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['BUY AND GAIN', 'GAIN TOPDECK', 'GAIN TRASH', 'GAIN']:
-        standard_boonhex(cM, gS, exc, tExc, pers)
-        standardOnGains('DISCARDS', cM[0].items)
-
-
 # 404: Bard
-t = Card('Bard', 'Bards', 'a Bard', 4, 0, 'c4c0b4', '57932f', playing_boonhex)
+t = Card('Bard', 'Bards', 'a Bard', 4, 0, 'c4c0b4', '57932f', empty)
 standardCards.append(t)
 
 
 # 405: Blessed Village
-t = Card('Blessed Village', 'Blessed Villages', 'a Blessed Village', 4, 0, 'c4c0b4', '8f7737', gaining_boonhex)
+t = Card('Blessed Village', 'Blessed Villages', 'a Blessed Village', 4, 0,
+         'c4c0b4', '8f7737', empty)
 standardCards.append(t)
 
 # 406: Changeling
@@ -3005,7 +2952,8 @@ t = Card('Crypt', 'Crypts', 'a Crypt', 5, 0, '7a5622', '0d494f', empty)
 standardCards.append(t)
 
 # 411: Cursed Village
-t = Card('Cursed Village', 'Cursed Villages', 'a Cursed Village', 5, 0, 'c4c0b4', '265ea6', gaining_boonhex)
+t = Card('Cursed Village', 'Cursed Villages', 'a Cursed Village', 5, 0,
+         'c4c0b4', '265ea6', empty)
 standardCards.append(t)
 
 
@@ -3017,8 +2965,27 @@ standardCards.append(t)
 t = Card('Devil\'s Workshop', 'Devil\'s Workshops', 'a Devil\'s Workshop', 4, 0, '30484e', '7d5b83', empty)
 standardCards.append(t)
 
+
 # 414: Druid
-t = Card('Druid', 'Druids', 'a Druid', 2, 0, 'c4c0b4', '49b921', playing_boonhex)
+def druid_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        whichBoon = standardCards[CARD_CARD]
+        exc.append(Exception(standardCondition('RECEIVE BOONHEX'), empty))
+        for subchunk in cM[1:]:
+            if subchunk[0].predName() in ['RECEIVE BOONHEX', 'TAKES BOONHEX']:
+                whichBoon = subchunk[0].items.primary()
+                break
+            exc.append(standardException(['TRASH'], 'INPLAYS', 'TRASH'))
+
+        if whichBoon == 'The Sun\'s Gift':
+            exc.append(exc_revealTopdeck)
+            exc.append(exc_revealDiscard)
+
+        elif whichBoon == 'The Moon\'s Gift':
+            exc.append(exc_harbinger)
+
+
+t = Card('Druid', 'Druids', 'a Druid', 2, 0, 'c4c0b4', '49b921', druid_action)
 standardCards.append(t)
 
 # 415: Exorcist
@@ -3048,11 +3015,11 @@ t = Card('Guardian', 'Guardians', 'a Guardian', 2, 0, '7a5622', '376db9', empty)
 standardCards.append(t)
 
 # 420: Idol
-t = Card('Idol', 'Idols', 'a Idol', 5, 0, 'd8c280', 'b13700', playing_boonhex)
+t = Card('Idol', 'Idols', 'a Idol', 5, 0, 'd8c280', 'b13700',empty)
 standardCards.append(t)
 
 # 421: Leprechaun
-t = Card('Leprechaun', 'Leprechauns', 'a Leprechaun', 3, 0, 'c4c0b4', '5e7c04', playing_boonhex)
+t = Card('Leprechaun', 'Leprechauns', 'a Leprechaun', 3, 0, 'c4c0b4', '5e7c04', empty)
 standardCards.append(t)
 
 
@@ -3162,7 +3129,7 @@ t = Card('Raider', 'Raiders', 'a Raider', 6, 0, '7a5622', '00238b', empty)
 standardCards.append(t)
 
 # 428: Sacred Grove
-t = Card('Sacred Grove', 'Sacred Groves', 'a Sacred Grove', 5, 0, 'c4c0b4', '5e7632', playing_boonhex)
+t = Card('Sacred Grove', 'Sacred Groves', 'a Sacred Grove', 5, 0, 'c4c0b4', '5e7632', empty)
 standardCards.append(t)
 
 # 429: Secret Cave
@@ -3174,11 +3141,11 @@ t = Card('Shepherd', 'Shepherds', 'a Shepherd', 4, 0, 'c4c0b4', '9caa90', empty)
 standardCards.append(t)
 
 # 431: Skulk
-t = Card('Skulk', 'Skulks', 'a Skulk', 4, 0, 'c4c0b4', '7e6060', playing_boonhex)
+t = Card('Skulk', 'Skulks', 'a Skulk', 4, 0, 'c4c0b4', '7e6060', empty)
 standardCards.append(t)
 
 # 432: Tormentor
-t = Card('Tormentor', 'Tormentors', 'a Tormentor', 5, 0, 'c4c0b4', '884c6a', playing_boonhex)
+t = Card('Tormentor', 'Tormentors', 'a Tormentor', 5, 0, 'c4c0b4', '884c6a', empty)
 standardCards.append(t)
 
 
@@ -3193,7 +3160,7 @@ t = Card('Tragic Hero', 'Tragic Heroes', 'a Tragic Hero', 5, 0, 'c4c0b4', '5c88a
 standardCards.append(t)
 
 # 434: Tracker
-t = Card('Tracker', 'Trackers', 'a Tracker', 2, 0, 'c4c0b4', '87c7d9', playing_boonhex)
+t = Card('Tracker', 'Trackers', 'a Tracker', 2, 0, 'c4c0b4', '87c7d9', empty)
 standardCards.append(t)
 
 
@@ -3210,7 +3177,7 @@ t = Card('Vampire', 'Vampires', 'a Vampire', 5, 0, '30484e', '523a4c', vampire_a
 standardCards.append(t)
 
 # 436: Werewolf
-t = Card('Werewolf', 'Werewolves', 'a Werewolf', 5, 0, '30484e', '9f8193', playing_boonhex)
+t = Card('Werewolf', 'Werewolves', 'a Werewolf', 5, 0, '30484e', '9f8193', empty)
 standardCards.append(t)
 
 # 437: Cursed Gold
@@ -3431,8 +3398,10 @@ def standardGains(source, destination='DISCARDS'):
                 standardOnGains('HANDS', exceptionalStuff)(cM, gS, exc, tExc, pers)
 
         if targetStuff.count() > 0:
-            gS[-1].move(cM[0].player, source, destination, targetStuff)
-            standardOnGains(destination, targetStuff)(cM, gS, exc, tExc, pers)
+            for card in targetStuff:
+                cardStuff = Cardstack({card: targetStuff[card]})
+                gS[-1].move(cM[0].player, source, destination, cardStuff)
+                standardOnGains(destination, cardStuff)(cM, gS, exc, tExc, pers)
 
     return out_function
 
@@ -3854,54 +3823,10 @@ def turn_start_action(cM, gS, exc, tExc, pers):
     exc.append(Exception(immediate_gain_condition, moveException('SUPPLY', 'HANDS')))
     exc.append(Exception(immediate_gain_condition, standardOnGains('DECKS', cM[0].items)))
 
-    # Lost In The Woods
-    def litw_action(outerCM, outerGS, outerExc):
-        def out_function(cM, gS, exc, tExc, pers):
-            whichBoon = standardCards[CARD_CARD]
-            for subchunk in outerCM[1:]:
-                if subchunk[0].predName() in ['RECEIVE BOONHEX', 'TAKES BOONHEX']:
-                    whichBoon = subchunk[0].items.primary()
-                    break
-
-            if whichBoon == 'The Sun\'s Gift':
-                outerExc.append(exc_revealTopdeck)
-                outerExc.append(exc_revealDiscard)
-
-            elif whichBoon == 'The Moon\'s Gift':
-                outerExc.append(exc_harbinger)
-
-            elif whichBoon == 'Locusts':
-                outerExc.append(exc_revealTrash)
-
-            elif whichBoon == 'War':
-                outerExc.append(exc_revealTrash)
-                outerExc.append(exc_revealDiscard)
-
-            elif whichBoon == 'Greed':
-                outerExc.append(standardException(['GAIN'], 'SUPPLY', 'DECKS', ['Copper']))
-                outerExc.append(Exception(standardCondition(['GAIN'], ['Copper']),
-                                          standardOnGains('DECKS', {standardNames.index('Copper'): 1})))
-
-            elif whichBoon == 'Plague':
-                outerExc.append(standardException(['GAIN'], 'SUPPLY', 'HANDS', ['Curse']))
-                outerExc.append(Exception(standardCondition(['GAIN'], ['Curse']),
-                                          standardOnGains('DECKS', {standardNames.index('Curse'): 1})))
-
-            elif whichBoon == 'Bad Omens':
-                outerExc.append(exc_revealDiscard)
-                outerExc.append(exc_harbinger)
-
-            elif whichBoon == 'Famine':
-                outerExc.append(exc_revealDiscard)
-                outerExc.append(standardException(['SHUFFLE INTO'], 'DECKS', 'DECKS'))
-
-        return out_function
-
-    exc.append(Exception(standardCondition(['TAKES BOONHEX']), litw_action(cM, gS, exc)))
-
 
 t = Pred("^(?P<player>.*) starts their turn\.$", turn_start_action, "TURN START")
 standardPreds.append(t)
+
 
 # 73
 def generic_vp_action(cM, gS, exc, tExc, pers):
@@ -3914,6 +3839,7 @@ standardPreds.append(t)
 # 74
 t = Pred("^(?P<player>.*) moves (?P<cards>.*) VP from (.*) to (.*)\.$", empty, "SHIELD MOVE")
 standardPreds.append(t)
+
 
 # 75
 def obelisk_choice(cM, gS, exc, tExc, pers):
@@ -4049,7 +3975,7 @@ t = Pred("^Outpost fails because (?P<player>.*) has already played it\.$", empty
 standardPreds.append(t)
 
 # 106
-t = Pred("^(?P<player>.*) takes (?P<cards>.*)\.$", empty, "TAKE DEBT")
+t = Pred("^(?P<player>.*) takes (?P<cards>.*) debt\.$", empty, "TAKE DEBT")
 standardPreds.append(t)
 
 # 107
@@ -4103,8 +4029,86 @@ standardPreds.append(t)
 t = Pred("^(?P<player>.*) gets \+1 Coin \(Guardian\)\.$", empty, "DURATION GUARDIAN")
 standardPreds.append(t)
 
+
 # 117
-t = Pred("^(?P<player>.*) takes (?P<cards>.*)\.$", empty, "TAKES BOONHEX")
+def standard_boonhex(cM, gS, exc, tExc, pers):
+    whichBoon = cM[0].items.primary()
+
+    def removeBoonhex(exceptions):
+        def out_function(cM, gS, exc, tExc, pers):
+            for exception in exceptions:
+                if exception in tExc:
+                    tExc.remove(exception)
+        return out_function
+
+    def discardBoonhexCondition(cM):
+        return cM[0].items.primary() == whichBoon and cM[0].predName() == 'DISCARD'
+
+    elevated_topdeck = Exception(standardCondition('TOPDECK'),
+                                 moveException('DECKS', 'DECKS'),
+                                 priority=1)
+    elevated_trash = Exception(standardCondition('TRASH'),
+                               moveException('DECKS', 'TRASH'),
+                               priority=1)
+    elevated_harbinger = Exception(standardCondition('TOPDECK'),
+                                   moveException('DISCARDS', 'DECKS'),
+                                   priority=1)
+
+    if whichBoon == 'The Sun\'s Gift':
+        tExc.append(elevated_Topdeck)
+        tExc.append(exc_revealDiscard)
+        tExc.append(Exception(discardBoonhexCondition,
+                    removeBoonhex([elevated_Topdeck, exc_revealDiscard])))
+
+    elif whichBoon == 'The Moon\'s Gift':
+        tExc.append(elevated_harbinger)
+        tExc.append(Exception(discardBoonhexCondition,
+                    removeBoonhex([elevated_harbinger])))
+
+    elif whichBoon == 'Locusts':
+        tExc.append(elevated_trash)
+        tExc.append(Exception(discardBoonhexCondition,
+                    removeBoonhex([elevated_trash])))
+
+    elif whichBoon == 'War':
+        tExc.append(elevated_trash)
+        tExc.append(exc_revealDiscard)
+        tExc.append(Exception(discardBoonhexCondition,
+                    removeBoonhex([elevated_trash, exc_revealDiscard])))
+
+    elif whichBoon == 'Greed':
+        greed_gain = standardException(['GAIN'], 'SUPPLY', 'DECKS', ['Copper'])
+        greed_ongain = Exception(standardCondition(['GAIN'], ['Copper']),
+                                 standardOnGains('DECKS', {standardNames.index('Copper'): 1}))
+        tExc.append(greed_gain)
+        tExc.append(greed_ongain)
+        tExc.append(Exception(discardBoonhexCondition,
+                    removeBoonhex([greed_ongain, greed_gain])))
+
+    elif whichBoon == 'Plague':
+        plague_gain = standardException(['GAIN'], 'SUPPLY', 'HANDS', ['Curse'])
+        plague_ongain = Exception(standardCondition(['GAIN'], ['Copper']),
+                                  standardOnGains('HANDS', {standardNames.index('Curse'): 1}))
+        tExc.append(plague_gain)
+        tExc.append(plague_ongain)
+        tExc.append(Exception(discardBoonhexCondition,
+                    removeBoonhex([plague_ongain, plague_gain])))
+
+    elif whichBoon == 'Bad Omens':
+        tExc.append(elevated_harbinger)
+        tExc.append(exc_revealDiscard)
+        tExc.append(Exception(discardBoonhexCondition,
+                    removeBoonhex([elevated_harbinger, exc_revealDiscard])))
+
+    elif whichBoon == 'Famine':
+        tExc.append(exc_revealDiscard)
+        famine_discard = standardException(['SHUFFLE INTO'], 'DECKS', 'DECKS')
+        tExc.append(famine_discard)
+        tExc.append(Exception(discardBoonhexCondition,
+                    removeBoonhex([exc_revealDiscard, famine_discard])))
+
+
+t = Pred("^(?P<player>.*) takes (?P<cards>.*)\.$", standard_boonhex, "TAKES BOONHEX")
 standardPreds.append(t)
 
 # 118
