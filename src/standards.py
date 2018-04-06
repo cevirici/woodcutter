@@ -6,8 +6,7 @@ from copy import deepcopy
 AND DURATIONS
 AND INHERITANCE
 AND ROCKS
-AND ENCHANTRESS
-AND FOOL'''
+AND ENCHANTRESS'''
 
 
 def empty(cM, gS, exc, tExc, pers):
@@ -3091,6 +3090,7 @@ standardCards.append(t)
 def pixie_action(cM, gS, exc, tExc, pers):
     if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
         whichBoon = standardCards[CARD_CARD]
+        exc.append(Exception(standardCondition('RECEIVE BOONHEX'), empty))
         for subchunk in cM[1:]:
             if subchunk[0].predName() in ['RECEIVE BOONHEX', 'TAKES BOONHEX']:
                 whichBoon = subchunk[0].items.primary()
@@ -3134,7 +3134,7 @@ t = Card('Raider', 'Raiders', 'a Raider', 6, 0, '7a5622', '00238b', empty)
 standardCards.append(t)
 
 # 428: Sacred Grove
-t = Card('Sacred Grove', 'Sacred Groves', 'a Sacred Grove', 5, 0, 'c4c0b4', '5e7632', empty)
+t = Card('Sacred Grove', 'Sacred Groves', 'a Sacred Grove', 5, 0, 'c4c0b4', '5e7632', druid_action)
 standardCards.append(t)
 
 # 429: Secret Cave
@@ -3650,8 +3650,88 @@ def pred36Action(cM, gS, exc, tExc, pers):
 t = Pred("^(?P<player>.*) receives (?P<cards>.*)\.$", pred36Action, "RECEIVE.")
 standardPreds.append(t)
 
+
 # 37
-t = Pred("^(?P<player>.*) receives (?P<cards>.*)$", empty, "RECEIVE BOONHEX")
+def standard_boonhex(cM, gS, exc, tExc, pers):
+    whichBoon = cM[0].items.primary()
+
+    def removeBoonhex(exceptions):
+        def out_function(cM, gS, exc, tExc, pers):
+            for exception in exceptions:
+                if exception in tExc:
+                    tExc.remove(exception)
+        return out_function
+
+    def discardBoonhexCondition(cM):
+        return cM[0].items.primary() == whichBoon and cM[0].predName() == 'DISCARD'
+
+    elevated_topdeck = Exception(standardCondition('TOPDECK'),
+                                 moveException('DECKS', 'DECKS'),
+                                 priority=1)
+    elevated_trash = Exception(standardCondition('TRASH'),
+                               moveException('DECKS', 'TRASH'),
+                               priority=1)
+    elevated_harbinger = Exception(standardCondition('TOPDECK'),
+                                   moveException('DISCARDS', 'DECKS'),
+                                   priority=1)
+
+    if whichBoon == 'The Sun\'s Gift':
+        tExc.append(elevated_topdeck)
+        tExc.append(exc_revealDiscard)
+        tExc.append(Exception(discardBoonhexCondition,
+                    removeBoonhex([elevated_topdeck, exc_revealDiscard])))
+
+    elif whichBoon == 'The Moon\'s Gift':
+        tExc.append(elevated_harbinger)
+        tExc.append(Exception(discardBoonhexCondition,
+                    removeBoonhex([elevated_harbinger])))
+
+    elif whichBoon == 'Locusts':
+        tExc.append(elevated_trash)
+        tExc.append(Exception(discardBoonhexCondition,
+                    removeBoonhex([elevated_trash])))
+
+    elif whichBoon == 'War':
+        tExc.append(elevated_trash)
+        tExc.append(exc_revealDiscard)
+        tExc.append(Exception(discardBoonhexCondition,
+                    removeBoonhex([elevated_trash, exc_revealDiscard])))
+
+    elif whichBoon == 'Greed':
+        greed_gain = standardException(['GAIN'], 'SUPPLY', 'DECKS', ['Copper'])
+        copperStack = Cardstack({standardNames.index('Copper'): 1})
+        greed_ongain = Exception(standardCondition(['GAIN'], ['Copper']),
+                                 standardOnGains('DECKS', copperStack))
+        tExc.append(greed_gain)
+        tExc.append(greed_ongain)
+        tExc.append(Exception(discardBoonhexCondition,
+                    removeBoonhex([greed_ongain, greed_gain])))
+
+    elif whichBoon == 'Plague':
+        plague_gain = standardException(['GAIN'], 'SUPPLY', 'HANDS', ['Curse'])
+        curseStack = Cardstack({standardNames.index('Curse'): 1})
+        plague_ongain = Exception(standardCondition(['GAIN'], ['Copper']),
+                                  standardOnGains('HANDS', curseStack))
+        tExc.append(plague_gain)
+        tExc.append(plague_ongain)
+        tExc.append(Exception(discardBoonhexCondition,
+                    removeBoonhex([plague_ongain, plague_gain])))
+
+    elif whichBoon == 'Bad Omens':
+        tExc.append(elevated_harbinger)
+        tExc.append(exc_revealDiscard)
+        tExc.append(Exception(discardBoonhexCondition,
+                    removeBoonhex([elevated_harbinger, exc_revealDiscard])))
+
+    elif whichBoon == 'Famine':
+        tExc.append(exc_revealDiscard)
+        famine_discard = standardException(['SHUFFLE INTO'], 'DECKS', 'DECKS')
+        tExc.append(famine_discard)
+        tExc.append(Exception(discardBoonhexCondition,
+                    removeBoonhex([exc_revealDiscard, famine_discard])))
+
+
+t = Pred("^(?P<player>.*) receives (?P<cards>.*)$", standard_boonhex, "RECEIVE BOONHEX")
 standardPreds.append(t)
 
 # 38
@@ -4039,84 +4119,7 @@ standardPreds.append(t)
 
 
 # 117
-def standard_boonhex(cM, gS, exc, tExc, pers):
-    whichBoon = cM[0].items.primary()
-
-    def removeBoonhex(exceptions):
-        def out_function(cM, gS, exc, tExc, pers):
-            for exception in exceptions:
-                if exception in tExc:
-                    tExc.remove(exception)
-        return out_function
-
-    def discardBoonhexCondition(cM):
-        return cM[0].items.primary() == whichBoon and cM[0].predName() == 'DISCARD'
-
-    elevated_topdeck = Exception(standardCondition('TOPDECK'),
-                                 moveException('DECKS', 'DECKS'),
-                                 priority=1)
-    elevated_trash = Exception(standardCondition('TRASH'),
-                               moveException('DECKS', 'TRASH'),
-                               priority=1)
-    elevated_harbinger = Exception(standardCondition('TOPDECK'),
-                                   moveException('DISCARDS', 'DECKS'),
-                                   priority=1)
-
-    if whichBoon == 'The Sun\'s Gift':
-        tExc.append(elevated_Topdeck)
-        tExc.append(exc_revealDiscard)
-        tExc.append(Exception(discardBoonhexCondition,
-                    removeBoonhex([elevated_Topdeck, exc_revealDiscard])))
-
-    elif whichBoon == 'The Moon\'s Gift':
-        tExc.append(elevated_harbinger)
-        tExc.append(Exception(discardBoonhexCondition,
-                    removeBoonhex([elevated_harbinger])))
-
-    elif whichBoon == 'Locusts':
-        tExc.append(elevated_trash)
-        tExc.append(Exception(discardBoonhexCondition,
-                    removeBoonhex([elevated_trash])))
-
-    elif whichBoon == 'War':
-        tExc.append(elevated_trash)
-        tExc.append(exc_revealDiscard)
-        tExc.append(Exception(discardBoonhexCondition,
-                    removeBoonhex([elevated_trash, exc_revealDiscard])))
-
-    elif whichBoon == 'Greed':
-        greed_gain = standardException(['GAIN'], 'SUPPLY', 'DECKS', ['Copper'])
-        greed_ongain = Exception(standardCondition(['GAIN'], ['Copper']),
-                                 standardOnGains('DECKS', {standardNames.index('Copper'): 1}))
-        tExc.append(greed_gain)
-        tExc.append(greed_ongain)
-        tExc.append(Exception(discardBoonhexCondition,
-                    removeBoonhex([greed_ongain, greed_gain])))
-
-    elif whichBoon == 'Plague':
-        plague_gain = standardException(['GAIN'], 'SUPPLY', 'HANDS', ['Curse'])
-        plague_ongain = Exception(standardCondition(['GAIN'], ['Copper']),
-                                  standardOnGains('HANDS', {standardNames.index('Curse'): 1}))
-        tExc.append(plague_gain)
-        tExc.append(plague_ongain)
-        tExc.append(Exception(discardBoonhexCondition,
-                    removeBoonhex([plague_ongain, plague_gain])))
-
-    elif whichBoon == 'Bad Omens':
-        tExc.append(elevated_harbinger)
-        tExc.append(exc_revealDiscard)
-        tExc.append(Exception(discardBoonhexCondition,
-                    removeBoonhex([elevated_harbinger, exc_revealDiscard])))
-
-    elif whichBoon == 'Famine':
-        tExc.append(exc_revealDiscard)
-        famine_discard = standardException(['SHUFFLE INTO'], 'DECKS', 'DECKS')
-        tExc.append(famine_discard)
-        tExc.append(Exception(discardBoonhexCondition,
-                    removeBoonhex([exc_revealDiscard, famine_discard])))
-
-
-t = Pred("^(?P<player>.*) takes (?P<cards>.*)\.$", standard_boonhex, "TAKES BOONHEX")
+t = Pred("^(?P<player>.*) takes (?P<cards>.*)\.$", empty, "TAKES BOONHEX")
 standardPreds.append(t)
 
 # 118
