@@ -139,7 +139,7 @@ def display(request, game_id):
 
 
 def error_list(request):
-    for log in GameLog.objects.all():
+    '''for log in GameLog.objects.all():
         moveData = unpack(log.log, log.supply)
         players = log.players.split('~')
 
@@ -151,7 +151,7 @@ def error_list(request):
             log.save()
 
         log.valid = gameStates[-1].valid
-        log.save()
+        log.save()'''
 
     rawLogs = GameLog.objects.filter(valid=False).all()
     errorLogs = []
