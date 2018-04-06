@@ -1,16 +1,15 @@
+{% extends 'woodcutter/base.html' %}
 {% load static %}
 
-<html>
-	<head>
-		<title>Dominion Woodcutter</title>
-		<meta name='viewport' content='width=device-width, initial-scale=1'>
-		<link rel='stylesheet' href="{% static 'woodcutter/mainstyle.css' %}">
-	</head>
-	<body>
-		<div class = 'content-container'>
-			<h1> Oops </h1>
-			<img src="{% static 'woodcutter/woodcutter_icon_sad_medium.png' %}">
-			<p>Looks like something went wrong here. There may have been some error in processing the log.</p>
-		</div>
-	</body>
-</html>
+{% block header %}
+	<title>Dominion Woodcutter</title>
+	<meta name='viewport' content='width=device-width, initial-scale=1'>
+	<link rel='stylesheet' href="{% static 'woodcutter/mainstyle.css' %}">
+{% endblock %}
+{% block content %}
+<div class = 'content-container'>
+	<h1> Oops </h1>
+	<img src="{% static 'woodcutter/woodcutter_icon_sad_medium.png' %}">
+	<p>Looks like something went wrong here. There may have been some error in processing the log.</p>
+</div>
+{% endblock %}
