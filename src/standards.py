@@ -4,7 +4,6 @@ from copy import deepcopy
 
 '''GAAAAH FUCK HERMIT
 AND DURATIONS
-AND INHERITANCE
 AND ROCKS
 AND ENCHANTRESS'''
 
@@ -160,8 +159,14 @@ def gold_action(cM, gS, exc, tExc, pers):
 t = Card('Gold', 'Golds', 'a Gold', 6, -1, 'f1d14d', 'ffae06', gold_action)
 standardCards.append(t)
 
+
 # 6: Estate
-t = Card('Estate', 'Estates', 'an Estate', 2, -1, '548C2B', 'bfb597', empty, staticWorth(1))
+def estate_action(cM, gS, exc, tExc, pers):
+    card = standardCards[gS[-1].INHERITED_CARDS[cM[0].player]]
+    card.action(cM, gS, exc, tExc, pers)
+
+
+t = Card('Estate', 'Estates', 'an Estate', 2, -1, '548C2B', 'bfb597', estate_action, staticWorth(1))
 standardCards.append(t)
 
 # 7: Duchy
@@ -4095,9 +4100,12 @@ standardPreds.append(t)
 t = Pred("^Obelisk failed to select an Action Supply pile\.$", empty, "OBELISK FAIL")
 standardPreds.append(t)
 
+
 # 113
 def pred113Action(cM, gS, exc, tExc, pers):
-    gS[-1].move(cM[0].player, 'SUPPLY', 'DECKS', cM[0].items)
+    gS[-1].move(cM[0].player, 'SUPPLY', 'OTHERS', cM[0].items)
+    gS[-1].INHERITED_CARDS[cM[0].player] = cM[0].items.cardList()[0]
+
 
 t = Pred("^(?P<player>.*) inherits (?P<cards>.*)\.$", pred113Action, "INHERIT")
 standardPreds.append(t)
