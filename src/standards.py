@@ -122,7 +122,7 @@ t = Card('nothing', 'other cards', 'nothing', 0, -1, '666666', '666666', empty)
 standardCards.append(t)
 
 # 1: card
-t = Card('card', 'cards', 'a card', 0, -1, '1528B7', '666666', empty)
+t = Card('card', 'cards', 'a card', 0, -1, '666666', '1528B7', empty)
 standardCards.append(t)
 
 # 2: Curse
