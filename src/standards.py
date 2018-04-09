@@ -1669,10 +1669,10 @@ standardCards.append(t)
 # 194: Hermit
 def hermit_action(cM, gS, exc, tExc, pers):
     if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        playerHand = gS[-1].HANDS[cM[0].player]
+        playerDiscard = gS[-1].DISCARDSS[cM[0].player]
 
         def hermitTrashCondition(cM):
-            return (cM[0].items - playerHand).count() > 0
+            return (cM[0].items - playerDiscard).count() == 0
 
         exc.append(Exception(hermitTrashCondition,
                              moveException('DISCARDS', 'TRASH')))
