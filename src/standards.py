@@ -2373,7 +2373,7 @@ def rocks_action(cM, gS, exc, tExc, pers):
         else:
             exc.append(standardException(['GAIN'], 'SUPPLY', 'HANDS'))
             exc.append(Exception(standardCondition(['GAIN']),
-                                 standardOnGains('HANDS', cM[0].items)))         
+                                 standardOnGains('HANDS', cM[0].items))) 
 
 
 t = Card('Rocks', 'Rocks', 'a Rocks', 4, 0, 'd8c280', '80963a', rocks_action)
@@ -3442,7 +3442,7 @@ def standardGains(source, destination='DISCARDS'):
 
 # 2
 def buyAndGainAction(cM, gS, exc, tExc, pers):
-    standardGains('SUPPLY')
+    standardGains('SUPPLY')(cM, gS, exc, tExc, pers)
     gS[-1].phase = 1
 
 
