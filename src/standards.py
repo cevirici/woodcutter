@@ -2,10 +2,8 @@ from .classes import *
 from .lists import *
 from copy import deepcopy
 
-'''GAAAAH FUCK HERMIT
-AND DURATIONS
-AND ROCKS
-AND ENCHANTRESS'''
+'''GAAAAH FUCK DURATIONS
+AND ROCKS'''
 
 
 def empty(cM, gS, exc, tExc, pers):
@@ -1667,8 +1665,20 @@ def graverobber_action(cM, gS, exc, tExc, pers):
 t = Card('Graverobber', 'Graverobbers', 'a Graverobber', 5, 0, 'c4c0b4', '4e4052', graverobber_action)
 standardCards.append(t)
 
+
 # 194: Hermit
-t = Card('Hermit', 'Hermits', 'a Hermit', 3, 0, 'c4c0b4', '977d5b', empty)
+def hermit_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        playerHand = gS[-1].HANDS[cM[0].player]
+
+        def hermitTrashCondition(cM):
+            return (cM[0].items - playerHand).count() > 0
+
+        exc.append(Exception(hermitTrashCondition,
+                             moveException('DISCARDS', 'TRASH')))
+
+
+t = Card('Hermit', 'Hermits', 'a Hermit', 3, 0, 'c4c0b4', '977d5b', hermit_action)
 standardCards.append(t)
 
 # 195: Hovel
