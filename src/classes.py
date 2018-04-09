@@ -170,6 +170,7 @@ class gameState:
         self.valid = True
         self.activePlayer = 0
         self.INHERITED_CARDS = [CARD_CARD, CARD_CARD]
+        self.phase = 0
 
     def __str__(self):
         outstr = ''

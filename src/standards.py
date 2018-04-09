@@ -69,6 +69,10 @@ def standardOnGains(src, gainedCard):
                 cM[0].items.primary() == 'card'
         return out_function
 
+    def villaException(cM, gS, exc, tExc, pers):
+        moveException(src, 'HANDS')
+        gS[-1].phase = 0
+
     def out_function(cM, gS, exc, tExc, pers):
         exc.append(Exception(specificCondition(['TOPDECK'], gainedCard),
                              topdeckerMove))
@@ -77,7 +81,8 @@ def standardOnGains(src, gainedCard):
         exc.append(Exception(specificCondition(['RETURN'], gainedCard),
                              returnMove))
         if gainedCard.primary() == 'Villa':
-            exc.append(standardException(['PUT INHAND'], src, 'HANDS', ['Villa']))
+            exc.append(Exception(standardCondition(['PUT INHAND'], ['Villa']),
+                                 villaException))
 
     return out_function
 
@@ -2361,9 +2366,14 @@ standardCards.append(t)
 def rocks_action(cM, gS, exc, tExc, pers):
     if cM[0].predName() in ['BUY AND GAIN', 'GAIN TOPDECK',
                             'GAIN TRASH', 'GAIN']:
-        exc.append(standardException(['GAIN'], 'SUPPLY', 'DECKS'))
-        exc.append(Exception(standardCondition(['GAIN']),
-                             standardOnGains('DECKS', cM[0].items)))
+        if gS[-1].phase == 1:
+            exc.append(standardException(['GAIN'], 'SUPPLY', 'DECKS'))
+            exc.append(Exception(standardCondition(['GAIN']),
+                                 standardOnGains('DECKS', cM[0].items)))
+        else:
+            exc.append(standardException(['GAIN'], 'SUPPLY', 'HANDS'))
+            exc.append(Exception(standardCondition(['GAIN']),
+                                 standardOnGains('HANDS', cM[0].items)))         
 
 
 t = Card('Rocks', 'Rocks', 'a Rocks', 4, 0, 'd8c280', '80963a', rocks_action)
@@ -3387,12 +3397,14 @@ standardCards.append(t)
 t = Pred("^Game #(.*), (.*)\.$", empty, "GAME START")
 standardPreds.append(t)
 
+
 # 1
 def newTurnAction(cM, gS, exc, tExc, pers):
     for i in range(2):
         gS[-1].coins[i] = 0
         gS[-1].coinsLower[i] = 0
     gS[-1].activePlayer = cM[0].player
+    gS[-1].phase = 0
 
 
 t = Pred("^Turn (?P<cards>.*) - (?P<player>.*)$", newTurnAction, "NEW TURN")
@@ -3429,7 +3441,12 @@ def standardGains(source, destination='DISCARDS'):
 
 
 # 2
-t = Pred("^(?P<player>.*) buys and gains (?P<cards>.*)\.$", standardGains('SUPPLY'), "BUY AND GAIN")
+def buyAndGainAction(cM, gS, exc, tExc, pers):
+    standardGains('SUPPLY')
+    gS[-1].phase = 1
+
+
+t = Pred("^(?P<player>.*) buys and gains (?P<cards>.*)\.$", buyAndGainAction, "BUY AND GAIN")
 standardPreds.append(t)
 
 # 3
@@ -3751,17 +3768,21 @@ def standard_boonhex(cM, gS, exc, tExc, pers):
 t = Pred("^(?P<player>.*) receives (?P<cards>.*)$", standard_boonhex, "RECEIVE BOONHEX")
 standardPreds.append(t)
 
+
 # 38
 def passAction(cM, gS, exc, tExc, pers):
     gS[-1].HANDS[cM[0].player] -= cM[0].items
     gS[-1].HANDS[1 - cM[0].player] += cM[0].items
 
+
 t = Pred("^(?P<player>.*) passes (?P<cards>.*) to (.*)\.$", passAction, "PASS")
 standardPreds.append(t)
+
 
 # 39
 def pred39Action(cM, gS, exc, tExc, pers):
     gS[-1].move(cM[0].player, 'SUPPLY', 'DECKS', cM[0].items)
+
 
 t = Pred("^(?P<player>.*) starts with (?P<cards>.*)\.$", pred39Action, "STARTS")
 standardPreds.append(t)
@@ -3774,7 +3795,12 @@ standardPreds.append(t)
 t = Pred("^(?P<player>.*) buys Borrow but already had (?P<cards>.*)$", empty, "BORROW FAIL")
 standardPreds.append(t)
 
+
 # 42
+def buyAction(cM, gS, exc, tExc, pers):
+    gS[-1].phase = 1
+
+
 t = Pred("^(?P<player>.*) buys (?P<cards>.*)\.$", empty, "BUY")
 standardPreds.append(t)
 
@@ -3866,26 +3892,33 @@ standardPreds.append(t)
 t = Pred("^VP tokens\.$", empty, "SHIELDS")
 standardPreds.append(t)
 
+
 # 62
 def pred62Action(cM, gS, exc, tExc, pers):
     gS[-1].move(cM[0].player, 'OTHERS', 'HANDS', cM[0].items)
 
+
 t = Pred("^(?P<player>.*) puts (?P<cards>.*) in hand \(Gear\)\.$", pred62Action, "DRAW GEAR")
 standardPreds.append(t)
+
 
 # 63
 def pred63Action(cM, gS, exc, tExc, pers):
     gS[-1].move(cM[0].player, 'OTHERS', 'HANDS', cM[0].items)
 
+
 t = Pred("^(?P<player>.*) puts (?P<cards>.*) in hand \(Haven\)\.$", pred63Action, "DRAW HAVEN")
 standardPreds.append(t)
+
 
 # 64
 def pred64Action(cM, gS, exc, tExc, pers):
     gS[-1].move(cM[0].player, 'OTHERS', 'HANDS', cM[0].items)
 
+
 t = Pred("^(?P<player>.*) puts (?P<cards>.*) in hand \(Archive\)\.$", pred64Action, "DRAW ARCHIVE")
 standardPreds.append(t)
+
 
 # 65
 t = Pred("^(?P<player>.*) gets \+1 Action and \+1 Coin \(Fishing Village\)\.$", gainCash(1), "DURATION FV")
