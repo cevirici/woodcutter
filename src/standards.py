@@ -2,8 +2,7 @@ from .classes import *
 from .lists import *
 from copy import deepcopy
 
-'''GAAAAH FUCK DURATIONS
-AND ROCKS'''
+'''GAAAAH FUCK DURATIONS'''
 
 
 def empty(cM, gS, exc, tExc, pers):
@@ -70,7 +69,7 @@ def standardOnGains(src, gainedCard):
         return out_function
 
     def villaException(cM, gS, exc, tExc, pers):
-        moveException(src, 'HANDS')
+        moveException(src, 'HANDS')(cM, gS, exc, tExc, pers)
         gS[-1].phase = 0
 
     def out_function(cM, gS, exc, tExc, pers):
