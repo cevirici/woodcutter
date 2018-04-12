@@ -1783,7 +1783,7 @@ standardCards.append(t)
 # 211: Rogue
 def rogue_action(cM, gS, exc, tExc, pers):
     if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exc.append(standardCondition(['GAIN'], 'TRASH', 'DISCARDS'))
+        exc.append(standardException(['GAIN'], 'TRASH', 'DISCARDS'))
         exc.append(exc_revealDiscard)
         exc.append(exc_revealTrash)
 
