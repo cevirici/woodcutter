@@ -409,16 +409,26 @@ standardCards.append(t)
 t = Card('Baron', 'Barons', 'a Baron', 4, 0, 'c4c0b4', '876341', empty)
 standardCards.append(t)
 
+
 # 39: Bridge
 def bridge_action(cM, gS, exc, tExc, pers):
     if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
         gainCash(1)(cM, gS, exc, tExc, pers)
 
+
 t = Card('Bridge', 'Bridges', 'a Bridge', 4, 0, 'c4c0b4', '859b6b', bridge_action)
 standardCards.append(t)
 
+
 # 40: Diplomat
-t = Card('Diplomat', 'Diplomats', 'a Diplomat', 4, 0, '8ca2be', '91595f', empty)
+def diplomat_action(cM, gS, exc, tExc, pers):
+    if cM[0].predName() in ['REACT']:
+        newExc = standardException(['DISCARD'], 'HANDS', 'DISCARDS')
+        newExc.priority = 2
+        tExc.append(newExc)
+
+
+t = Card('Diplomat', 'Diplomats', 'a Diplomat', 4, 0, '8ca2be', '91595f', diplomat_action)
 standardCards.append(t)
 
 
@@ -868,7 +878,7 @@ standardCards.append(t)
 # 91: Golem
 def golem_action(cM, gS, exc, tExc, pers):
     if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exc.append(standardException(['PLAY']), 'DECKS', 'INPLAYS')
+        exc.append(standardException(['PLAY'], 'DECKS', 'INPLAYS'))
         exc.append(Exception(standardCondition(['PLAY']), standardOnPlay))
         exc.append(exc_revealDiscard)
 
