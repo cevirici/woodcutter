@@ -4243,7 +4243,9 @@ def urchin_trash_condition(cM):
 def urchin_trash_exception(cM, gS, exc, tExc, pers):
     standardPreds[cM[0].pred].action(cM, gS, exc, tExc, pers)
     standardOnPlay(cM, gS, exc, tExc, pers)
-    exc.append(standardException(['TRASH'], 'INPLAYS', 'TRASH', ['Urchin']))
+    exc.append(Exception(standardCondition(['TRASH'], ['Urchin']),
+                         moveException('INPLAYS', 'TRASH'),
+                         priority=1))
 
 
 def hermit_trash_condition(cM):
@@ -4260,7 +4262,9 @@ def hermit_trash_condition(cM):
 def hermit_trash_exception(cM, gS, exc, tExc, pers):
     standardPreds[cM[0].pred].action(cM, gS, exc, tExc, pers)
     standardOnPlay(cM, gS, exc, tExc, pers)
-    exc.append(standardException(['TRASH'], 'INPLAYS', 'TRASH', ['Hermit']))
+    exc.append(Exception(standardCondition(['TRASH'], ['Hermit']),
+                         moveException('INPLAYS', 'TRASH'),
+                         priority=1))
 
 
 standardPersistents.append(Exception(urchin_trash_condition, urchin_trash_exception))
