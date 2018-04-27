@@ -1687,7 +1687,7 @@ def hermit_action(cM, gS, exc, tExc, pers):
 
         def hermitTrashCondition(playerDiscard):
             def out_function(cM):
-                return (cM[0].items - playerDiscard).count() == 0
+                return (cM[0].items - playerDiscard).count() == 0 and cM[0].predName() == 'TRASH'
             return out_function
 
         exc.append(Exception(hermitTrashCondition(playerDiscard),
@@ -2581,7 +2581,8 @@ def engineer_action(cM, gS, exc, tExc, pers):
                    cM[0].items.primary() == 'Engineer'
 
         if cM[0].indent == 0:
-            tExc.append(Exception(engineerTrashCondition, moveException('INPLAYS', 'TRASH')))
+            tExc.append(Exception(engineerTrashCondition, moveException('INPLAYS', 'TRASH'), 4))
+            exc.append(standardException(['TRASH'], 'INPLAYS', 'TRASH', ['Engineer']))
         else:
             exc.append(standardException(['TRASH'], 'INPLAYS', 'TRASH', ['Engineer']))
 
@@ -4240,11 +4241,30 @@ def urchin_trash_condition(cM):
 
 
 def urchin_trash_exception(cM, gS, exc, tExc, pers):
+    standardPreds[cM[0].pred].action(cM, gS, exc, tExc, pers)
     standardOnPlay(cM, gS, exc, tExc, pers)
     exc.append(standardException(['TRASH'], 'INPLAYS', 'TRASH', ['Urchin']))
 
 
+def hermit_trash_condition(cM):
+    out = 0
+    for index in range(1, len(cM)-1):
+        if standardCondition(['TRASH'], ['Hermit'])(cM[index]) and out == 0:
+            out = 1
+
+        if standardCondition(['GAIN'], ['Madman'])(cM[index + 1]) and out == 1:
+            out = 2
+    return out == 2
+
+
+def hermit_trash_exception(cM, gS, exc, tExc, pers):
+    standardPreds[cM[0].pred].action(cM, gS, exc, tExc, pers)
+    standardOnPlay(cM, gS, exc, tExc, pers)
+    exc.append(standardException(['TRASH'], 'INPLAYS', 'TRASH', ['Hermit']))
+
+
 standardPersistents.append(Exception(urchin_trash_condition, urchin_trash_exception))
+standardPersistents.append(Exception(hermit_trash_condition, hermit_trash_exception))
 standardPersistents.append(standardException(['RETURN TO'], 'OTHERS', 'SUPPLY',
                                              ['Encampment']))
 travellers = ['Page', 'Treasure Hunter', 'Warrior', 'Hero', 'Champion', 'Peasant', 'Soldier', 'Fugitive', 'Disciple', 'Teacher']

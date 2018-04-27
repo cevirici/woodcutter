@@ -77,7 +77,7 @@ class Cardstack:
     def __add__(self, other):
         t = deepcopy(self.val)
         for c in other:
-            if c != ARGUMENT_CARD:
+            if c not in [ARGUMENT_CARD, NOTHING_CARD, CARD_CARD]:
                 if c in t:
                     t[c] += other.val[c]
                 else:
@@ -87,11 +87,11 @@ class Cardstack:
     def __sub__(self, other):
         t = deepcopy(self.val)
         for c in other:
-            if c != ARGUMENT_CARD:
+            if c not in [ARGUMENT_CARD, NOTHING_CARD, CARD_CARD]:
                 if c in t:
                     t[c] -= other.val[c]
 
-        t = {c: v for c, v in t.items() if v > 0}
+        t = {c: v for c, v in t.items() if c not in [ARGUMENT_CARD, NOTHING_CARD, CARD_CARD] if v > 0}
         return Cardstack(t)
 
     def __iter__(self):
