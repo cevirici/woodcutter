@@ -489,6 +489,7 @@ modals{
 .story-container{
     position: relative;
     width: 90%;
+    height: fit-content;
 
     display: flex;
     flex-direction: column;
