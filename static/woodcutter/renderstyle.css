@@ -491,6 +491,7 @@ modals{
     position: relative;
     width: 90%;
     height: fit-content;
+    overflow: hidden;
 
     display: flex;
     flex-direction: column;
