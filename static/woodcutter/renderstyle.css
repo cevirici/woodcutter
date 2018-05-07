@@ -196,9 +196,9 @@ modals{
 
 .axis{
     min-height: 6%;
+    height: 6%;
     z-index: 1;
     background: #111111;
-    position: absolute;
 
     display: flex;
     visibility: hidden;
