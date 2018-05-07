@@ -198,9 +198,11 @@ modals{
     min-height: 6%;
     z-index: 1;
     background: #111111;
+    position: absolute;
 
     display: flex;
     visibility: hidden;
+    align-items: center;
 }
 
 .axislabel{
