@@ -482,16 +482,20 @@ modals{
 .story-main{
     width: 100%;
     height: 90%;
-    overflow: hidden;
 
     display: flex;
 }
 
-.story-container{
+.story-window{
     position: relative;
     width: 90%;
-    height: fit-content;
     overflow: hidden;
+}
+
+.story-container{
+    position: relative;
+    width: 100%;
+    height: fit-content;
 
     display: flex;
     flex-direction: column;

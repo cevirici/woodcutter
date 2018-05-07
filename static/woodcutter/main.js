@@ -188,7 +188,7 @@ $('.graph-control').click(function(){
 const psg = new PerfectScrollbar('.graph-window', {useBothWheelAxes:true, suppressScrollY:true});
 const psleg = new PerfectScrollbar('.legend');
 const psc = new PerfectScrollbar('.controls');
-const pslog = new PerfectScrollbar('.story-main', {suppressScrollX:true});
+const pslog = new PerfectScrollbar('.story-window', {suppressScrollX:true});
 
 
 /*********** Graph Scaling ***********/

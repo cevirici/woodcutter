@@ -156,12 +156,14 @@
                     </div>
                 </div>
                 <div class = 'story-main'>
-                    <div class = 'story-container'>
-                        {% for line in story_lines %}
-                        <div class = 'story-line{% if line.2 == 0 %} alternate{% endif %}' style = 'padding-left:{{ line.0 }}%' turn = {{ line.3 }}>
-                            {{ line.1 | safe }}
+                    <div class = 'story-window'>
+                        <div class = 'story-container'>
+                            {% for line in story_lines %}
+                            <div class = 'story-line{% if line.2 == 0 %} alternate{% endif %}' style = 'padding-left:{{ line.0 }}%' turn = {{ line.3 }}>
+                                {{ line.1 | safe }}
+                            </div>
+                            {% endfor %}
                         </div>
-                        {% endfor %}
                     </div>
                     
                     <div class = 'story-sidebar'>
