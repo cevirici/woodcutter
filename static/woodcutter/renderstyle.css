@@ -482,6 +482,7 @@ modals{
 .story-main{
     width: 100%;
     height: 90%;
+    overflow: hidden;
 
     display: flex;
 }
@@ -493,7 +494,6 @@ modals{
 
     display: flex;
     flex-direction: column;
-    overflow: hidden;
 }
 
 .story-line, .story-edit{
