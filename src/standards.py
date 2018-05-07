@@ -1627,7 +1627,7 @@ standardCards.append(t)
 def deathcart_action(cM, gS, exc, tExc, pers):
     if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
         exc.append(standardException(['TRASH'], 'INPLAYS', 'TRASH', ['Death Cart']))
-        exc.append(exc_standardTrash)
+        Exception(standardCondition(['TRASH'], ['Death Cart']), standardOnTrash)
 
 
 t = Card('Death Cart', 'Death Carts', 'a Death Cart', 4, 0, 'c4c0b4', '826636', deathcart_action)
