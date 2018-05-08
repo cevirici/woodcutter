@@ -1627,7 +1627,7 @@ standardCards.append(t)
 def deathcart_action(cM, gS, exc, tExc, pers):
     if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
         exc.append(standardException(['TRASH'], 'INPLAYS', 'TRASH', ['Death Cart']))
-        Exception(standardCondition(['TRASH'], ['Death Cart']), standardOnTrash)
+        exc.append(Exception(standardCondition(['TRASH'], ['Death Cart']), standardOnTrash))
 
 
 t = Card('Death Cart', 'Death Carts', 'a Death Cart', 4, 0, 'c4c0b4', '826636', deathcart_action)
@@ -3145,9 +3145,9 @@ def pixie_action(cM, gS, exc, tExc, pers):
                                         otherThings)
                 return out_function
 
-            exc.append(Exception(standardCondition(['TRASH']),
+            exc.append(Exception(standardCondition(['TRASH'], ['Pixie']),
                                  pixieTrash(pixieStack, otherThings)))
-            exc.append(exc_standardTrash)
+            exc.append(Exception(standardCondition(['TRASH'], ['Pixie']), standardOnTrash))
         else:
             exc.append(standardException(['TRASH'], 'INPLAYS', 'TRASH'))
 
