@@ -141,7 +141,7 @@ $('.settingsbox.visibility').click( function(){
 /*********** Scrolling ***********/
 
 function scrollTo(storylineIndex){
-    $('.story-container').scrollTop($('.story-line[turn=\''+storylineIndex+'\']').get(0).offsetTop-10);
+    $('.story-window').scrollTop($('.story-line[turn=\''+storylineIndex+'\']').get(0).offsetTop-10);
 }
 
 $('.axislabel').click( function(){
