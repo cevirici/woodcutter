@@ -297,7 +297,7 @@ def elaborate_line(players, entry):
 
     entryString = standardPreds[entry.pred].regex
 
-    PLAYER_COLORS = ['#4277FE', '#FF4545']
+    PLAYER_COLORS = ['#FF4545', '#4277FE']
     PLAYER_OUTLINES = ['#CECECE', '#CECECE']
     playerDiv = makeDiv('story-color',
                         {'background': PLAYER_COLORS[entry.player],
