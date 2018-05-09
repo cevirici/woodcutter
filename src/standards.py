@@ -2581,7 +2581,7 @@ def engineer_action(cM, gS, exc, tExc, pers):
                    cM[0].items.primary() == 'Engineer'
 
         if cM[0].indent == 0:
-            tExc.append(Exception(engineerTrashCondition, moveException('INPLAYS', 'TRASH'), 4))
+            tExc.append(Exception(engineerTrashCondition, moveException('INPLAYS', 'TRASH'), chunkLength(cM) + 2))
             exc.append(standardException(['TRASH'], 'INPLAYS', 'TRASH', ['Engineer']))
         else:
             exc.append(standardException(['TRASH'], 'INPLAYS', 'TRASH', ['Engineer']))

@@ -213,3 +213,7 @@ class gameState:
         zoneStrings = [[str(part) for part in getattr(self, zone)]
                        for zone in zones]
         return zoneStrings
+
+
+def chunkLength(chunk):
+    return sum([1 + chunkLength(subchunk) for subchunk in chunk[1:]])
