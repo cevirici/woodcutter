@@ -3628,7 +3628,8 @@ standardPreds.append(t)
 
 # 26
 def pred26Action(cM, gS, exc, tExc, pers):
-    gS[-1].move(cM[0].player, 'INPLAYS', 'OTHERS', cM[0].items)
+    if cM[0].items.primary() not in BOONHEX:
+        gS[-1].move(cM[0].player, 'INPLAYS', 'OTHERS', cM[0].items)
 
 t = Pred("^(?P<player>.*) sets (?P<cards>.*) aside\.$", pred26Action, "SET ASIDE")
 standardPreds.append(t)
