@@ -4298,5 +4298,7 @@ standardPersistents.append(standardException(['RETURN TO'], 'OTHERS', 'SUPPLY',
 travellers = ['Page', 'Treasure Hunter', 'Warrior', 'Hero', 'Champion', 'Peasant', 'Soldier', 'Fugitive', 'Disciple', 'Teacher']
 standardPersistents.append(standardException(['RETURN'], 'INPLAYS', 'SUPPLY',
                                              travellers))
+standardPersistents.append(Exception(standardCondition(['DISCARD'], ['Wine Merchant']),
+                                     moveException('OTHERS', 'DISCARDS')))
 
 standardNames = [x.simple_name for x in standardCards]
