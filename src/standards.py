@@ -970,7 +970,7 @@ standardCards.append(t)
 # 104: Counting House
 def countinghouse_action(cM, gS, exc, tExc, pers):
     if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exc.append(standardException(['PUT INHAND']), 'DISCARDS', 'HANDS')
+        exc.append(standardException(['PUT INHAND'], 'DISCARDS', 'HANDS'))
 
 
 t = Card('Counting House', 'Counting Houses', 'a Counting House', 5, 0, 'c4c0b4', '6f5143', countinghouse_action)
