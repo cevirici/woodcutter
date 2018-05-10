@@ -80,6 +80,9 @@ modals{
     justify-content: space-between;
     align-items: center;
 }
+.top-container > a{
+    height: 100%;
+}
 
 .topbar{
     width: 95%;
