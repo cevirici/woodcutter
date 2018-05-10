@@ -12,3 +12,8 @@ $('.help-hint').click(function(){
 $('.search-button').click(function(){
 	window.location.href = '/woodcutter/' + $('.searchbox').val() + '/display';
 })
+
+
+$('.random-log').click(function(){
+	window.location.href = '/woodcutter/random';
+})

@@ -4,6 +4,7 @@ from django.conf import settings
 from django.urls import reverse
 from django.core.exceptions import ObjectDoesNotExist
 from django.views.decorators.csrf import csrf_exempt
+from random import randint
 from .src import *
 from .models import GameLog
 
@@ -18,6 +19,13 @@ def inputFields(request):
 
 def main(request):
     return render(request, 'woodcutter/main.html')
+
+
+def random(request):
+    logs = GameLog.objects.all()
+    i = randint(0, len(logs)-1)
+    gameIndex = logs[i].game_id
+    return HttpResponseRedirect(reverse('woodcutter:display', args=(gameIndex,)))
 
 
 @csrf_exempt

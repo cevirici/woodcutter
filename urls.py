@@ -9,5 +9,6 @@ urlpatterns = [
     path('submit', views.submit, name='submit'),
     path('errorlist', views.error_list, name='errorlist'),
     path('editlog', views.edit_log, name='editlog'),
+    path('random', views.random, name='random'),
     path('<int:game_id>/display/', views.display, name='display'),
 ]

@@ -152,11 +152,21 @@ h1{
 }
 
 
-.help-hint{
+.undertext{
 	width: 40%;
 	height: 5vh;
 	margin-top: 1vh;
 
+	display: flex;
+	flex-direction: row;	
+	justify-content: center;
+	align-items: center;
+}
+.undertext > :not(:first-child){
+	margin-left: 2%;
+}
+
+.help-hint, .random-log{
 	font-family: "Segoe UI";
 	color: #BBBBFF;
 
@@ -165,6 +175,6 @@ h1{
 	justify-content: center;
 	align-items: center;
 }
-.help-hint:hover{
+.help-hint:hover, .random-log:hover{
 	color: #BBBB66;
 }
