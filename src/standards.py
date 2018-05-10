@@ -367,9 +367,9 @@ def vassal_action(cM, gS, exc, tExc, pers):
 
         # You're fucked up, vassal.
         tExc.append(Exception(standardCondition(['PLAY'], [discardedCard]),
-                              moveException('DISCARDS', 'INPLAYS'), len(cM)+1))
+                              moveException('DISCARDS', 'INPLAYS'), len(cM)))
         tExc.append(Exception(standardCondition(['PLAY'], [discardedCard]),
-                              standardOnPlay, len(cM)+1))
+                              standardOnPlay, len(cM)))
 
 
 t = Card('Vassal', 'Vassals', 'a Vassal', 3, 0, 'c4c0b4', 'ba6816', vassal_action)
