@@ -3960,15 +3960,19 @@ standardPreds.append(t)
 t = Pred("^(?P<player>.*) gets \+1 Buy \(Bridge Troll\)\.$", empty, "DURATION TROLL")
 standardPreds.append(t)
 
+
 # 72
 def turn_start_action(cM, gS, exc, tExc, pers):
     exc.append(standardException(['PLAY'], 'OTHERS', 'INPLAYS'))
     exc.append(Exception(standardCondition(['PLAY']), standardOnPlay))
     exc.append(standardException(['PUT INHAND'], 'OTHERS', 'HANDS',
                                  ['Horse Traders']))
+
     # Probably Cobbler
     def immediate_gain_condition(cM):
-        return cM[0].predName() == 'GAIN' and cM[0].indent == 1
+        # Amulet!
+        isSilver = cM[0].items.primary() == 'Silver'
+        return cM[0].predName() == 'GAIN' and cM[0].indent == 1 and not isSilver
 
     exc.append(Exception(immediate_gain_condition, moveException('SUPPLY', 'HANDS')))
     exc.append(Exception(immediate_gain_condition, standardOnGains('DECKS', cM[0].items)))
