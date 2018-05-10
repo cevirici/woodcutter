@@ -50,7 +50,8 @@ def gainCash(amount):
     return out_function
 
 
-def standardOnGains(src, gainedCard):
+def standardOnGains(src):
+
     def topdeckerMove(cM, gS, exc, tExc, pers):
         gS[-1].move(cM[0].player, src, 'DECKS', gainedCard)
 
@@ -73,6 +74,13 @@ def standardOnGains(src, gainedCard):
         gS[-1].phase = 0
 
     def out_function(cM, gS, exc, tExc, pers):
+        if cM[0].predName() in ['GAIN', 'BUY AND GAIN', 'GAIN TOPDECK', 'GAIN TRASH']:
+            gainedCard = cM[0].items
+        else:
+            for subchunk in cM[1:]:
+                if subchunk[0].predName() in ['GAIN', 'BUY AND GAIN', 'GAIN TOPDECK', 'GAIN TRASH']:
+                    gainedCard = subchunk[0].items
+
         exc.append(Exception(specificCondition(['TOPDECK'], gainedCard),
                              topdeckerMove))
         exc.append(Exception(specificCondition(['TRASH'], gainedCard),
@@ -191,7 +199,7 @@ def artisan_action(cM, gS, exc, tExc, pers):
     if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
         exc.append(exc_gainHand)
         exc.append(Exception(standardCondition(['GAIN']),
-                             standardOnGains('HANDS', cM[0].items)))
+                             standardOnGains('HANDS')))
 
 
 t = Card('Artisan', 'Artisans', 'an Artisan', 6, 0, 'c4c0b4', 'bc5a00', artisan_action)
@@ -215,7 +223,7 @@ def bureaucrat_action(cM, gS, exc, tExc, pers):
     if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
         exc.append(standardException(['GAIN'], 'SUPPLY', 'DECKS', ['Silver']))
         exc.append(Exception(standardCondition(['GAIN']),
-                             standardOnGains('DECKS', cM[0].items)))
+                             standardOnGains('DECKS')))
 
 
 t = Card('Bureaucrat', 'Bureaucrats', 'a Bureaucrat', 4, 0, 'c4c0b4', '95633b', bureaucrat_action)
@@ -309,7 +317,7 @@ def mine_action(cM, gS, exc, tExc, pers):
     if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
         exc.append(exc_gainHand)
         exc.append(Exception(standardCondition(['GAIN']),
-                             standardOnGains('HANDS', cM[0].items)))
+                             standardOnGains('HANDS')))
 
 
 t = Card('Mine', 'Mines', 'a Mine', 5, 0, 'c4c0b4', '433935', mine_action)
@@ -475,7 +483,7 @@ def lurker_action(cM, gS, exc, tExc, pers):
         exc.append(exc_standardTrash)
         exc.append(standardException(['GAIN'], 'TRASH', 'DISCARDS'))
         exc.append(Exception(standardCondition(['GAIN']),
-                             standardOnGains('DECKS', cM[0].items)))
+                             standardOnGains('DECKS')))
 
 
 t = Card('Lurker', 'Lurkers', 'a Lurker', 2, 0, 'c4c0b4', '909ab2', lurker_action)
@@ -568,7 +576,7 @@ def torturer_action(cM, gS, exc, tExc, pers):
     if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
         exc.append(standardException(['GAIN'], 'SUPPLY', 'HANDS', ['Curse']))
         exc.append(Exception(standardCondition(['GAIN'], ['Curse']),
-                             standardOnGains('HANDS', cM[0].items)))
+                             standardOnGains('HANDS')))
 
 t = Card('Torturer', 'Torturers', 'a Torturer', 5, 0, 'c4c0b4', '842804', torturer_action)
 standardCards.append(t)
@@ -578,7 +586,7 @@ def tradepost_action(cM, gS, exc, tExc, pers):
     if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
         exc.append(standardException(['GAIN'], 'SUPPLY', 'HANDS', ['Silver']))
         exc.append(Exception(standardCondition(['GAIN'], ['Silver']),
-                             standardOnGains('HANDS', cM[0].items)))
+                             standardOnGains('HANDS')))
 
 t = Card('Trading Post', 'Trading Posts', 'a Trading Post', 5, 0, 'c4c0b4', '686434', tradepost_action)
 standardCards.append(t)
@@ -644,7 +652,7 @@ def explorer_action(cM, gS, exc, tExc, pers):
         exc.append(standardException(['GAIN'], 'SUPPLY', 'HANDS',
                                      ['Silver', 'Gold']))
         exc.append(Exception(standardCondition(['GAIN'], ['Silver', 'Gold']),
-                             standardOnGains('HANDS', cM[0].items)))
+                             standardOnGains('HANDS')))
 
 
 t = Card('Explorer', 'Explorers', 'an Explorer', 5, 0, 'c4c0b4', '74D0F6', explorer_action)
@@ -798,7 +806,7 @@ def seahag_action(cM, gS, exc, tExc, pers):
         exc.append(exc_revealDiscard)
         exc.append(standardException(['GAIN'], 'SUPPLY', 'DECKS', ['Curse']))
         exc.append(Exception(standardCondition(['GAIN']),
-                             standardOnGains('DECKS', cM[0].items)))
+                             standardOnGains('DECKS')))
 
 
 t = Card('Sea Hag', 'Sea Hags', 'a Sea Hag', 4, 0, 'c4c0b4', '745a44', seahag_action)
@@ -1173,7 +1181,7 @@ def bagofgold_action(cM, gS, exc, tExc, pers):
     if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
         exc.append(standardException(['GAIN'], 'SUPPLY', 'DECKS', ['Gold']))
         exc.append(Exception(standardCondition(['GAIN'], ['Gold']),
-                             standardOnGains('DECKS', cM[0].items)))
+                             standardOnGains('DECKS')))
 
 
 t = Card('Bag of Gold', 'Bags of Gold', 'a Bag of Gold', 0, 1, 'c4c0b4', 'b47214', bagofgold_action)
@@ -1283,7 +1291,7 @@ def tournament_action(cM, gS, exc, tExc, pers):
     if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
         exc.append(standardException(['GAIN'], 'SUPPLY', 'DECKS'))
         exc.append(Exception(standardCondition(['GAIN']),
-                             standardOnGains('DECKS', cM[0].items)))
+                             standardOnGains('DECKS')))
 
 
 t = Card('Tournament', 'Tournaments', 'a Tournament', 4, 0, 'c4c0b4', '937755', tournament_action)
@@ -1295,7 +1303,7 @@ def steed_action(cM, gS, exc, tExc, pers):
     if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
         exc.append(standardException(['GAIN'], 'SUPPLY', 'DECKS', ['Silver']))
         exc.append(Exception(standardCondition(['GAIN']),
-                             standardOnGains('DECKS', cM[0].items)))
+                             standardOnGains('DECKS')))
 
 
 t = Card('Trusty Steed', 'Trusty Steeds', 'a Trusty Steed', 0, 1, 'c4c0b4', '6e726a', steed_action)
@@ -1334,7 +1342,7 @@ def develop_action(cM, gS, exc, tExc, pers):
     if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
         exc.append(standardException(['GAIN'], 'SUPPLY', 'DECKS'))
         exc.append(Exception(standardCondition(['GAIN']),
-                             standardOnGains('DECKS', cM[0].items)))
+                             standardOnGains('DECKS')))
 
 
 t = Card('Develop', 'Develops', 'a Develop', 3, 0, 'c4c0b4', 'c09864', develop_action)
@@ -1502,7 +1510,7 @@ def armory_action(cM, gS, exc, tExc, pers):
     if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
         exc.append(standardException(['GAIN'], 'SUPPLY', 'DECKS'))
         exc.append(Exception(standardCondition(['GAIN']),
-                             standardOnGains('DECKS', cM[0].items)))
+                             standardOnGains('DECKS')))
 
 
 t = Card('Armory', 'Armories', 'an Armory', 4, 0, 'c4c0b4', '54564e', armory_action)
@@ -1528,7 +1536,7 @@ def beggar_action(cM, gS, exc, tExc, pers):
     if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
         exc.append(standardException(['GAIN'], 'SUPPLY', 'HANDS', ['Copper']))
         exc.append(Exception(standardCondition(['GAIN'], ['Copper']),
-                             standardOnGains('HANDS', cM[0].items)))
+                             standardOnGains('HANDS')))
 
 
 t = Card('Beggar', 'Beggars', 'a Beggar', 2, 0, '8ca2be', '503626', beggar_action)
@@ -1997,7 +2005,7 @@ def taxman_action(cM, gS, exc, tExc, pers):
     if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
         exc.append(standardException(['GAIN'], 'SUPPLY', 'DECKS'))
         exc.append(Exception(standardCondition(['GAIN']),
-                             standardOnGains('DECKS', cM[0].items)))
+                             standardOnGains('DECKS')))
 
 
 t = Card('Taxman', 'Taxmen', 'a Taxman', 4, 0, 'c4c0b4', '70583a', taxman_action)
@@ -2025,7 +2033,7 @@ def artificer_action(cM, gS, exc, tExc, pers):
     if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
         exc.append(standardException(['GAIN'], 'SUPPLY', 'DECKS'))
         exc.append(Exception(standardCondition(['GAIN']),
-                             standardOnGains('DECKS', cM[0].items)))
+                             standardOnGains('DECKS')))
 
 
 t = Card('Artificer', 'Artificers', 'an Artificer', 5, 0, 'c4c0b4', '754f2b', artificer_action)
@@ -2297,7 +2305,7 @@ def transmogrify_action(cM, gS, exc, tExc, pers):
     if cM[0].predName() in ['CALL']:
         tExc.append(standardException(['GAIN'], 'SUPPLY', 'HANDS'))
         tExc.append(Exception(standardCondition(['GAIN']),
-                             standardOnGains('HANDS', cM[0].items)))
+                             standardOnGains('HANDS')))
 
 t = Card('Transmogrify', 'Transmogrifies', 'a Transmogrify', 4, 0, 'c5af85', '6e6258', transmogrify_action)
 standardCards.append(t)
@@ -2381,11 +2389,11 @@ def rocks_action(cM, gS, exc, tExc, pers):
         if gS[-1].phase == 1:
             exc.append(standardException(['GAIN'], 'SUPPLY', 'DECKS'))
             exc.append(Exception(standardCondition(['GAIN']),
-                                 standardOnGains('DECKS', cM[0].items)))
+                                 standardOnGains('DECKS')))
         else:
             exc.append(standardException(['GAIN'], 'SUPPLY', 'HANDS'))
             exc.append(Exception(standardCondition(['GAIN']),
-                                 standardOnGains('HANDS', cM[0].items))) 
+                                 standardOnGains('HANDS'))) 
 
 
 t = Card('Rocks', 'Rocks', 'a Rocks', 4, 0, 'd8c280', '80963a', rocks_action)
@@ -3313,7 +3321,7 @@ def wish_action(cM, gS, exc, tExc, pers):
     if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
         exc.append(standardException(['GAIN'], 'SUPPLY', 'HANDS',))
         exc.append(Exception(standardCondition(['GAIN']),
-                             standardOnGains('HANDS', cM[0].items)))
+                             standardOnGains('HANDS')))
 
 
 t = Card('Wish', 'Wishes', 'a Wish', 0, 1, 'c4c0b4', '0f6551', wish_action)
@@ -3434,7 +3442,7 @@ def standardGains(source, destination='DISCARDS'):
                 targetStuff -= exceptionalStuff
 
                 gS[-1].move(cM[0].player, source, 'DECKS', exceptionalStuff)
-                standardOnGains('DECKS', exceptionalStuff)(cM, gS, exc, tExc, pers)
+                standardOnGains('DECKS')(cM, gS, exc, tExc, pers)
 
             if standardCards[card].simple_name in ['Den Of Sin', 'Guardian',
                                                    'Ghost Town', 'Night Watchman']:
@@ -3442,13 +3450,13 @@ def standardGains(source, destination='DISCARDS'):
                 targetStuff -= exceptionalStuff
 
                 gS[-1].move(cM[0].player, source, 'HANDS', exceptionalStuff)
-                standardOnGains('HANDS', exceptionalStuff)(cM, gS, exc, tExc, pers)
+                standardOnGains('HANDS')(cM, gS, exc, tExc, pers)
 
         if targetStuff.count() > 0:
             for card in targetStuff:
                 cardStuff = Cardstack({card: targetStuff[card]})
                 gS[-1].move(cM[0].player, source, destination, cardStuff)
-                standardOnGains(destination, cardStuff)(cM, gS, exc, tExc, pers)
+                standardOnGains(destination)(cM, gS, exc, tExc, pers)
 
     return out_function
 
@@ -3749,7 +3757,7 @@ def standard_boonhex(cM, gS, exc, tExc, pers):
         greed_gain = standardException(['GAIN'], 'SUPPLY', 'DECKS', ['Copper'])
         copperStack = Cardstack({standardNames.index('Copper'): 1})
         greed_ongain = Exception(standardCondition(['GAIN'], ['Copper']),
-                                 standardOnGains('DECKS', copperStack))
+                                 standardOnGains('DECKS'))
         tExc.append(greed_gain)
         tExc.append(greed_ongain)
         tExc.append(Exception(discardBoonhexCondition,
@@ -3759,7 +3767,7 @@ def standard_boonhex(cM, gS, exc, tExc, pers):
         plague_gain = standardException(['GAIN'], 'SUPPLY', 'HANDS', ['Curse'])
         curseStack = Cardstack({standardNames.index('Curse'): 1})
         plague_ongain = Exception(standardCondition(['GAIN'], ['Copper']),
-                                  standardOnGains('HANDS', curseStack))
+                                  standardOnGains('HANDS'))
         tExc.append(plague_gain)
         tExc.append(plague_ongain)
         tExc.append(Exception(discardBoonhexCondition,
@@ -3976,8 +3984,36 @@ def turn_start_action(cM, gS, exc, tExc, pers):
         isSilver = cM[0].items.primary() == 'Silver'
         return cM[0].predName() == 'GAIN' and cM[0].indent == 1 and not isSilver
 
+    whichBoon = cM[0].items.primary()
+
+    # Boons and Shit
+    def add_stuff(cM, gS, exc, tExc, pers):
+        thisBoon = cM[0].items.primary()
+        exc_gainNormally = Exception(standardCondition(['GAIN']),
+                                     moveException('SUPPLY', 'DISCARDS'),
+                                     priority=1)
+        exc_onGainNormally = Exception(standardCondition(['GAIN']),
+                                       standardOnGains('DISCARDS'),
+                                       priority=1)
+
+        def discardBoonhexCondition(cM):
+            return cM[0].items.primary() == thisBoon and cM[0].predName() == 'DISCARD'
+
+        def remove_stuff(exceptions):
+            def out_function(cM, gS, exc, tExc, pers):
+                for exception in exceptions:
+                    if exception in tExc:
+                        tExc.remove(exception)
+            return out_function
+
+        tExc.append(exc_gainNormally)
+        tExc.append(exc_onGainNormally)
+        tExc.append(Exception(discardBoonhexCondition,
+                    remove_stuff([exc_gainNormally, exc_onGainNormally])))
+
+    exc.append(Exception(standardCondition(['TAKES BOONHEX']), add_stuff))
     exc.append(Exception(immediate_gain_condition, moveException('SUPPLY', 'HANDS')))
-    exc.append(Exception(immediate_gain_condition, standardOnGains('DECKS', cM[0].items)))
+    exc.append(Exception(immediate_gain_condition, standardOnGains('DECKS')))
 
 
 t = Pred("^(?P<player>.*) starts their turn\.$", turn_start_action, "TURN START")
