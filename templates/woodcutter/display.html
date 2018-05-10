@@ -11,8 +11,11 @@
 
 {% block content %}
     <content>
-        <div class = 'topbar'>
-            {{ title_string|safe }}
+        <div class = 'top-container'>
+            <img class = 'logo' src='{% static "woodcutter/woodcutter_icon_small.png" %}'>
+            <div class = 'topbar'>
+                {{ title_string|safe }}
+            </div>
         </div>
         <div class = 'container'>
             <div class = 'graph-control-container' >

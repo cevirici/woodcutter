@@ -1,14 +1,25 @@
+{% extends 'woodcutter/base.html' %}
 {% load static %}
 
-<html>
-	<head>
-		<title>Dominion Woodcutter</title>
-		<meta name='viewport' content='width=device-width, initial-scale=1'>
-		<link rel='stylesheet' href="{% static 'woodcutter/mainstyle.css' %}">
-	</head>
-	<body>
-		<div class = 'content-container'>
-			<h1> Dominion Woodcutter </h1>
+{% block header %}
+	<title>Dominion Woodcutter</title>
+	<link rel='stylesheet' href="{% static 'woodcutter/mainstyle.css' %}">
+    <link rel='stylesheet' href="{% static 'woodcutter/perfect-scrollbar.css' %}">
+    <script src="{% static 'woodcutter/perfect-scrollbar.min.js' %}"></script>
+	<script src="{% static 'woodcutter/jquery-3.2.1.min.js' %}"></script>
+{% endblock %}
+
+{% block content %}
+	<div class = 'content-container'>
+		<img class = 'logo' src="{% static 'woodcutter/woodcuttericon_full.png' %}">
+
+		<div class = 'search-container'>
+			<input class = 'searchbox' type = 'text' placeholder = 'Game Number'>
+			<div class = 'search-button'>Go!</div>
+		</div>
+
+		<div class = 'help-hint'>What is this?</div>
+		<div class = 'help-container'>
 			<p>This is a tool for collating and formatting Dominion logs from Dominion Online at ShuffleIt. To begin, get the <a href='https://greasyfork.org/en/scripts/38490-woodcutter-grabber' target="_blank">accompanying Tampermonkey script.</a></p>
 			<img src="{% static 'woodcutter/tutorial1.png' %}">
 			<p>Then, go to Dominion Online, and click "New Table" -> "Load Old Game"</p>
@@ -16,5 +27,12 @@
 			<p>Then, input the game number, and hit "Grab Logs". Don't leave the tab or click anything until the script is done running (when you're pushed back to the lobby, and a new tab opens with your parsed log). That's it!</p>
 			<p>Logs are accessible at ceviri.me/woodcutter/game-number/display</p>
 		</div>
-	</body>
-</html>
+	</div>
+{% endblock %}
+
+{% block postblock %}
+    <script src="{% static 'woodcutter/mainpage.js' %}"></script>
+	<script>
+		const psg = new PerfectScrollbar('.help-container', {suppressScrollX: true});
+	</script>
+{% endblock %}

@@ -144,7 +144,7 @@ function scrollTo(storylineIndex){
     $('.story-window').scrollTop($('.story-line[turn=\''+storylineIndex+'\']').get(0).offsetTop-10);
 }
 
-$('.axislabel').click( function(){
+$('.axislabel').click(function(){
     scrollTo($(this).index())
 });
 
