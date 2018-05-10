@@ -106,6 +106,12 @@ def staticWorth(val):
     return out_function
 
 
+def knightsTrashCondition(knightPlayer):
+    def out_function(cM):
+        return cM[0].predName() == 'TRASH' and cM[0].player != knightPlayer
+    return out_function
+
+
 exc_revealTrash = standardException(['TRASH'], 'DECKS', 'TRASH')
 exc_revealTopdeck = standardException(['TOPDECK'], 'DECKS', 'DECKS')
 exc_revealDiscard = standardException(['DISCARD'], 'DECKS', 'DISCARDS')
@@ -552,6 +558,7 @@ def swindler_action(cM, gS, exc, tExc, pers):
     if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
         exc.append(exc_revealTrash)
         exc.append(exc_standardTrash)
+
 
 t = Card('Swindler', 'Swindlers', 'a Swindler', 3, 0, 'c4c0b4', 'b78d49', swindler_action)
 standardCards.append(t)
@@ -1555,12 +1562,6 @@ standardCards.append(t)
 # 183: Cultist
 t = Card('Cultist', 'Cultists', 'a Cultist', 5, 0, 'c4c0b4', '4b4957', empty)
 standardCards.append(t)
-
-
-def knightsTrashCondition(knightPlayer):
-    def out_function(cM):
-        return cM[0].predName() == 'TRASH' and cM[0].player != knightPlayer
-    return out_function
 
 
 def knightsSuicideCondition(knightPlayer):
@@ -4262,10 +4263,8 @@ def urchin_trash_condition(cM):
 
 
 def urchin_trash_exception(cM, gS, exc, tExc, pers):
-    passedExcs = [e for e in exc + pers if e.condition(cM)]
-    if not passedExcs:
-        standardPreds[cM[0].pred].action(cM, gS, exc, tExc, pers)
-        standardOnPlay(cM, gS, exc, tExc, pers)
+    standardPreds[cM[0].pred].action(cM, gS, exc, tExc, pers)
+    standardOnPlay(cM, gS, exc, tExc, pers)
 
     exc.append(Exception(standardCondition(['TRASH'], ['Urchin']),
                          moveException('INPLAYS', 'TRASH'),
@@ -4286,6 +4285,7 @@ def hermit_trash_condition(cM):
 def hermit_trash_exception(cM, gS, exc, tExc, pers):
     standardPreds[cM[0].pred].action(cM, gS, exc, tExc, pers)
     standardOnPlay(cM, gS, exc, tExc, pers)
+
     exc.append(Exception(standardCondition(['TRASH'], ['Hermit']),
                          moveException('INPLAYS', 'TRASH'),
                          priority=1))
