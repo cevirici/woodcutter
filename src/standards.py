@@ -4248,8 +4248,11 @@ def urchin_trash_condition(cM):
 
 
 def urchin_trash_exception(cM, gS, exc, tExc, pers):
-    standardPreds[cM[0].pred].action(cM, gS, exc, tExc, pers)
-    standardOnPlay(cM, gS, exc, tExc, pers)
+    passedExcs = [e for e in exc + pers if e.condition(cM)]
+    if not passedExcs:
+        standardPreds[cM[0].pred].action(cM, gS, exc, tExc, pers)
+        standardOnPlay(cM, gS, exc, tExc, pers)
+
     exc.append(Exception(standardCondition(['TRASH'], ['Urchin']),
                          moveException('INPLAYS', 'TRASH'),
                          priority=1))
