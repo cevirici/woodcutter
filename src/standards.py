@@ -3712,13 +3712,13 @@ def standard_boonhex(cM, gS, exc, tExc, pers):
     def discardBoonhexCondition(cM):
         return cM[0].items.primary() == whichBoon and cM[0].predName() == 'DISCARD'
 
-    elevated_topdeck = Exception(standardCondition('TOPDECK'),
+    elevated_topdeck = Exception(standardCondition(['TOPDECK']),
                                  moveException('DECKS', 'DECKS'),
                                  priority=1)
-    elevated_trash = Exception(standardCondition('TRASH'),
+    elevated_trash = Exception(standardCondition(['TRASH']),
                                moveException('DECKS', 'TRASH'),
                                priority=1)
-    elevated_harbinger = Exception(standardCondition('TOPDECK'),
+    elevated_harbinger = Exception(standardCondition(['TOPDECK']),
                                    moveException('DISCARDS', 'DECKS'),
                                    priority=1)
 
@@ -3727,6 +3727,20 @@ def standard_boonhex(cM, gS, exc, tExc, pers):
         tExc.append(exc_revealDiscard)
         tExc.append(Exception(discardBoonhexCondition,
                     removeBoonhex([elevated_topdeck, exc_revealDiscard])))
+
+    elif whichBoon == 'The Earth\'s Gift':
+        gain_normally = Exception(standardCondition(['GAIN']),
+                                  moveException('SUPPLY', 'DISCARDS'),
+                                  priority=1)
+
+        ongain_normally = Exception(standardCondition(['GAIN']),
+                                    standardOnGains('DISCARDS', cM[0].items),
+                                    priority=1)
+
+        tExc.append(gain_normally)
+        tExc.append(ongain_normally)
+        tExc.append(Exception(discardBoonhexCondition,
+                    removeBoonhex([gain_normally, ongain_normally])))
 
     elif whichBoon == 'The Moon\'s Gift':
         tExc.append(elevated_harbinger)
