@@ -1583,7 +1583,8 @@ def standardKnightsAction(cM, gS, exc, tExc, pers):
 # 184: Dame Anna
 def anna_trash_condition(knightPlayer):
     def out_function(cM):
-        return cM[0].predName() == 'TRASH' and cM[0].player == knightPlayer
+        trashPart = cM[0].predName() == 'TRASH' and cM[0].items.primary() != 'Dame Anna'
+        return trashPart and cM[0].player == knightPlayer
     return out_function
 
 
