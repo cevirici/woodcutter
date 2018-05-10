@@ -3038,8 +3038,8 @@ standardCards.append(t)
 
 # 416: Faithful Hound
 def hound_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['DISCARD']:
-        exc.append(standardException(['SET ASIDE'], 'DISCARDS', 'OTHERS', ['Faithful Hound']))
+    if cM[0].predName() in ['REACT']:
+        tExc.append(standardException(['SET ASIDE'], 'DISCARDS', 'OTHERS', ['Faithful Hound']))
 
 
 t = Card('Faithful Hound', 'Faithful Hounds', 'a Faithful Hound', 2, 0, '8ca2be', '8c7640', hound_action)
