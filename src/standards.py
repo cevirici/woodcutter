@@ -788,6 +788,7 @@ standardCards.append(t)
 # 80: Sea Hag
 def seahag_action(cM, gS, exc, tExc, pers):
     if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+        exc.append(exc_revealDiscard)
         exc.append(standardException(['GAIN'], 'SUPPLY', 'DECKS', ['Curse']))
         exc.append(Exception(standardCondition(['GAIN']),
                              standardOnGains('DECKS', cM[0].items)))
