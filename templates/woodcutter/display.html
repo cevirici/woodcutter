@@ -12,7 +12,9 @@
 {% block content %}
     <content>
         <div class = 'top-container'>
-            <img class = 'logo' src='{% static "woodcutter/woodcutter_icon_small.png" %}'>
+            <a href = "{% url 'woodcutter:index' %}">
+                <img class = 'logo' src='{% static "woodcutter/woodcutter_icon_small.png" %}'>
+            </a>
             <div class = 'topbar'>
                 {{ title_string|safe }}
             </div>
