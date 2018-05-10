@@ -3729,20 +3729,6 @@ def standard_boonhex(cM, gS, exc, tExc, pers):
         tExc.append(Exception(discardBoonhexCondition,
                     removeBoonhex([elevated_topdeck, exc_revealDiscard])))
 
-    elif whichBoon == 'The Earth\'s Gift':
-        gain_normally = Exception(standardCondition(['GAIN']),
-                                  moveException('SUPPLY', 'DISCARDS'),
-                                  priority=1)
-
-        ongain_normally = Exception(standardCondition(['GAIN']),
-                                    standardOnGains('DISCARDS', cM[0].items),
-                                    priority=1)
-
-        tExc.append(gain_normally)
-        tExc.append(ongain_normally)
-        tExc.append(Exception(discardBoonhexCondition,
-                    removeBoonhex([gain_normally, ongain_normally])))
-
     elif whichBoon == 'The Moon\'s Gift':
         tExc.append(elevated_harbinger)
         tExc.append(Exception(discardBoonhexCondition,

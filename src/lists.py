@@ -800,4 +800,5 @@ card_order = ['Argument',
               'Peddler',
               'Prince',
               'Debt',
-              'debt']
+              'debt',
+              "The Earth's Gift"]
