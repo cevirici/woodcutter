@@ -146,8 +146,8 @@ def display(request, game_id):
     return render(request, 'woodcutter/display.html', context)
 
 
-def error_list(request):
-    '''for log in GameLog.objects.all():
+def force_error_list(request):
+    for log in GameLog.objects.all():
         moveData = unpack(log.log, log.supply)
         players = log.players.split('~')
 
@@ -159,8 +159,23 @@ def error_list(request):
             log.save()
 
         log.valid = gameStates[-1].valid
-        log.save()'''
+        log.save()
 
+    rawLogs = GameLog.objects.filter(valid=False).all()
+    errorLogs = []
+    for rawLog in rawLogs:
+        players = rawLog.players.split('~')
+        title = 'Game #{}: {} - {}'.format(rawLog.game_id, players[0], players[1])
+
+        errorLogs.append([title, rawLog.game_id])
+
+    context = {
+        'error_logs': errorLogs
+    }
+    return render(request, 'woodcutter/errorList.html', context)
+
+
+def error_list(request):
     rawLogs = GameLog.objects.filter(valid=False).all()
     errorLogs = []
     for rawLog in rawLogs:
