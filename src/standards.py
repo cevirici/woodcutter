@@ -3196,7 +3196,7 @@ standardCards.append(t)
 def tragichero_action(cM, gS, exc, tExc, pers):
     if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
         exc.append(standardException(['TRASH'], 'INPLAYS', 'TRASH',
-                                     ['Tragic Hero']))
+                                     ['Tragic Hero', 'Overlord']))
 
 
 t = Card('Tragic Hero', 'Tragic Heroes', 'a Tragic Hero', 5, 0, 'c4c0b4', '5c88a4', tragichero_action)

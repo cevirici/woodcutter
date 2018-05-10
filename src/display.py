@@ -279,8 +279,8 @@ def elaborate_cards(cardlist, fancy):
 
     if len(phrases) > 1:
         phrases[-1] = ' and ' + phrases[-1]
-        for phrase in phrases[1:-1]:
-            phrase = ', ' + phrase
+        for i in range(1, len(phrases)-1):
+            phrases[i] = ', ' + phrases[i]
 
     return ''.join(phrases)
 
