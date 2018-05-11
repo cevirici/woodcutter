@@ -356,7 +356,7 @@ def render_kingdom(supply):
     # Kingdom | Nonsupply | Others (Cards)
     # Card | Index
 
-    supplyCards = [standardCards[x] for x in supply]
+    supplyCards = [standardCards[x] for x in supply if supply[x] > 1]
     bunchCards = [[range(312, 320), 311],
                   [[218, 219, 220, 221, 222, 185, 186, 187, 188, 189], 174],
                   [[175, 213, 214, 215, 226], 173]]
