@@ -52,15 +52,6 @@ def gainCash(amount):
 
 def standardOnGains(src):
 
-    def topdeckerMove(cM, gS, exc, tExc, pers):
-        gS[-1].move(cM[0].player, src, 'DECKS', gainedCard)
-
-    def trasherMove(cM, gS, exc, tExc, pers):
-        gS[-1].move(cM[0].player, src, 'TRASH', gainedCard)
-
-    def returnMove(cM, gS, exc, tExc, pers):
-        gS[-1].move(cM[0].player, src, 'SUPPLY', gainedCard)
-
     def specificCondition(predList, gainedCard):
         def out_function(cM):
             if standardPreds[cM[0].pred].name not in predList:
@@ -80,6 +71,15 @@ def standardOnGains(src):
             for subchunk in cM[1:]:
                 if subchunk[0].predName() in ['GAIN', 'BUY AND GAIN', 'GAIN TOPDECK', 'GAIN TRASH']:
                     gainedCard = subchunk[0].items
+
+        def topdeckerMove(cM, gS, exc, tExc, pers):
+            gS[-1].move(cM[0].player, src, 'DECKS', gainedCard)
+
+        def trasherMove(cM, gS, exc, tExc, pers):
+            gS[-1].move(cM[0].player, src, 'TRASH', gainedCard)
+
+        def returnMove(cM, gS, exc, tExc, pers):
+            gS[-1].move(cM[0].player, src, 'SUPPLY', gainedCard)
 
         exc.append(Exception(specificCondition(['TOPDECK'], gainedCard),
                              topdeckerMove))
