@@ -365,7 +365,6 @@ treasures = ['Copper',
              'Pouch',
              'Stash']
 ZOMBIES = [450, 451, 452]
-CASTLES = range(311, 320)
 BOONHEX = [
            'The Earth\'s Gift',
            'The Field\'s Gift',

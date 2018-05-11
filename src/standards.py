@@ -920,7 +920,7 @@ t = Card('Possession', 'Possessions', 'a Possession', 8, 0, 'c4c0b4', '736157', 
 standardCards.append(t)
 
 # 95: Potion
-t = Card('Potion', 'Potions', 'a Potion', 4, 1, 'f1d14d', '1768C4', empty)
+t = Card('Potion', 'Potions', 'a Potion', 4, 2, 'f1d14d', '1768C4', empty)
 standardCards.append(t)
 
 
@@ -1488,7 +1488,7 @@ t = Card('Tunnel', 'Tunnels', 'a Tunnel', 3, 0, '879E96', '545258', empty, stati
 standardCards.append(t)
 
 # 172: Ruins
-t = Card('Ruins', 'Ruins', 'a Ruins', 0, 0, 'b29462', '666666', empty)
+t = Card('Ruins', 'Ruins', 'a Ruins', 0, 2, 'b29462', '666666', empty)
 standardCards.append(t)
 
 # 173: Knights
@@ -1496,7 +1496,7 @@ t = Card('Knights', 'Knights', 'a Knights', 5, 0, 'c4c0b4', '819381', empty)
 standardCards.append(t)
 
 # 174: Abandoned Mine
-t = Card('Abandoned Mine', 'Abandoned Mines', 'an Abandoned Mine', 0, 0, 'b29462', '633b29', empty)
+t = Card('Abandoned Mine', 'Abandoned Mines', 'an Abandoned Mine', 0, -1, 'b29462', '633b29', empty)
 standardCards.append(t)
 
 # 175: Altar
@@ -1812,15 +1812,15 @@ t = Card('Rogue', 'Rogues', 'a Rogue', 5, 0, 'c4c0b4', '363c4c', rogue_action)
 standardCards.append(t)
 
 # 212: Ruined Library
-t = Card('Ruined Library', 'Ruined Libraries', 'a Ruined Library', 0, 0, 'b29462', '806a34', empty)
+t = Card('Ruined Library', 'Ruined Libraries', 'a Ruined Library', 0, -1, 'b29462', '806a34', empty)
 standardCards.append(t)
 
 # 213: Ruined Market
-t = Card('Ruined Market', 'Ruined Markets', 'a Ruined Market', 0, 0, 'b29462', '6d5753', empty)
+t = Card('Ruined Market', 'Ruined Markets', 'a Ruined Market', 0, -1, 'b29462', '6d5753', empty)
 standardCards.append(t)
 
 # 214: Ruined Village
-t = Card('Ruined Village', 'Ruined Villages', 'a Ruined Village', 0, 0, 'b29462', 'a4886a', empty)
+t = Card('Ruined Village', 'Ruined Villages', 'a Ruined Village', 0, -1, 'b29462', 'a4886a', empty)
 standardCards.append(t)
 
 
@@ -1844,7 +1844,7 @@ t = Card('Scavenger', 'Scavengers', 'a Scavenger', 4, 0, 'c4c0b4', '34404e', sca
 standardCards.append(t)
 
 # 217: Sir Bailey
-t = Card('Sir Bailey', 'Sir Baileys', 'a Sir Bailey', 5, 0, 'c4c0b4', '506070', standardKnightsAction)
+t = Card('Sir Bailey', 'Sir Baileys', 'a Sir Bailey', 5, -1, 'c4c0b4', '506070', standardKnightsAction)
 standardCards.append(t)
 
 # 218: Sir Destry
@@ -1899,7 +1899,7 @@ def survivors_action(cM, gS, exc, tExc, pers):
         exc.append(exc_revealDiscard)
 
 
-t = Card('Survivors', 'Survivors', 'a Survivors', 0, 0, 'b29462', '706a46', survivors_action)
+t = Card('Survivors', 'Survivors', 'a Survivors', 0, -1, 'b29462', '706a46', survivors_action)
 standardCards.append(t)
 
 # 226: Urchin

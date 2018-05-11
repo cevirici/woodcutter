@@ -357,10 +357,15 @@ def render_kingdom(supply):
     # Card | Index
 
     supplyCards = [standardCards[x] for x in supply]
-    print(supply)
-    print(CASTLES[1])
-    if CASTLES[1] in supply:
-        supplyCards.insert(0, standardCards[CASTLES[0]])
+    bunchCards = [[range(312, 320), 311],
+                  [[218, 219, 220, 221, 222, 185, 186, 187, 188, 189], 174],
+                  [[175, 213, 214, 215, 226], 173]]
+
+    for bunch in bunchCards:
+        for card in bunch[0]:
+            if card in supply:
+                supplyCards.insert(0, standardCards[bunch[1]])
+                break
     supplyCards = sorted(supplyCards, key=lambda x: (x.cost, x.simple_name))
     return [[[card, standardCards.index(card)] for
              card in supplyCards if card.supply_type == i] for i in range(3)]
