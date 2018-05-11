@@ -67,7 +67,7 @@ def parse_game(parsedLog):
 
     moveTree.append(currentTurn)
 
-    for turn in moveTree[1:]:
+    for turn in moveTree[1:-1]:
         pointer = turn
         while len(pointer[-1]) > 1:
             pointer = pointer[-1]
