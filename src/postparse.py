@@ -46,7 +46,7 @@ def parse_game(parsedLog):
         if currentMove.pred == NEWTURN_PRED:
             moveTree.append(currentTurn)
             currentTurn = [currentMove]
-            lastIndent = 0
+            lastIndent = -1
         else:
             if currentMove.pred == currentMove.pred == GAMESTART_PRED:
                 currentTurn = [currentMove]
