@@ -43,11 +43,11 @@ def submit(request):
                                         log=ret[0],
                                         supply=sup,
                                         players=players)
-    # else:
-        # existinglog.log = ret[0]
-        # existinglog.supply = sup
-        # existinglog.players = players
-        # existinglog.save()
+    else:
+        existinglog.log = ret[0]
+        existinglog.supply = sup
+        existinglog.players = players
+        existinglog.save()
 
     return HttpResponseRedirect(reverse('woodcutter:display', args=(ret[1],)))
 

@@ -51,7 +51,6 @@ def gainCash(amount):
 
 
 def standardOnGains(src):
-
     def specificCondition(predList, gainedCard):
         def out_function(cM):
             if standardPreds[cM[0].pred].name not in predList:
