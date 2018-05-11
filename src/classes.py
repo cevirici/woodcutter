@@ -54,11 +54,12 @@ class Pred:
 
 
 class ParsedLine:
-    def __init__(self, player, indent, pred, items):
+    def __init__(self, player, indent, pred, items, isCleanup=False):
         self.player = player
         self.indent = indent
         self.pred = pred
         self.items = items
+        self.isCleanup = isCleanup
 
     def __str__(self):
         return str(self.player)+str(self.indent)+str(self.pred)+str(self.items)

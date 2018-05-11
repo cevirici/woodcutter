@@ -67,6 +67,15 @@ def parse_game(parsedLog):
 
     moveTree.append(currentTurn)
 
+    for turn in moveTree[1:]:
+        pointer = turn
+        while len(pointer[-1]) > 1:
+            pointer = pointer[-1]
+        for move in pointer[:0:-1]:
+            if len(move) > 1:
+                break
+            move[0].isCleanup = True
+
     return moveTree
 
 

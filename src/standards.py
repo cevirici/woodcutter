@@ -3602,7 +3602,7 @@ standardPreds.append(t)
 def pred21Action(cM, gS, exc, tExc, pers):
     activePlayer = gS[-1].activePlayer
     # Cleanup
-    if cM[0].indent == 0:
+    if cM[0].isCleanup:
         if cM[0].player == activePlayer:
             gS[-1].move(cM[0].player, 'INPLAYS', 'DISCARDS', gS[-1].INPLAYS[cM[0].player])
             gS[-1].move(cM[0].player, 'HANDS', 'DISCARDS', gS[-1].HANDS[cM[0].player])
@@ -3841,7 +3841,7 @@ standardPreds.append(t)
 def pred46Action(cM, gS, exc, tExc, pers):
     activePlayer = cM[0].player
     # Cleanup
-    if cM[0].indent == 0:
+    if cM[0].isCleanup:
         gS[-1].move(activePlayer, 'INPLAYS', 'DISCARDS', gS[-1].INPLAYS[activePlayer])
         gS[-1].move(activePlayer, 'HANDS', 'DISCARDS', gS[-1].HANDS[activePlayer])
 
