@@ -2087,9 +2087,9 @@ standardCards.append(t)
 # 253: Distant Lands
 def distantlands_worth(gS, player):
     playerDeck = gS.crunch(['DECKS', 'OTHERS'], [player])
+    DLCard = standardNames.index('Distant Lands')
     for card in playerDeck:
         if standardCards[card].simple_name == 'Distant Lands':
-            DLCard = card
             total = playerDeck[card]
             break
 
