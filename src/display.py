@@ -357,6 +357,8 @@ def render_kingdom(supply):
     # Card | Index
 
     supplyCards = [standardCards[x] for x in supply if supply[x] > 1]
+    supplyScapes = [standardCards[x] for x in supply if standardCards[x].simple_name in landscapes]
+    supplyCards += supplyScapes
     bunchCards = [[range(312, 320), 311],
                   [[218, 219, 220, 221, 222, 185, 186, 187, 188, 189], 174],
                   [[175, 213, 214, 215, 226], 173]]

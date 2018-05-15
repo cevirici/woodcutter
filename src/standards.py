@@ -968,7 +968,7 @@ t = Card('Bishop', 'Bishops', 'a Bishop', 4, 0, 'c4c0b4', '6a587c', bishop_actio
 standardCards.append(t)
 
 # 102: Colony
-t = Card('Colony', 'Colonies', 'a Colony', 11, 0, '548C2B', '9494d8', empty, staticWorth(10))
+t = Card('Colony', 'Colonies', 'a Colony', 11, 2, '548C2B', '9494d8', empty, staticWorth(10))
 standardCards.append(t)
 
 
@@ -1097,7 +1097,7 @@ def platinum_action(cM, gS, exc, tExc, pers):
         gainCash(5)(cM, gS, exc, tExc, pers)
 
 
-t = Card('Platinum', 'Platina', 'a Platinum', 9, 0, 'f1d14d', '948266', platinum_action)
+t = Card('Platinum', 'Platina', 'a Platinum', 9, 2, 'f1d14d', '948266', platinum_action)
 standardCards.append(t)
 
 
@@ -1731,7 +1731,7 @@ t = Card('Junk Dealer', 'Junk Dealers', 'a Junk Dealer', 5, 0, 'c4c0b4', '7b5f2d
 standardCards.append(t)
 
 # 199: Madman
-t = Card('Madman', 'Madmen', 'a Madman', 0, 0, 'c4c0b4', '8b513d', empty)
+t = Card('Madman', 'Madmen', 'a Madman', 0, 1, 'c4c0b4', '8b513d', empty)
 standardCards.append(t)
 
 # 200: Market Square
@@ -1743,7 +1743,7 @@ t = Card('Marauder', 'Marauders', 'a Marauder', 4, 0, 'c4c0b4', '7e4826', empty)
 standardCards.append(t)
 
 # 202: Mercenary
-t = Card('Mercenary', 'Mercenaries', 'a Mercenary', 0, 0, 'c4c0b4', '6b8193', empty)
+t = Card('Mercenary', 'Mercenaries', 'a Mercenary', 0, 1, 'c4c0b4', '6b8193', empty)
 standardCards.append(t)
 
 # 203: Mystic

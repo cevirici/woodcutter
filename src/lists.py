@@ -411,7 +411,16 @@ knights = ['Dame Anna', 'Dame Josephine', 'Dame Molly', 'Dame Natalie',
 landmarks = ['Bandit Fort', 'Fountain', 'Keep', 'Museum', 'Obelisk',
              'Orchard', 'Palace', 'Tower', 'Triumphal Arch',
              'Wall', 'Wolf Den']
-events = ['']
+landscapes = landmarks + \
+            ['Triumph', 'Annex', 'Donate', 'Advance',
+             'Alms', 'Borrow', 'Quest', 'Save', 'Delve',
+             'Scouting Party', 'Tax', 'Travelling Fair',
+             'Banquet', 'Bonfire', 'Expedition', 'Ferry',
+             'Plan', 'Mission', 'Pilgrimage', 'Ritual',
+             'Salt the Earth', 'Wedding', 'Ball', 'Raid',
+             'Seaway', 'Summon', 'Trade', 'Windfall',
+             'Conquest', 'Lost Arts', 'Training',
+             'Inheritance', 'Pathfinding', 'Dominate']
 pred_parse_order = list(range(26)) + [119] + list(range(26, 125))
 
 DONT_LOAD = BOONHEX + landmarks + \
