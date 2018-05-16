@@ -52,6 +52,16 @@ def submit(request):
     return HttpResponseRedirect(reverse('woodcutter:display', args=(ret[1],)))
 
 
+def isMPassIn(request):
+    tot = 0
+    for log in GameLog.objects.all():
+        moveData = unpack(log.log, log.supply)
+        supply = moveData[1]
+        if 350 in supply:
+            tot += 1
+    return HttpResponseRedirect(reverse('woodcutter:display', args=(tot,)))
+
+
 def display(request, game_id):
     log = get_object_or_404(GameLog, game_id=game_id)
 
