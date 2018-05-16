@@ -53,13 +53,13 @@ def submit(request):
 
 
 def isMPassIn(request):
-    tot = 0
+    tot = ""
     for log in GameLog.objects.all():
         moveData = unpack(log.log, log.supply)
         supply = moveData[1]
         if 350 in supply:
-            tot += 1
-    return HttpResponseRedirect(reverse('woodcutter:display', args=(tot,)))
+            tot += str(log.game_id)+"|"
+    return HttpResponse(tot)
 
 
 def display(request, game_id):
