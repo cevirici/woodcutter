@@ -2635,7 +2635,6 @@ standardCards.append(t)
 
 
 # 346: Keep
-
 def keep_worth(gameState, player):
     playerDeck = gameState.crunch(['DECKS', 'DISCARDS', 'HANDS', 'OTHERS', 'INPLAYS'], [player])
     otherDeck = gameState.crunch(['DECKS', 'DISCARDS', 'HANDS', 'OTHERS', 'INPLAYS'], [1 - player])
@@ -3009,7 +3008,7 @@ standardCards.append(t)
 
 
 # 412: Den Of Sin
-t = Card('Den Of Sin', 'Dens Of Sin', 'a Den Of Sin', 5, 0, '7a5622', '2c2226', empty)
+t = Card('Den of Sin', 'Dens of Sin', 'a Den of Sin', 5, 0, '7a5622', '2c2226', empty)
 standardCards.append(t)
 
 # 413: Devil\'s Workshop
@@ -3311,7 +3310,7 @@ def wisp_action(cM, gS, exc, tExc, pers):
         exc.append(exc_revealTopdeck)
 
 
-t = Card('Will-o\'-wisp', 'Will-o\'-wisps', 'a Will-o\'-wisp', 0, 1, 'c4c0b4', '1d593f', wisp_action)
+t = Card('Will-o\'-Wisp', 'Will-o\'-Wisps', 'a Will-o\'-Wisp', 0, 1, 'c4c0b4', '1d593f', wisp_action)
 standardCards.append(t)
 
 
@@ -3443,7 +3442,7 @@ def standardGains(source, destination='DISCARDS'):
                 gS[-1].move(cM[0].player, source, 'DECKS', exceptionalStuff)
                 standardOnGains('DECKS')(cM, gS, exc, tExc, pers)
 
-            if standardCards[card].simple_name in ['Den Of Sin', 'Guardian',
+            if standardCards[card].simple_name in ['Den of Sin', 'Guardian',
                                                    'Ghost Town', 'Night Watchman']:
                 exceptionalStuff = Cardstack({card: targetStuff[card]})
                 targetStuff -= exceptionalStuff
