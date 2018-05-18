@@ -3310,7 +3310,7 @@ def wisp_action(cM, gS, exc, tExc, pers):
         exc.append(exc_revealTopdeck)
 
 
-t = Card('Will-o\'-Wisp', 'Will-o\'-Wisps', 'a Will-o\'-Wisp', 0, 1, 'c4c0b4', '1d593f', wisp_action)
+t = Card('Will-o\'-wisp', 'Will-o\'-wisps', 'a Will-o\'-wisp', 0, 1, 'c4c0b4', '1d593f', wisp_action)
 standardCards.append(t)
 
 
