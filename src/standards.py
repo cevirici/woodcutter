@@ -3008,7 +3008,7 @@ standardCards.append(t)
 
 
 # 412: Den Of Sin
-t = Card('Den of Sin', 'Dens of Sin', 'a Den of Sin', 5, 0, '7a5622', '2c2226', empty)
+t = Card('Den Of Sin', 'Dens Of Sin', 'a Den Of Sin', 5, 0, '7a5622', '2c2226', empty)
 standardCards.append(t)
 
 # 413: Devil\'s Workshop

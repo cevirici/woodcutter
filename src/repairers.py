@@ -1,4 +1,3 @@
-
-
-def repairSave(rawLog, moveTree, gameStates):
-	
+def repairGear(rawLog, moveTree, gameStates):
+    for turn in moveTree:
+        

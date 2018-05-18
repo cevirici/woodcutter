@@ -19,7 +19,7 @@ standardNames = []
 class Card:
     def __init__(self, simple_name, multi_name, phrase_name,
                  cost, supply_type, border_color, card_color,
-                 action, worth = lambda x,y: 0):
+                 action, worth=lambda x,y: 0):
 
         self.simple_name = simple_name
         self.multi_name = multi_name
