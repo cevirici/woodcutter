@@ -231,7 +231,7 @@ def render_axis_labels(turnOwners):
 def render_legend_boxes(involvedCards):
     # Name | Card Color | Border Color | Card Index
     legendBoxes = [[standardCards[card].simple_name,
-                    standardCards[card].card_color,
+                    standardCards[card].card_color_array,
                     standardCards[card].border_color,
                     card
                     ] for card in involvedCards]

@@ -119,7 +119,12 @@
                 <div class = 'legend'>
                     {% for legendbox in legendBoxes %}
                     <div class = 'legendbox' style = 'background: #{{ legendbox.2 }};' card = {{ legendbox.3}}>
-                        <div class = 'inner-color' style = 'background: #{{ legendbox.1 }};''>
+                        <div class = 'inner-color'>
+                            <div class = 'highlight-cover'></div>
+                            {% for tile in legendbox.1 %}
+                            <div class = 'inner-color-tile' style = 'background: #{{ tile }};''>
+                            </div>
+                            {% endfor %}
                             <span class = 'wrap'>{{ legendbox.0 }}</span>
                         </div>
                     </div>

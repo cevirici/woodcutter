@@ -1,4 +1,6 @@
 from copy import deepcopy
+import os
+from django.conf import settings
 
 # Constants
 ARGUMENT_CARD = 0
@@ -15,11 +17,18 @@ standardPreds = []
 standardPersistents = []
 standardNames = []
 
+f = open(os.path.join(settings.STATIC_ROOT, 'woodcutter/cardColors.txt'))
+cardColorArray = {}
+for line in f:
+    raw = line.strip().split(':')
+    raw[1] = raw[1].split('|')
+    cardColorArray[raw[0]] = raw[1]
+
 
 class Card:
     def __init__(self, simple_name, multi_name, phrase_name,
                  cost, supply_type, border_color, card_color,
-                 action, worth=lambda x,y: 0):
+                 action, worth=lambda x, y: 0):
 
         self.simple_name = simple_name
         self.multi_name = multi_name
@@ -30,6 +39,8 @@ class Card:
         self.border_color = border_color
         self.card_color = card_color
         self.worth = worth
+
+        self.card_color_array = cardColorArray[self.simple_name]
 
     def names(self):
         return [self.simple_name, self.multi_name, self.phrase_name]

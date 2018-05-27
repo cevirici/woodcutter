@@ -408,8 +408,10 @@ pairs = [['Encampment', 'Plunder'],
 knights = ['Dame Anna', 'Dame Josephine', 'Dame Molly', 'Dame Natalie',
            'Dame Sylvia', 'Sir Bailey', 'Sir Destry', 'Sir Martin',
            'Sir Michael', 'Sir Vander']
-landmarks = ['Bandit Fort', 'Fountain', 'Keep', 'Museum', 'Obelisk',
-             'Orchard', 'Palace', 'Tower', 'Triumphal Arch',
+landmarks = ['Aqueduct', 'Arena', 'Bandit Fort', 'Basilica', 'Baths', 'Battlefield',
+             'Colonnade', 'Defiled Shrine', 'Fountain', 'Keep', 'Labyrinth',
+             'Museum', 'Obelisk',
+             'Orchard', 'Palace', 'Tower', 'Tomb', 'Triumphal Arch',
              'Wall', 'Wolf Den']
 landscapes = landmarks + \
             ['Triumph', 'Annex', 'Donate', 'Advance',
