@@ -1,0 +1,467 @@
+card:images/cards/art/base/back.jpg
+Curse:images/cards/art/base/curse.jpg
+Copper:images/cards/art/base/copper.jpg
+Silver:images/cards/art/base/silver.jpg
+Gold:images/cards/art/base/gold.jpg
+Estate:images/cards/art/base/estate.jpg
+Duchy:images/cards/art/base/duchy.jpg
+Province:images/cards/art/base/province.jpg
+Artisan:images/cards/art/base/artisan.jpg
+Bandit:images/cards/art/base/bandit.jpg
+Bureaucrat:images/cards/art/base/bureaucrat.jpg
+Cellar:images/cards/art/base/cellar.jpg
+Chapel:images/cards/art/base/chapel.jpg
+Council Room:images/cards/art/base/council-room.jpg
+Festival:images/cards/art/base/festival.jpg
+Gardens:images/cards/art/base/gardens.jpg
+Harbinger:images/cards/art/base/harbinger.jpg
+Laboratory:images/cards/art/base/laboratory.jpg
+Library:images/cards/art/base/library.jpg
+Market:images/cards/art/base/market.jpg
+Merchant:images/cards/art/base/merchant.jpg
+Militia:images/cards/art/base/militia.jpg
+Mine:images/cards/art/base/mine.jpg
+Moat:images/cards/art/base/moat.jpg
+Moneylender:images/cards/art/base/moneylender.jpg
+Poacher:images/cards/art/base/poacher.jpg
+Remodel:images/cards/art/base/remodel.jpg
+Sentry:images/cards/art/base/sentry.jpg
+Smithy:images/cards/art/base/smithy.jpg
+Throne Room:images/cards/art/base/throne-room.jpg
+Vassal:images/cards/art/base/vassal.jpg
+Village:images/cards/art/base/village.jpg
+Witch:images/cards/art/base/witch.jpg
+Workshop:images/cards/art/base/workshop.jpg
+Courtyard:images/cards/art/intrigue/courtyard.jpg
+Conspirator:images/cards/art/intrigue/conspirator.jpg
+Courtier:images/cards/art/intrigue/courtier.jpg
+Baron:images/cards/art/intrigue/baron.jpg
+Bridge:images/cards/art/intrigue/bridge.jpg
+Diplomat:images/cards/art/intrigue/diplomat.jpg
+Duke:images/cards/art/intrigue/duke.jpg
+Harem:images/cards/art/intrigue/harem.jpg
+Nobles:images/cards/art/intrigue/nobles.jpg
+Ironworks:images/cards/art/intrigue/ironworks.jpg
+Lurker:images/cards/art/intrigue/lurker.jpg
+Masquerade:images/cards/art/intrigue/masquerade.jpg
+Mill:images/cards/art/intrigue/mill.jpg
+Mining Village:images/cards/art/intrigue/mining-village.jpg
+Minion:images/cards/art/intrigue/minion.jpg
+Patrol:images/cards/art/intrigue/patrol.jpg
+Pawn:images/cards/art/intrigue/pawn.jpg
+Replace:images/cards/art/intrigue/replace.jpg
+Secret Passage:images/cards/art/intrigue/secret-passage.jpg
+Shanty Town:images/cards/art/intrigue/shanty-town.jpg
+Steward:images/cards/art/intrigue/steward.jpg
+Swindler:images/cards/art/intrigue/swindler.jpg
+Torturer:images/cards/art/intrigue/torturer.jpg
+Trading Post:images/cards/art/intrigue/trading-post.jpg
+Upgrade:images/cards/art/intrigue/upgrade.jpg
+Wishing Well:images/cards/art/intrigue/wishing-well.jpg
+Ambassador:images/cards/art/seaside/ambassador.jpg
+Bazaar:images/cards/art/seaside/bazaar.jpg
+Caravan:images/cards/art/seaside/caravan.jpg
+Cutpurse:images/cards/art/seaside/cutpurse.jpg
+Embargo:images/cards/art/seaside/embargo.jpg
+Explorer:images/cards/art/seaside/explorer.jpg
+Fishing Village:images/cards/art/seaside/fishing-village.jpg
+Ghost Ship:images/cards/art/seaside/ghost-ship.jpg
+Haven:images/cards/art/seaside/haven.jpg
+Island:images/cards/art/seaside/island.jpg
+Lighthouse:images/cards/art/seaside/lighthouse.jpg
+Lookout:images/cards/art/seaside/lookout.jpg
+Merchant Ship:images/cards/art/seaside/merchant-ship.jpg
+Native Village:images/cards/art/seaside/native-village.jpg
+Navigator:images/cards/art/seaside/navigator.jpg
+Outpost:images/cards/art/seaside/outpost.jpg
+Pearl Diver:images/cards/art/seaside/pearl-diver.jpg
+Pirate Ship:images/cards/art/seaside/pirate-ship.jpg
+Salvager:images/cards/art/seaside/salvager.jpg
+Sea Hag:images/cards/art/seaside/sea-hag.jpg
+Smugglers:images/cards/art/seaside/smugglers.jpg
+Tactician:images/cards/art/seaside/tactician.jpg
+Treasure Map:images/cards/art/seaside/treasure-map.jpg
+Treasury:images/cards/art/seaside/treasury.jpg
+Warehouse:images/cards/art/seaside/warehouse.jpg
+Wharf:images/cards/art/seaside/wharf.jpg
+Alchemist:images/cards/art/alchemy/alchemist.jpg
+Apothecary:images/cards/art/alchemy/apothecary.jpg
+Apprentice:images/cards/art/alchemy/apprentice.jpg
+Familiar:images/cards/art/alchemy/familiar.jpg
+Golem:images/cards/art/alchemy/golem.jpg
+Herbalist:images/cards/art/alchemy/herbalist.jpg
+Philosopher's Stone:images/cards/art/alchemy/philosophers-stone.jpg
+Possession:images/cards/art/alchemy/possession.jpg
+Potion:images/cards/art/alchemy/potion.jpg
+Scrying Pool:images/cards/art/alchemy/scrying-pool.jpg
+Transmute:images/cards/art/alchemy/transmute.jpg
+University:images/cards/art/alchemy/university.jpg
+Vineyard:images/cards/art/alchemy/vineyard.jpg
+Bank:images/cards/art/prosperity/bank.jpg
+Bishop:images/cards/art/prosperity/bishop.jpg
+Colony:images/cards/art/prosperity/colony.jpg
+Contraband:images/cards/art/prosperity/contraband.jpg
+Counting House:images/cards/art/prosperity/counting-house.jpg
+City:images/cards/art/prosperity/city.jpg
+Expand:images/cards/art/prosperity/expand.jpg
+Forge:images/cards/art/prosperity/forge.jpg
+Grand Market:images/cards/art/prosperity/grand-market.jpg
+Goons:images/cards/art/prosperity/goons.jpg
+Hoard:images/cards/art/prosperity/hoard.jpg
+King's Court:images/cards/art/prosperity/kings-court.jpg
+Loan:images/cards/art/prosperity/loan.jpg
+Mint:images/cards/art/prosperity/mint.jpg
+Monument:images/cards/art/prosperity/monument.jpg
+Mountebank:images/cards/art/prosperity/mountebank.jpg
+Peddler:images/cards/art/prosperity/peddler.jpg
+Platinum:images/cards/art/prosperity/platinum.jpg
+Quarry:images/cards/art/prosperity/quarry.jpg
+Rabble:images/cards/art/prosperity/rabble.jpg
+Royal Seal:images/cards/art/prosperity/royal-seal.jpg
+Talisman:images/cards/art/prosperity/talisman.jpg
+Trade Route:images/cards/art/prosperity/trade-route.jpg
+Vault:images/cards/art/prosperity/vault.jpg
+Venture:images/cards/art/prosperity/venture.jpg
+Watchtower:images/cards/art/prosperity/watchtower.jpg
+Worker's Village:images/cards/art/prosperity/workers-village.jpg
+Prize Pile:images/cards/art/cornucopia/prize-pile.jpg
+Bag of Gold:images/cards/art/cornucopia/bag-of-gold.jpg
+Diadem:images/cards/art/cornucopia/diadem.jpg
+Fairgrounds:images/cards/art/cornucopia/fairgrounds.jpg
+Farming Village:images/cards/art/cornucopia/farming-village.jpg
+Followers:images/cards/art/cornucopia/followers.jpg
+Fortune Teller:images/cards/art/cornucopia/fortune-teller.jpg
+Hamlet:images/cards/art/cornucopia/hamlet.jpg
+Harvest:images/cards/art/cornucopia/harvest.jpg
+Horse Traders:images/cards/art/cornucopia/horse-traders.jpg
+Horn of Plenty:images/cards/art/cornucopia/horn-of-plenty.jpg
+Hunting Party:images/cards/art/cornucopia/hunting-party.jpg
+Jester:images/cards/art/cornucopia/jester.jpg
+Menagerie:images/cards/art/cornucopia/menagerie.jpg
+Princess:images/cards/art/cornucopia/princess.jpg
+Remake:images/cards/art/cornucopia/remake.jpg
+Tournament:images/cards/art/cornucopia/tournament.jpg
+Trusty Steed:images/cards/art/cornucopia/trusty-steed.jpg
+Young Witch:images/cards/art/cornucopia/young-witch.jpg
+Border Village:images/cards/art/hinterlands/border-village.jpg
+Cache:images/cards/art/hinterlands/cache.jpg
+Cartographer:images/cards/art/hinterlands/cartographer.jpg
+Crossroads:images/cards/art/hinterlands/crossroads.jpg
+Develop:images/cards/art/hinterlands/develop.jpg
+Duchess:images/cards/art/hinterlands/duchess.jpg
+Embassy:images/cards/art/hinterlands/embassy.jpg
+Farmland:images/cards/art/hinterlands/farmland.jpg
+Fool's Gold:images/cards/art/hinterlands/fools-gold.jpg
+Haggler:images/cards/art/hinterlands/haggler.jpg
+Highway:images/cards/art/hinterlands/highway.jpg
+Ill-Gotten Gains:images/cards/art/hinterlands/ill-gotten-gains.jpg
+Inn:images/cards/art/hinterlands/inn.jpg
+Jack of All Trades:images/cards/art/hinterlands/jack-of-all-trades.jpg
+Mandarin:images/cards/art/hinterlands/mandarin.jpg
+Noble Brigand:images/cards/art/hinterlands/noble-brigand.jpg
+Nomad Camp:images/cards/art/hinterlands/nomad-camp.jpg
+Oasis:images/cards/art/hinterlands/oasis.jpg
+Oracle:images/cards/art/hinterlands/oracle.jpg
+Margrave:images/cards/art/hinterlands/margrave.jpg
+Scheme:images/cards/art/hinterlands/scheme.jpg
+Silk Road:images/cards/art/hinterlands/silk-road.jpg
+Spice Merchant:images/cards/art/hinterlands/spice-merchant.jpg
+Stables:images/cards/art/hinterlands/stables.jpg
+Trader:images/cards/art/hinterlands/trader.jpg
+Tunnel:images/cards/art/hinterlands/tunnel.jpg
+Ruins:images/cards/art/dark-ages/ruin-pile.jpg
+Knights:images/cards/art/dark-ages/knights.jpg
+Abandoned Mine:images/cards/art/dark-ages/abandoned-mine.jpg
+Altar:images/cards/art/dark-ages/altar.jpg
+Armory:images/cards/art/dark-ages/armory.jpg
+Band of Misfits:images/cards/art/dark-ages/band-of-misfits.jpg
+Bandit Camp:images/cards/art/dark-ages/bandit-camp.jpg
+Beggar:images/cards/art/dark-ages/beggar.jpg
+Catacombs:images/cards/art/dark-ages/catacombs.jpg
+Count:images/cards/art/dark-ages/count.jpg
+Counterfeit:images/cards/art/dark-ages/counterfeit.jpg
+Cultist:images/cards/art/dark-ages/cultist.jpg
+Dame Anna:images/cards/art/dark-ages/dame-anna.jpg
+Dame Josephine:images/cards/art/dark-ages/dame-josephine.jpg
+Dame Molly:images/cards/art/dark-ages/dame-molly.jpg
+Dame Natalie:images/cards/art/dark-ages/dame-natalie.jpg
+Dame Sylvia:images/cards/art/dark-ages/dame-sylvia.jpg
+Death Cart:images/cards/art/dark-ages/death-cart.jpg
+Feodum:images/cards/art/dark-ages/feodum.jpg
+Forager:images/cards/art/dark-ages/forager.jpg
+Fortress:images/cards/art/dark-ages/fortress.jpg
+Graverobber:images/cards/art/dark-ages/graverobber.jpg
+Hermit:images/cards/art/dark-ages/hermit.jpg
+Hovel:images/cards/art/dark-ages/hovel.jpg
+Hunting Grounds:images/cards/art/dark-ages/hunting-grounds.jpg
+Ironmonger:images/cards/art/dark-ages/ironmonger.jpg
+Junk Dealer:images/cards/art/dark-ages/junk-dealer.jpg
+Madman:images/cards/art/dark-ages/madman.jpg
+Market Square:images/cards/art/dark-ages/market-square.jpg
+Marauder:images/cards/art/dark-ages/marauder.jpg
+Mercenary:images/cards/art/dark-ages/mercenary.jpg
+Mystic:images/cards/art/dark-ages/mystic.jpg
+Necropolis:images/cards/art/dark-ages/necropolis.jpg
+Overgrown Estate:images/cards/art/dark-ages/overgrown-estate.jpg
+Pillage:images/cards/art/dark-ages/pillage.jpg
+Poor House:images/cards/art/dark-ages/poor-house.jpg
+Procession:images/cards/art/dark-ages/procession.jpg
+Rats:images/cards/art/dark-ages/rats.jpg
+Rebuild:images/cards/art/dark-ages/rebuild.jpg
+Rogue:images/cards/art/dark-ages/rogue.jpg
+Ruined Library:images/cards/art/dark-ages/ruined-library.jpg
+Ruined Market:images/cards/art/dark-ages/ruined-market.jpg
+Ruined Village:images/cards/art/dark-ages/ruined-village.jpg
+Sage:images/cards/art/dark-ages/sage.jpg
+Scavenger:images/cards/art/dark-ages/scavenger.jpg
+Sir Bailey:images/cards/art/dark-ages/sir-bailey.jpg
+Sir Destry:images/cards/art/dark-ages/sir-destry.jpg
+Sir Martin:images/cards/art/dark-ages/sir-martin.jpg
+Sir Michael:images/cards/art/dark-ages/sir-michael.jpg
+Sir Vander:images/cards/art/dark-ages/sir-vander.jpg
+Spoils:images/cards/art/dark-ages/spoils.jpg
+Storeroom:images/cards/art/dark-ages/storeroom.jpg
+Squire:images/cards/art/dark-ages/squire.jpg
+Survivors:images/cards/art/dark-ages/survivors.jpg
+Urchin:images/cards/art/dark-ages/urchin.jpg
+Vagrant:images/cards/art/dark-ages/vagrant.jpg
+Wandering Minstrel:images/cards/art/dark-ages/wandering-minstrel.jpg
+Advisor:images/cards/art/guilds/advisor.jpg
+Baker:images/cards/art/guilds/baker.jpg
+Butcher:images/cards/art/guilds/butcher.jpg
+Candlestick Maker:images/cards/art/guilds/candlestick-maker.jpg
+Doctor:images/cards/art/guilds/doctor.jpg
+Herald:images/cards/art/guilds/herald.jpg
+Journeyman:images/cards/art/guilds/journeyman.jpg
+Masterpiece:images/cards/art/guilds/masterpiece.jpg
+Merchant Guild:images/cards/art/guilds/merchant-guild.jpg
+Plaza:images/cards/art/guilds/plaza.jpg
+Taxman:images/cards/art/guilds/taxman.jpg
+Soothsayer:images/cards/art/guilds/soothsayer.jpg
+Stonemason:images/cards/art/guilds/stonemason.jpg
+Alms:images/cards/art/adventures/alms.jpg
+Amulet:images/cards/art/adventures/amulet.jpg
+Artificer:images/cards/art/adventures/artificer.jpg
+Ball:images/cards/art/adventures/ball.jpg
+Bonfire:images/cards/art/adventures/bonfire.jpg
+Borrow:images/cards/art/adventures/borrow.jpg
+Bridge Troll:images/cards/art/adventures/bridge-troll.jpg
+Caravan Guard:images/cards/art/adventures/caravan-guard.jpg
+Champion:images/cards/art/adventures/champion.jpg
+Coin of the Realm:images/cards/art/adventures/coin-of-the-realm.jpg
+Disciple:images/cards/art/adventures/disciple.jpg
+Distant Lands:images/cards/art/adventures/distant-lands.jpg
+Dungeon:images/cards/art/adventures/dungeon.jpg
+Duplicate:images/cards/art/adventures/duplicate.jpg
+Expedition:images/cards/art/adventures/expedition.jpg
+Ferry:images/cards/art/adventures/ferry.jpg
+Fugitive:images/cards/art/adventures/fugitive.jpg
+Gear:images/cards/art/adventures/gear.jpg
+Giant:images/cards/art/adventures/giant.jpg
+Guide:images/cards/art/adventures/guide.jpg
+Haunted Woods:images/cards/art/adventures/haunted-woods.jpg
+Hero:images/cards/art/adventures/hero.jpg
+Hireling:images/cards/art/adventures/hireling.jpg
+Inheritance:images/cards/art/adventures/inheritance.jpg
+Lost Arts:images/cards/art/adventures/lost-arts.jpg
+Lost City:images/cards/art/adventures/lost-city.jpg
+Magpie:images/cards/art/adventures/magpie.jpg
+Messenger:images/cards/art/adventures/messenger.jpg
+Miser:images/cards/art/adventures/miser.jpg
+Mission:images/cards/art/adventures/mission.jpg
+Pathfinding:images/cards/art/adventures/pathfinding.jpg
+Page:images/cards/art/adventures/page.jpg
+Peasant:images/cards/art/adventures/peasant.jpg
+Pilgrimage:images/cards/art/adventures/pilgrimage.jpg
+Plan:images/cards/art/adventures/plan.jpg
+Port:images/cards/art/adventures/port.jpg
+Quest:images/cards/art/adventures/quest.jpg
+Ranger:images/cards/art/adventures/ranger.jpg
+Raid:images/cards/art/adventures/raid.jpg
+Ratcatcher:images/cards/art/adventures/ratcatcher.jpg
+Raze:images/cards/art/adventures/raze.jpg
+Relic:images/cards/art/adventures/relic.jpg
+Royal Carriage:images/cards/art/adventures/royal-carriage.jpg
+Save:images/cards/art/adventures/save.jpg
+Scouting Party:images/cards/art/adventures/scouting-party.jpg
+Seaway:images/cards/art/adventures/seaway.jpg
+Soldier:images/cards/art/adventures/soldier.jpg
+Storyteller:images/cards/art/adventures/storyteller.jpg
+Swamp Hag:images/cards/art/adventures/swamp-hag.jpg
+Teacher:images/cards/art/adventures/teacher.jpg
+Travelling Fair:images/cards/art/adventures/travelling-fair.jpg
+Trade:images/cards/art/adventures/trade.jpg
+Training:images/cards/art/adventures/training.jpg
+Transmogrify:images/cards/art/adventures/transmogrify.jpg
+Treasure Trove:images/cards/art/adventures/treasure-trove.jpg
+Treasure Hunter:images/cards/art/adventures/treasure-hunter.jpg
+Warrior:images/cards/art/adventures/warrior.jpg
+Wine Merchant:images/cards/art/adventures/wine-merchant.jpg
+Encampment:images/cards/art/empires/encampment.jpg
+Plunder:images/cards/art/empires/plunder.jpg
+Patrician:images/cards/art/empires/patrician.jpg
+Emporium:images/cards/art/empires/emporium.jpg
+Settlers:images/cards/art/empires/settlers.jpg
+Bustling Village:images/cards/art/empires/bustling-village.jpg
+Catapult:images/cards/art/empires/catapult.jpg
+Rocks:images/cards/art/empires/rocks.jpg
+Gladiator:images/cards/art/empires/gladiator.jpg
+Fortune:images/cards/art/empires/fortune.jpg
+Castles:images/cards/art/empires/castles.jpg
+Humble Castle:images/cards/art/empires/humble-castle.jpg
+Crumbling Castle:images/cards/art/empires/crumbling-castle.jpg
+Small Castle:images/cards/art/empires/small-castle.jpg
+Haunted Castle:images/cards/art/empires/haunted-castle.jpg
+Opulent Castle:images/cards/art/empires/opulent-castle.jpg
+Sprawling Castle:images/cards/art/empires/sprawling-castle.jpg
+Grand Castle:images/cards/art/empires/grand-castle.jpg
+King's Castle:images/cards/art/empires/kings-castle.jpg
+Advance:images/cards/art/empires/advance.jpg
+Annex:images/cards/art/empires/annex.jpg
+Archive:images/cards/art/empires/archive.jpg
+Aqueduct:images/cards/art/empires/aqueduct.jpg
+Arena:images/cards/art/empires/arena.jpg
+Bandit Fort:images/cards/art/empires/bandit-fort.jpg
+Banquet:images/cards/art/empires/banquet.jpg
+Basilica:images/cards/art/empires/basilica.jpg
+Baths:images/cards/art/empires/baths.jpg
+Battlefield:images/cards/art/empires/battlefield.jpg
+Capital:images/cards/art/empires/capital.jpg
+Charm:images/cards/art/empires/charm.jpg
+Chariot Race:images/cards/art/empires/chariot-race.jpg
+City Quarter:images/cards/art/empires/city-quarter.jpg
+Colonnade:images/cards/art/empires/colonnade.jpg
+Conquest:images/cards/art/empires/conquest.jpg
+Crown:images/cards/art/empires/crown.jpg
+Delve:images/cards/art/empires/delve.jpg
+Defiled Shrine:images/cards/art/empires/defiled-shrine.jpg
+Dominate:images/cards/art/empires/dominate.jpg
+Donate:images/cards/art/empires/donate.jpg
+Enchantress:images/cards/art/empires/enchantress.jpg
+Engineer:images/cards/art/empires/engineer.jpg
+Farmers' Market:images/cards/art/empires/farmers-market.jpg
+Forum:images/cards/art/empires/forum.jpg
+Fountain:images/cards/art/empires/fountain.jpg
+Groundskeeper:images/cards/art/empires/groundskeeper.jpg
+Keep:images/cards/art/empires/keep.jpg
+Labyrinth:images/cards/art/empires/labyrinth.jpg
+Legionary:images/cards/art/empires/legionary.jpg
+Mountain Pass:images/cards/art/empires/mountain-pass.jpg
+Museum:images/cards/art/empires/museum.jpg
+Obelisk:images/cards/art/empires/obelisk.jpg
+Orchard:images/cards/art/empires/orchard.jpg
+Overlord:images/cards/art/empires/overlord.jpg
+Palace:images/cards/art/empires/palace.jpg
+Ritual:images/cards/art/empires/ritual.jpg
+Royal Blacksmith:images/cards/art/empires/royal-blacksmith.jpg
+Sacrifice:images/cards/art/empires/sacrifice.jpg
+Salt the Earth:images/cards/art/empires/salt-the-earth.jpg
+Tax:images/cards/art/empires/tax.jpg
+Temple:images/cards/art/empires/temple.jpg
+Tomb:images/cards/art/empires/tomb.jpg
+Tower:images/cards/art/empires/tower.jpg
+Triumph:images/cards/art/empires/triumph.jpg
+Triumphal Arch:images/cards/art/empires/triumphal-arch.jpg
+Villa:images/cards/art/empires/villa.jpg
+Wall:images/cards/art/empires/wall.jpg
+Wolf Den:images/cards/art/empires/wolf-den.jpg
+Wedding:images/cards/art/empires/wedding.jpg
+Wild Hunt:images/cards/art/empires/wild-hunt.jpg
+Windfall:images/cards/art/empires/windfall.jpg
+Nope:images/cards/art/empires/pig.jpg
+Nope:images/cards/art/adventures/minuscard.jpg
+Nope:images/cards/art/adventures/minuscoin.jpg
+Nope:images/cards/art/nocturne/state-limbo.jpg
+Nope:images/cards/art/nocturne/druid-boons.jpg
+Boon Drawpile:images/cards/art/nocturne/boon-drawpile.jpg
+Boon Discardpile:images/cards/art/nocturne/boon-discardpile.jpg
+The Earth's Gift:images/cards/art/nocturne/the-earths-gift.jpg
+The Field's Gift:images/cards/art/nocturne/the-fields-gift.jpg
+The Flame's Gift:images/cards/art/nocturne/the-flames-gift.jpg
+The Forest's Gift:images/cards/art/nocturne/the-forests-gift.jpg
+The Moon's Gift:images/cards/art/nocturne/the-moons-gift.jpg
+The Mountain's Gift:images/cards/art/nocturne/the-mountains-gift.jpg
+The River's Gift:images/cards/art/nocturne/the-rivers-gift.jpg
+The Sea's Gift:images/cards/art/nocturne/the-seas-gift.jpg
+The Sky's Gift:images/cards/art/nocturne/the-skys-gift.jpg
+The Sun's Gift:images/cards/art/nocturne/the-suns-gift.jpg
+The Swamp's Gift:images/cards/art/nocturne/the-swamps-gift.jpg
+The Wind's Gift:images/cards/art/nocturne/the-winds-gift.jpg
+Hex Drawpile:images/cards/art/nocturne/hex-drawpile.jpg
+Hex Discardpile:images/cards/art/nocturne/hex-discardpile.jpg
+Bad Omens:images/cards/art/nocturne/bad-omens.jpg
+Delusion:images/cards/art/nocturne/delusion.jpg
+Envy:images/cards/art/nocturne/envy.jpg
+Famine:images/cards/art/nocturne/famine.jpg
+Fear:images/cards/art/nocturne/fear.jpg
+Greed:images/cards/art/nocturne/greed.jpg
+Haunting:images/cards/art/nocturne/haunting.jpg
+Locusts:images/cards/art/nocturne/locusts.jpg
+Misery:images/cards/art/nocturne/misery.jpg
+Plague:images/cards/art/nocturne/plague.jpg
+Poverty:images/cards/art/nocturne/poverty.jpg
+War:images/cards/art/nocturne/war.jpg
+Miserable:images/cards/art/nocturne/miserable.jpg
+Twice Miserable:images/cards/art/nocturne/twice-miserable.jpg
+Envious:images/cards/art/nocturne/envious.jpg
+Deluded:images/cards/art/nocturne/deluded.jpg
+Lost In The Woods:images/cards/art/nocturne/lost-in-the-woods.jpg
+Bard:images/cards/art/nocturne/bard.jpg
+Blessed Village:images/cards/art/nocturne/blessed-village.jpg
+Changeling:images/cards/art/nocturne/changeling.jpg
+Cemetery:images/cards/art/nocturne/cemetery.jpg
+Cobbler:images/cards/art/nocturne/cobbler.jpg
+Conclave:images/cards/art/nocturne/conclave.jpg
+Crypt:images/cards/art/nocturne/crypt.jpg
+Cursed Village:images/cards/art/nocturne/cursed-village.jpg
+Den Of Sin:images/cards/art/nocturne/den-of-sin.jpg
+Devil's Workshop:images/cards/art/nocturne/devils-workshop.jpg
+Druid:images/cards/art/nocturne/druid.jpg
+Exorcist:images/cards/art/nocturne/exorcist.jpg
+Faithful Hound:images/cards/art/nocturne/faithful-hound.jpg
+Fool:images/cards/art/nocturne/fool.jpg
+Ghost Town:images/cards/art/nocturne/ghost-town.jpg
+Guardian:images/cards/art/nocturne/guardian.jpg
+Idol:images/cards/art/nocturne/idol.jpg
+Leprechaun:images/cards/art/nocturne/leprechaun.jpg
+Monastery:images/cards/art/nocturne/monastery.jpg
+Necromancer:images/cards/art/nocturne/necromancer.jpg
+Night Watchman:images/cards/art/nocturne/night-watchman.jpg
+Pixie:images/cards/art/nocturne/pixie.jpg
+Pooka:images/cards/art/nocturne/pooka.jpg
+Raider:images/cards/art/nocturne/raider.jpg
+Sacred Grove:images/cards/art/nocturne/sacred-grove.jpg
+Secret Cave:images/cards/art/nocturne/secret-cave.jpg
+Shepherd:images/cards/art/nocturne/shepherd.jpg
+Skulk:images/cards/art/nocturne/skulk.jpg
+Tormentor:images/cards/art/nocturne/tormentor.jpg
+Tragic Hero:images/cards/art/nocturne/tragic-hero.jpg
+Tracker:images/cards/art/nocturne/tracker.jpg
+Vampire:images/cards/art/nocturne/vampire.jpg
+Werewolf:images/cards/art/nocturne/werewolf.jpg
+Cursed Gold:images/cards/art/nocturne/cursed-gold.jpg
+Goat:images/cards/art/nocturne/goat.jpg
+Haunted Mirror:images/cards/art/nocturne/haunted-mirror.jpg
+Lucky Coin:images/cards/art/nocturne/lucky-coin.jpg
+Magic Lamp:images/cards/art/nocturne/magic-lamp.jpg
+Pasture:images/cards/art/nocturne/pasture.jpg
+Pouch:images/cards/art/nocturne/pouch.jpg
+Bat:images/cards/art/nocturne/bat.jpg
+Ghost:images/cards/art/nocturne/ghost.jpg
+Imp:images/cards/art/nocturne/imp.jpg
+Will-o'-wisp:images/cards/art/nocturne/will-o-wisp.jpg
+Wish:images/cards/art/nocturne/wish.jpg
+Zombie Apprentice:images/cards/art/nocturne/zombie-apprentice.jpg
+Zombie Mason:images/cards/art/nocturne/zombie-mason.jpg
+Zombie Spy:images/cards/art/nocturne/zombie-spy.jpg
+Sauna:images/cards/art/promos/sauna.jpg
+Avanto:images/cards/art/promos/avanto.jpg
+Black Market:images/cards/art/promos/black-market.jpg
+Envoy:images/cards/art/promos/envoy.jpg
+Governor:images/cards/art/promos/governor.jpg
+Prince:images/cards/art/promos/prince.jpg
+Stash:images/cards/art/promos/stash.jpg
+Summon:images/cards/art/promos/summon.jpg
+Walled Village:images/cards/art/promos/walled-village.jpg
+Black Market Deck:images/cards/art/promos/black-market-pile.jpg
+Dismantle:images/cards/art/promos/dismantle.jpg

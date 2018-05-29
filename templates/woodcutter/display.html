@@ -121,10 +121,8 @@
                     <div class = 'legendbox' style = 'background: #{{ legendbox.2 }};' card = {{ legendbox.3}}>
                         <div class = 'inner-color'>
                             <div class = 'highlight-cover'></div>
-                            {% for tile in legendbox.1 %}
-                            <div class = 'inner-color-tile' style = 'background: #{{ tile }};''>
+                            <div class = 'cardbg' style = 'background-image: url("{% static legendbox.1 %}"); background-color: #{{legendbox.4}};'>
                             </div>
-                            {% endfor %}
                             <span class = 'wrap'>{{ legendbox.0 }}</span>
                         </div>
                     </div>
@@ -194,7 +192,7 @@
             <div class = 'kingdom-container longer'>
                 {% for card in kingdomCards.0 %}
                 <div class = 'kingdom-card' style = 'background: #{{ card.0.border_color }};' card = {{ card.1 }}>
-                    <div class = 'inner-color' style = 'background: #{{ card.0.card_color }};'> 
+                    <div class = 'inner-color' style = 'background-image: url("{% static card.0.cardurl %}"); background-color: #{{ card.0.card_color }};'> 
                         {{ card.0.simple_name }} 
                     </div>
                 </div>
@@ -204,7 +202,7 @@
             <div class = 'kingdom-container'>
                 {% for card in kingdomCards.1 %}
                 <div class = 'kingdom-card' style = 'background: #{{ card.0.border_color }};' card = {{ card.1 }}>
-                    <div class = 'inner-color' style = 'background: #{{ card.0.card_color }};'> 
+                    <div class = 'inner-color' style = 'background-image: url("{% static card.0.cardurl %}"); background-color: #{{ card.0.card_color }};'> 
                         {{ card.0.simple_name }} 
                     </div>
                 </div>
@@ -214,7 +212,7 @@
             <div class = 'kingdom-container'>
                 {% for card in kingdomCards.2 %}
                 <div class = 'kingdom-card' style = 'background: #{{ card.0.border_color }};' card = {{ card.1 }}>
-                    <div class = 'inner-color' style = 'background: #{{ card.0.card_color }};'> 
+                    <div class = 'inner-color' style = 'background-image: url("{% static card.0.cardurl %}"); background-color: #{{ card.0.card_color }};'> 
                         {{ card.0.simple_name }} 
                     </div>
                 </div>

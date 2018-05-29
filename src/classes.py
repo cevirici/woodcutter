@@ -17,12 +17,12 @@ standardPreds = []
 standardPersistents = []
 standardNames = []
 
-f = open(os.path.join(settings.STATIC_ROOT, 'woodcutter/cardColors.txt'))
-cardColorArray = {}
+f = open(os.path.join(settings.STATIC_ROOT, 'woodcutter/card_images/imageurls.txt'))
+cardUrls = {}
 for line in f:
     raw = line.strip().split(':')
-    raw[1] = raw[1].split('|')
-    cardColorArray[raw[0]] = raw[1]
+    raw[1] = 'woodcutter/card_images/{}'.format(raw[1][raw[1].rfind('/')+1:])
+    cardUrls[raw[0]] = raw[1]
 
 
 class Card:
@@ -40,7 +40,10 @@ class Card:
         self.card_color = card_color
         self.worth = worth
 
-        self.card_color_array = cardColorArray[self.simple_name]
+        if self.simple_name in cardUrls:
+            self.cardurl = cardUrls[self.simple_name]
+        else:
+            self.cardurl = cardUrls['card']
 
     def names(self):
         return [self.simple_name, self.multi_name, self.phrase_name]

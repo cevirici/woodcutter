@@ -4,6 +4,7 @@ from .standards import *
 
 from functools import reduce
 from itertools import product
+from django.contrib.staticfiles.templatetags.staticfiles import static
 
 
 def makeDiv(classes, styles={}, otherAttrs={}, innerHTML=''):
@@ -20,13 +21,13 @@ def makeDiv(classes, styles={}, otherAttrs={}, innerHTML=''):
 
 
 def draw_graph_box(card, style, xpos, ypos, side, isDark,
-                   borderColor, innerColor, label, height, baseheight):
+                   borderColor, innerColor, label, height, baseheight, cardBG=''):
     direction = ['bottom', 'top'][side]
     actualY = (baseheight * 1.3) * ypos + 0.5 * (ypos//5)
     actualX = 2.5 * xpos + 0.4
 
     boxString = makeDiv(style,
-                        {'background': '{}'.format(borderColor),
+                        {'background-color': '{}'.format(borderColor),
                          direction: '{}vh'.format(actualY),
                          'left': '{}vh'.format(actualX),
                          'height': '{}vh'.format(height)
@@ -38,8 +39,8 @@ def draw_graph_box(card, style, xpos, ypos, side, isDark,
                          'currenty': ypos
                          },
                         makeDiv('box-inner dark' if isDark else 'box-inner',
-                                styles={'background': '{}'.format(innerColor)},
-                                innerHTML=label
+                                styles={'background-color': '{}'.format(innerColor),
+                                        'background-image': 'url(\'{}\')'.format(static(cardBG))}
                                 )
                         )
     return boxString
@@ -48,6 +49,11 @@ def draw_graph_box(card, style, xpos, ypos, side, isDark,
 def draw_standard_box(card, style, xpos, ypos, side, height=1.4, baseheight=1.4):
     cardData = standardCards[card]
     cardName = cardData.simple_name
+
+    cardurlsplit = standardCards[card].cardurl.split(".")
+    cardurlsplit[0] += '-tiny'
+    cardBG = '.'.join(cardurlsplit)
+
     cardColor = '#{}'.format(cardData.card_color)
     borderColor = '#{}'.format(cardData.border_color)
     cardLabel = ''.join([word[0] for word in cardName.split(' ')[:2]])
@@ -56,7 +62,8 @@ def draw_standard_box(card, style, xpos, ypos, side, height=1.4, baseheight=1.4)
     isDark = sum(innerColorRGB) > 383
 
     return draw_graph_box(card, style, xpos, ypos, side, isDark,
-                          borderColor, cardColor, cardLabel, height, baseheight)
+                          borderColor, cardColor, cardLabel, height, baseheight,
+                          cardBG)
 
 
 def render_graph_row(stacks, styles, side):
@@ -231,9 +238,10 @@ def render_axis_labels(turnOwners):
 def render_legend_boxes(involvedCards):
     # Name | Card Color | Border Color | Card Index
     legendBoxes = [[standardCards[card].simple_name,
-                    standardCards[card].card_color_array,
+                    standardCards[card].cardurl,
                     standardCards[card].border_color,
-                    card
+                    card,
+                    standardCards[card].card_color,
                     ] for card in involvedCards]
     legendBoxes.sort(key=lambda x: card_order.index(x[0]))
     return legendBoxes
