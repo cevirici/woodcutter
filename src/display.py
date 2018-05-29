@@ -25,9 +25,10 @@ def draw_graph_box(card, style, xpos, ypos, side, isDark,
     direction = ['bottom', 'top'][side]
     actualY = (baseheight * 1.3) * ypos + 0.5 * (ypos//5)
     actualX = 2.5 * xpos + 0.4
+    bgstring = 'background' if cardBG == '' else 'background-color'
 
     boxString = makeDiv(style,
-                        {'background-color': '{}'.format(borderColor),
+                        {'background': '{}'.format(borderColor),
                          direction: '{}vh'.format(actualY),
                          'left': '{}vh'.format(actualX),
                          'height': '{}vh'.format(height)
@@ -39,7 +40,7 @@ def draw_graph_box(card, style, xpos, ypos, side, isDark,
                          'currenty': ypos
                          },
                         makeDiv('box-inner dark' if isDark else 'box-inner',
-                                styles={'background-color': '{}'.format(innerColor),
+                                styles={bgstring: '{}'.format(innerColor),
                                         'background-image': 'url(\'{}\')'.format(static(cardBG))}
                                 )
                         )
