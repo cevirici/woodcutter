@@ -388,4 +388,5 @@ def exportGameStates(gameStates):
 def relevantColors(supply):
     return {card: [standardCards[card].card_color,
                    standardCards[card].border_color,
-                   standardCards[card].simple_name] for card in supply}
+                   standardCards[card].simple_name,
+                   static(standardCards[card].cardurl)] for card in supply}

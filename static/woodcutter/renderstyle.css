@@ -35,7 +35,7 @@
 
 .decks-label, .controlbox, .kingdom-card, .kingdom-label, 
 .modalcontrolbox, .settingsbox, .story-color, .story-edit, 
-.story-line, .story-sidebar-block{
+.story-line, .story-sidebar-block, .box-inner{
     color: #FFFFFF;
     font: 1.5vh Segoe UI;
     text-shadow: 1px 1px 0 #000;
@@ -303,7 +303,11 @@ modals{
     align-items: center;
 
     color: #FFFFFF;
-    font: 1.1vh Consolas;
+    font: 1.5vh Consolas;
+    text-shadow: -1px -1px 0 #000,  
+                  1px -1px 0 #000,
+                  -1px 1px 0 #000,
+                   1px 1px 0 #000;
 
     -webkit-user-select: none;
     -moz-user-select: none;
@@ -742,29 +746,13 @@ modals{
 
 
 .decksbox{
-    width: 1.8vh;
-    height: 1.4vh;
+    width: 2.25vh;
+    height: 1.75vh;
+    background-size: cover;
+
+    margin-left: 2vh;
 
     display: flex;
     justify-content: center;
     align-items: center;
-}
-
-.deckslabel{
-    width: 2.3vh;
-
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-
-    color: #FFFFFF;
-    font: 1.2vh Consolas;
-    text-align: right;
-    padding-right: 0.2vh;
-}
-
-.deckswrapper{
-    width: 4.1vh;
-
-    display: flex;
 }

@@ -277,15 +277,12 @@ $(document).on('keydown', 'input', function(e) {
 
 /*********** Story Deck Display ***********/
 
-function drawStandardBox(card){
+function drawStandardBox(card, quantity){
     innerColor = cardColors[card][0];
     borderColor = cardColors[card][1];
     cardName = cardColors[card][2];
+    cardURL = cardColors[card][3];
     nameWords = cardName.split(' ');
-    cardLabel = ''
-    for (i = 0; i < Math.min(2, nameWords.length); i++){
-        cardLabel += nameWords[i][0];
-    }
 
     colorSum = 0;
     for (i = 0; i < 6; i+= 2){
@@ -293,10 +290,8 @@ function drawStandardBox(card){
     }
     isDark = (colorSum > 383);
 
-    innerClass = (isDark ? 'box-inner dark' : 'box-inner');
-
-    innerString = "<div class='"+ innerClass +"' style='background: #"+ innerColor +";'>"
-                  + cardLabel + '</div>';
+    innerString = "<div class='box-inner' style='background-image: url(\""+ cardURL +"\");'>"
+                  + quantity + '</div>';
     fullBox = "<div class='decksbox' style='background: #"+ borderColor +";'>"
                + innerString +"</div>";
     return fullBox
@@ -318,10 +313,7 @@ function updateBoardPosition(chunk){
                     item = partItems[itemIndex].split(':');
                     quantity = parseInt(item[0]);
                     itemID = parseInt(item[1], 16);
-                    partString += "<div class = 'deckswrapper'>" +
-                                  "<div class='deckslabel'>"+quantity+"</div>" +
-                                  drawStandardBox(itemID) +
-                                  "</div>";
+                    partString += drawStandardBox(itemID, quantity)
                 }
 
                 partDiv.html(partString);
