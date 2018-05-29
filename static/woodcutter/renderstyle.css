@@ -456,8 +456,6 @@ modals{
     width: 100%;
     position: absolute;
     overflow-wrap: break-word;
-
-    background: rgba(0,0,0, 0.2);
 }
 
 .controls{
