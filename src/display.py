@@ -26,6 +26,10 @@ def draw_graph_box(card, style, xpos, ypos, side, isDark,
     actualY = (baseheight * 1.3) * ypos + 0.5 * (ypos//5)
     actualX = 2.5 * xpos + 0.4
     bgstring = 'background' if cardBG == '' else 'background-color'
+    insideExtras = ''
+
+    if 'redoutline' in style:
+        insideExtras += makeDiv('redcover')
 
     boxString = makeDiv(style,
                         {'background': '{}'.format(borderColor),
@@ -43,6 +47,7 @@ def draw_graph_box(card, style, xpos, ypos, side, isDark,
                                 styles={bgstring: '{}'.format(innerColor),
                                         'background-image': 'url(\'{}\')'.format(static(cardBG))}
                                 )
+                        + insideExtras
                         )
     return boxString
 
@@ -368,15 +373,13 @@ def render_kingdom(supply):
     supplyCards = [standardCards[x] for x in supply if supply[x] > 1]
     supplyScapes = [standardCards[x] for x in supply if standardCards[x].simple_name in landscapes]
     supplyCards += supplyScapes
-    bunchCards = [[range(312, 320), 311],
-                  [[218, 219, 220, 221, 222, 185, 186, 187, 188, 189], 174],
-                  [[175, 213, 214, 215, 226], 173]]
 
     for bunch in bunchCards:
         for card in bunch[0]:
             if card in supply:
                 supplyCards.insert(0, standardCards[bunch[1]])
                 break
+
     supplyCards = sorted(supplyCards, key=lambda x: (x.cost, x.simple_name))
     return [[[card, standardCards.index(card)] for
              card in supplyCards if card.supply_type == i] for i in range(3)]

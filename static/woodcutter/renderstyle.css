@@ -343,8 +343,11 @@ modals{
     text-align: center;
 }
 
-.redoutline{
-    outline: #FF0000 solid 2px;
+.redcover{
+    background: rgba(192,96,96,0.6);
+    width: 100%;
+    height: 100%;
+    position: absolute;
 }
 
 .blueoutline{

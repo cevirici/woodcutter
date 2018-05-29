@@ -320,3 +320,7 @@ def full_printout(moveTree, gameStates):
         print_chunk(chunk, turnIndex)
         turnIndex += 1
     outfile.close()
+
+
+def get_empty_piles(supply, gameState):
+    pass
