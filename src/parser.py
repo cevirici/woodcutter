@@ -149,7 +149,8 @@ def combined_parse(inStrings):
             candidate_items[0] = candidate_items[0].merge(candidate_items[-1])
             del candidate_items[-1]
 
-        combined.items = candidate_items[0]
+        if len(candidate_items) > 0:
+            combined.items = candidate_items[0]
         combined.player = hex(combined.player)[2:]
         combined.indent = hex(combined.indent)[2:]
         combined.pred = '{:0>2}'.format(hex(standardPreds
