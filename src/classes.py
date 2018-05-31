@@ -169,8 +169,9 @@ class Cardstack:
     def merge(self, target):
         temp = {}
         for item in self.val:
-            if item in target:
-                temp[item] = min(self.val[item], target[item])
+            if item not in [CARD_CARD, ARGUMENT_CARD, NOTHING_CARD]:
+                if item in target:
+                    temp[item] = min(self.val[item], target[item])
 
         return Cardstack(temp)
 

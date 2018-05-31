@@ -140,10 +140,7 @@ def combined_parse(inStrings):
         t = [x[i] for x in logs]
         combined = copy.copy(t[0])
 
-        candidate_items = []
-        for s_t in t:
-            if CARD_CARD not in s_t.items and NOTHING_CARD not in s_t.items:
-                candidate_items.append(s_t.items)
+        candidate_items = [s_t.items for s_t in t]
 
         while len(candidate_items) > 1:
             candidate_items[0] = candidate_items[0].merge(candidate_items[-1])
