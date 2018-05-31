@@ -172,8 +172,8 @@ class Cardstack:
             if item not in [ARGUMENT_CARD, NOTHING_CARD]:
                 if item in target:
                     temp[item] = min(self.val[item], target[item])
-                elif item == ARGUMENT_CARD:
-                    temp[item] = self.val[item]
+            elif item == ARGUMENT_CARD:
+                temp[item] = self.val[item]
 
         return Cardstack(temp)
 
