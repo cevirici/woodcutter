@@ -375,10 +375,9 @@ def render_kingdom(supply):
     supplyCards += supplyScapes
 
     for bunch in bunchCards:
-        for card in bunch[0]:
-            if card in supply:
-                supplyCards.insert(0, standardCards[bunch[1]])
-                break
+        bunchCount = len([card for card in bunch[0] if card in supply])
+        if bunchCount > 1:
+            supplyCards.insert(0, standardCards[bunch[1]])
 
     supplyCards = sorted(supplyCards, key=lambda x: (x.cost, x.simple_name))
     return [[[card, standardCards.index(card)] for
