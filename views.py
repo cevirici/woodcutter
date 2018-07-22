@@ -219,7 +219,10 @@ def find_logs(request):
 
     outputLogs = [str(rawLog.game_id) for rawLog in rawLogs if
                   matchLog(rawLog, searchCards, optionalCards, players)]
-    return HttpResponse(','.join(outputLogs))
+    for i in range(5, len(outputLogs), 5):
+        outputLogs[i] = '<br>' + outputLogs[i]
+    outputLogString = ','.join(outputLogs)
+    return HttpResponse(outputLogString)
 
 
 @csrf_exempt

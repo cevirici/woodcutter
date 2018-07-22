@@ -40,4 +40,7 @@
 
 {% block postblock %}
     <script src="{% static 'woodcutter/searchpage.js' %}"></script>
+	<script>
+		const psg = new PerfectScrollbar('.results-container > p', {suppressScrollX: true});
+	</script>
 {% endblock %}
