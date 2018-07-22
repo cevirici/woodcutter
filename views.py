@@ -208,11 +208,11 @@ def find_logs(request):
             if card not in logCards:
                 return False
 
-        if len([card for card in optionalCards if card in logCards]) < len(optionalCards):
+        if len([card for card in optionalCards if card in logCards]) < min(optionalCards, 1):
             return False
 
         logPlayers = rawLog.players.split('~')
-        if len([player for player in players if player in logPlayers]) < len(players):
+        if len([player for player in players if player in logPlayers]) < min(players, 1):
             return False
 
         return True
