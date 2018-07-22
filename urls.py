@@ -11,6 +11,7 @@ urlpatterns = [
     path('forceerrorlist', views.force_error_list, name='forceerrorlist'),
     path('editlog', views.edit_log, name='editlog'),
     path('random', views.random, name='random'),
-    path('mpass', views.isMPassIn, name='hacky'),
+    path('logsearch', views.logSearch, name='search'),
+    path('findlogs', views.find_logs, name='findlogs'),
     path('<int:game_id>/display/', views.display, name='display'),
 ]

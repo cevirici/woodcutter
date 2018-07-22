@@ -21,6 +21,10 @@ def main(request):
     return render(request, 'woodcutter/main.html')
 
 
+def logSearch(request):
+    return render(request, 'woodcutter/logsearch.html')
+
+
 def random(request):
     logs = GameLog.objects.all()
     i = randint(0, len(logs)-1)
@@ -50,16 +54,6 @@ def submit(request):
         existinglog.save()
 
     return HttpResponseRedirect(reverse('woodcutter:display', args=(ret[1],)))
-
-
-def isMPassIn(request):
-    tot = ""
-    for log in GameLog.objects.all():
-        moveData = unpack(log.log, log.supply)
-        supply = moveData[1]
-        if 350 in supply:
-            tot += str(log.game_id)+"|"
-    return HttpResponse(tot)
 
 
 def display(request, game_id):
@@ -200,14 +194,32 @@ def error_list(request):
     return render(request, 'woodcutter/errorList.html', context)
 
 
-def error_404(request):
-    data = {}
-    return render(request, 'woodcutter/error_404.html', data)
+@csrf_exempt
+def find_logs(request):
+    searchCards = request.POST['cards'].split()
+    optionalCards = request.POST['optionals'].split()
+    players = request.POST['players'].split()
+    rawLogs = GameLog.objects.all()
 
+    def matchLog(rawLog, search, optional, players):
+        rawLogCards = rawLog.supply.split('~')
+        logCards = [str(int(card[:3], 16)) for card in rawLogCards]
+        for card in searchCards:
+            if card not in logCards:
+                return False
 
-def error_500(request):
-    data = {}
-    return render(request, 'woodcutter/error_500.html', data)
+        if len([card for card in optionalCards if card in logCards]) < len(optionalCards):
+            return False
+
+        logPlayers = rawLog.players.split('~')
+        if len([player for player in players if player in logPlayers]) < len(players):
+            return False
+
+        return True
+
+    outputLogs = [str(rawLog.game_id) for rawLog in rawLogs if
+                  matchLog(rawLog, searchCards, optionalCards, players)]
+    return HttpResponse(','.join(outputLogs))
 
 
 @csrf_exempt
@@ -237,3 +249,13 @@ def edit_log(request):
     log.log = '~'.join(logStrings)
     log.save()
     return HttpResponse(returnData)
+
+
+def error_404(request):
+    data = {}
+    return render(request, 'woodcutter/error_404.html', data)
+
+
+def error_500(request):
+    data = {}
+    return render(request, 'woodcutter/error_500.html', data)

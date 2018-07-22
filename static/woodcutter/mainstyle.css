@@ -50,6 +50,19 @@ body{
 }
 
 
+.results-container{
+	width: 50%;
+	height: 60%;
+	overflow: hidden;
+	position: relative;
+
+	display: flex;
+	flex-direction: column;
+	justify-content: flex-start;
+	align-items: center;
+}
+
+
 p{
 	width: 50%;
 	padding: 10px;
@@ -110,21 +123,34 @@ h1{
 
 
 .search-container{
-	width: 40%;
-	height: 5vh;
+	width: 60%;
 	margin-top: 5vh;
+	margin-right: 15%;
+
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+}
+
+
+.search-row{
+	width: 100%;
+	height: 5vh;
+	margin-top: 1vh;
 
 	display: flex;
 	flex-direction: row;
-	justify-content: space-between;
+	justify-content: center;
 	align-items: center;
 }
 
 
 .searchbox{
-	width: 70%;
+	width: 50%;
 	height: 100%;
 	padding-left: 1vh;
+	margin-right: 3vh;
 
 	font: 3vh "Segoe UI";
 	background: #444444;
@@ -134,8 +160,9 @@ h1{
 
 
 .search-button{
-	width: 20%;
+	width: 15vh;
 	height: 95%;
+	margin-left: 12%;
 
 	font: 3vh "Segoe UI";
 	background: #444444;
@@ -149,6 +176,20 @@ h1{
 }
 .search-button:hover{
     background: #3C75BC; 
+}
+
+
+.left-label{
+	width: 40%;
+	padding-right: 5%;
+
+	font: 2vh "Segoe UI";
+	color: #FFFFFF;
+
+	display: flex;
+	flex-direction: row;	
+	justify-content: flex-end;
+	align-items: center;
 }
 
 

@@ -1,0 +1,43 @@
+{% extends 'woodcutter/base.html' %}
+{% load static %}
+
+{% block header %}
+	<title>Log Search</title>
+	<link rel='stylesheet' href="{% static 'woodcutter/mainstyle.css' %}">
+    <link rel='stylesheet' href="{% static 'woodcutter/perfect-scrollbar.css' %}">
+    <script src="{% static 'woodcutter/perfect-scrollbar.min.js' %}"></script>
+	<script src="{% static 'woodcutter/jquery-3.2.1.min.js' %}"></script>
+{% endblock %}
+
+{% block content %}
+	<div class = 'content-container'>
+		<img class = 'logo' src="{% static 'woodcutter/woodcuttericon_full.png' %}">
+
+		<div class = 'search-container'>
+			<div class = 'search-row'>
+				<div class = 'left-label'>Required Cards:</div>
+				<input id = 'searchcards' class = 'searchbox' type = 'text' placeholder = 'Cards'>
+			</div>
+			<div class = 'search-row'>
+				<div class = 'left-label'>One of the Following:</div>
+				<input id = 'optionalcards' class = 'searchbox' type = 'text' placeholder = 'Cards'>
+			</div>
+			<div class = 'search-row'>
+				<div class = 'left-label'>Players:</div>
+				<input id = 'players' class = 'searchbox' type = 'text' placeholder = 'Players'>
+			</div>
+			<div class = 'search-row'>
+				<div class = 'spacer'></div>
+				<div class = 'search-button'>Go!</div>
+			</div>
+		</div>
+
+		<div class = 'results-container'>
+			<p></p>
+		</div>
+	</div>
+{% endblock %}
+
+{% block postblock %}
+    <script src="{% static 'woodcutter/searchpage.js' %}"></script>
+{% endblock %}
