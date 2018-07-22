@@ -1,5 +1,6 @@
 
 $('.search-button').click(function(){
+    $('.results-container').css('width', '50%');
     $.post('findlogs',
         {
             'cards': $('#searchcards').val(),

@@ -10,10 +10,9 @@
 {% endblock %}
 
 {% block content %}
-	<div class = 'content-container'>
-		<img class = 'logo' src="{% static 'woodcutter/woodcuttericon_full.png' %}">
-
+	<div class = 'content-container-row'>
 		<div class = 'search-container'>
+			<img class = 'logo' src="{% static 'woodcutter/woodcuttericon_full.png' %}">
 			<div class = 'search-row'>
 				<div class = 'left-label'>Required Cards:</div>
 				<input id = 'searchcards' class = 'searchbox' type = 'text' placeholder = 'Cards'>
@@ -41,6 +40,6 @@
 {% block postblock %}
     <script src="{% static 'woodcutter/searchpage.js' %}"></script>
 	<script>
-		const psg = new PerfectScrollbar('.results-container > p', {suppressScrollX: true});
+		const psg = new PerfectScrollbar('.results-container', {suppressScrollX: true});
 	</script>
 {% endblock %}
