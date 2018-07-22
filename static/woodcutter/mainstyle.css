@@ -52,7 +52,7 @@ body{
 
 .results-container{
 	width: 50%;
-	height: 60%;
+	height: 40vh;
 	overflow: hidden;
 	position: relative;
 
