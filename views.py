@@ -7,6 +7,7 @@ from django.views.decorators.csrf import csrf_exempt
 from random import randint
 from .src import *
 from .models import GameLog
+import re
 
 
 def index(request):
@@ -197,7 +198,7 @@ def error_list(request):
 @csrf_exempt
 def find_logs(request):
     def clean(inString):
-        return inString.lower().replace(',', '').replace('-', '')
+        return re.sub(',|-| |\'', '', inString).lower()
 
     cleanNames = [clean(cardName) for cardName in standardNames]
 
