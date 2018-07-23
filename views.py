@@ -196,23 +196,38 @@ def error_list(request):
 
 @csrf_exempt
 def find_logs(request):
-    searchCards = request.POST['cards'].split()
-    optionalCards = request.POST['optionals'].split()
-    players = request.POST['players'].split()
+    def clean(inString):
+        return inString.lower().replace(',', '').replace('-', '')
+
+    cleanNames = [clean(cardName) for cardName in standardNames]
+
+    searchCards = request.POST['cards'].split(',')
+    searchCardIndices = [cleanNames.index(clean(cardName)) for cardName in
+                         searchCards if clean(cardName) in cleanNames]
+
+    optionalCards = request.POST['optionals'].split(',')
+    optionalCardIndices = [cleanNames.index(clean(cardName)) for cardName in
+                           optionalCards if clean(cardName) in cleanNames]
+
+    players = []
+    if len(request.POST['players']) > 0:
+        players = request.POST['players'].split(',')
     rawLogs = GameLog.objects.all()
 
     def matchLog(rawLog, search, optional, players):
         rawLogCards = rawLog.supply.split('~')
-        logCards = [str(int(card[:3], 16)) for card in rawLogCards]
-        for card in searchCards:
+        logCards = [int(card[:3], 16) for card in rawLogCards]
+        for card in searchCardIndices:
             if card not in logCards:
                 return False
 
-        if len([card for card in optionalCards if card in logCards]) < min(len(optionalCards), 1):
+        if len([card for card in optionalCardIndices if card in logCards]) \
+                < min(len(optionalCardIndices), 1):
             return False
 
         logPlayers = rawLog.players.split('~')
-        if len([player for player in players if player in logPlayers]) < min(len(players), 1):
+        if len([player for player in players if player in logPlayers]) \
+                < min(len(players), 1):
             return False
 
         return True

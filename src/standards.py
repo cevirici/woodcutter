@@ -2,8 +2,6 @@ from .classes import *
 from .lists import *
 from copy import deepcopy
 
-'''GAAAAH FUCK DURATIONS'''
-
 
 def empty(cM, gS, exc, tExc, pers):
     pass
