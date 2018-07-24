@@ -2152,11 +2152,11 @@ t = Card('Hireling', 'Hirelings', 'a Hireling', 6, 0, 'dda561', '745666', empty)
 standardCards.append(t)
 
 # 265: Inheritance
-t = Card('Inheritance', 'Inheritances', 'an Inheritance', 7, 0, 'a9a39d', '657759', empty)
+t = Card('Inheritance', 'Inheritances', 'an Inheritance', 7, 2, 'a9a39d', '657759', empty)
 standardCards.append(t)
 
 # 266: Lost Arts
-t = Card('Lost Arts', 'Lost Arts', 'a Lost Arts', 6, 0, 'a9a39d', 'ab4f1f', empty)
+t = Card('Lost Arts', 'Lost Arts', 'a Lost Arts', 6, 2, 'a9a39d', 'ab4f1f', empty)
 standardCards.append(t)
 
 # 267: Lost City
