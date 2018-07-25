@@ -250,8 +250,10 @@ def find_logs(request):
 
         return True
 
-    outputLogs = [str(rawLog.game_id) for rawLog in rawLogs if
-                  matchLog(rawLog, searchCards, optionalCards, players, errors)]
+    outputLogs = ['<a href = "{}/display">{}</a>'.format(rawLog.game_id, rawLog.game_id)
+                  for rawLog in rawLogs if matchLog(rawLog, searchCards,
+                  optionalCards, players, errors)]
+
     for i in range(5, len(outputLogs), 5):
         outputLogs[i] = '<br>' + outputLogs[i]
     outputLogString = ','.join(outputLogs)
