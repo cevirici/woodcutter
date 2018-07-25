@@ -157,37 +157,38 @@ def display(request, game_id):
         'gameid': game_id,
     }
 
-
     return render(request, 'woodcutter/display.html', context)
 
 
-def force_error_list(request):
-    for log in GameLog.objects.all():
-        moveData = unpack(log.log, log.supply)
+def quickUpdate(request):
+    game_ids = request.GET['ids']
+    for game_id in game_ids:
+        log = get_object_or_404(GameLog, game_id=game_id)
         players = log.players.split('~')
 
-        moveTree = parse_game(moveData[0])
-        try:
-            gameStates = get_decision_state(moveTree, moveData[1])
-        except BaseException:
-            log.valid = False
-            log.save()
+        repairable = True
+        while repairable:
+            moveData = unpack(log.log, log.supply)
+            indents = [parsedLine.indent for parsedLine in moveData[0]]
+            moveTree = parse_game(moveData[0])
+            try:
+                gameStates = get_decision_state(moveTree, moveData[1])
+            except BaseException:
+                log.valid = False
+                log.save()
+                raise
+
+            attemptedRepair = fullRepair(log.log, moveTree, gameStates)
+            if attemptedRepair[1]:
+                log.log = attemptedRepair[0]
+                log.save()
+            else:
+                repairable = False
 
         log.valid = gameStates[-1].valid
         log.save()
 
-    rawLogs = GameLog.objects.filter(valid=False).all()
-    errorLogs = []
-    for rawLog in rawLogs:
-        players = rawLog.players.split('~')
-        title = 'Game #{}: {} - {}'.format(rawLog.game_id, players[0], players[1])
-
-        errorLogs.append([title, rawLog.game_id])
-
-    context = {
-        'error_logs': errorLogs
-    }
-    return render(request, 'woodcutter/errorList.html', context)
+    return render(request, 'woodcutter/main.html')
 
 
 def error_list(request):
