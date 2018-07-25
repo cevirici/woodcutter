@@ -161,7 +161,7 @@ def display(request, game_id):
 
 
 def quickUpdate(request):
-    game_ids = request.GET['ids']
+    game_ids = request.GET['ids'].split(',')
     for game_id in game_ids:
         log = get_object_or_404(GameLog, game_id=game_id)
         players = log.players.split('~')
