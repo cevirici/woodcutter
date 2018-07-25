@@ -39,7 +39,7 @@ body{
 	display: flex;
 	flex-direction: row;
 	justify-content: center;
-	align-items: center;
+	align-items: flex-start;
 }
 
 
@@ -136,7 +136,7 @@ h1{
 
 
 .search-container{
-	width: 40%;
+	width: 70vh;
 	padding-top: 10vh;
 	margin-right: 15%;
 
@@ -158,6 +158,16 @@ h1{
 	align-items: center;
 }
 
+.search-main{
+	width: 80vh;
+	height: 5vh;
+	margin-top: 1vh;
+
+	display: flex;
+	flex-direction: row;
+	justify-content: center;
+	align-items: center;
+}
 
 .searchbox{
 	width: 50%;
@@ -175,7 +185,6 @@ h1{
 .search-button{
 	width: 15vh;
 	height: 95%;
-	margin-left: 12%;
 
 	font: 3vh "Segoe UI";
 	background: #444444;

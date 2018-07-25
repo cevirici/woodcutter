@@ -59,18 +59,27 @@ def submit(request):
 
 def display(request, game_id):
     log = get_object_or_404(GameLog, game_id=game_id)
-
-    moveData = unpack(log.log, log.supply)
-    indents = [parsedLine.indent for parsedLine in moveData[0]]
     players = log.players.split('~')
 
-    moveTree = parse_game(moveData[0])
-    try:
-        gameStates = get_decision_state(moveTree, moveData[1])
-    except BaseException:
-        log.valid = False
-        log.save()
-        raise
+    repairable = True
+    while repairable:
+        moveData = unpack(log.log, log.supply)
+        indents = [parsedLine.indent for parsedLine in moveData[0]]
+        moveTree = parse_game(moveData[0])
+        try:
+            gameStates = get_decision_state(moveTree, moveData[1])
+        except BaseException:
+            log.valid = False
+            log.save()
+            raise
+
+        attemptedRepair = fullRepair(log.log, moveTree, gameStates)
+        if attemptedRepair[1]:
+            log.log = attemptedRepair[0]
+            log.save()
+        else:
+            repairable = False
+
 
     log.valid = gameStates[-1].valid
     log.save()
@@ -147,6 +156,7 @@ def display(request, game_id):
         'storyPlain': storyPlain,
         'gameid': game_id,
     }
+
 
     return render(request, 'woodcutter/display.html', context)
 
