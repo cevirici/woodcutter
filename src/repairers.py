@@ -2,17 +2,6 @@ from .classes import *
 from .standards import *
 from copy import deepcopy
 
-def fullRepair(inLog, moveTree, gameStates):
-    changed = False
-    currLog = inLog
-    repairers = [repairRepay]
-    for repairer in repairers:
-        output = repairer(currLog, moveTree, gameStates)
-        currLog = output[0]
-        changed = output[1] or changed
-
-    return (currLog, changed)
-
 
 def snip(rawLog, snips):
     # snips are tuples of the form (decision, player, indent, pred, items)
@@ -26,6 +15,21 @@ def snip(rawLog, snips):
         logStrings[snip[0]] = outstr
 
     return '~'.join(logStrings)
+
+
+def fullRepair(inLog, moveTree, gameStates):
+    changed = False
+    currLog = inLog
+    repairers = [repairRepay, repairSave]
+    allSnips = [repairer(currLog, moveTree, gameStates) for
+                repairer in repairers]
+    totalSnips = sum([len(x) for x in allSnips])
+    print(allSnips)
+
+    for snipList in allSnips:
+        currLog = snip(currLog, snipList)
+
+    return (currLog, totalSnips > 0)
 
 
 def repairGear(rawLog, moveTree, gameStates):
@@ -53,5 +57,36 @@ def repairRepay(rawLog, moveTree, gameStates):
     for turn in moveTree:
         scan_chunk(turn)
 
-    outLog = snip(rawLog, snips)
-    return (outLog, len(snips) > 0)
+    return snips
+
+
+def repairSave(rawLog, moveTree, gameStates):
+    snips = []
+    currIndex = 0
+
+    def scan_chunk(chunk, thisTurn):
+        nonlocal currIndex, snips
+        if chunk[0].predName() == "BUY" and\
+           chunk[0].items.primary() == "Save":
+            desc = chunk[1][0]
+            if desc.predName() == "SET ASIDE WITH" and\
+               CARD_CARD in desc.items:
+                for rearCrawler in thisTurn[::-1]:
+                    if rearCrawler[0].predName() == "PUT INHAND":
+                        actualCard = rearCrawler[0].items
+                        break
+
+                newLine = deepcopy(desc)
+                actualCard.insert(ARGUMENT_CARD, newLine.items[ARGUMENT_CARD])
+                newLine.items = actualCard
+                snips.append((currIndex + 1, newLine))
+
+
+        currIndex += 1
+        for subchunk in chunk[1:]:
+            scan_chunk(subchunk, thisTurn)
+
+    for turn in moveTree:
+        scan_chunk(turn, turn)
+
+    return snips
