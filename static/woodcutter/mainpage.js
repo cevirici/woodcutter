@@ -13,7 +13,10 @@ $('.search-button').click(function(){
 	window.location.href = '/woodcutter/' + $('.searchbox').val() + '/display';
 })
 
-
 $('.random-log').click(function(){
 	window.location.href = '/woodcutter/random';
+})
+
+$('.log-search').click(function(){
+    window.location.href = '/woodcutter/logsearch';
 })
