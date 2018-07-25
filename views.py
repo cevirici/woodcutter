@@ -220,12 +220,14 @@ def find_logs(request):
     optionalCardIndices = [cleanNames.index(clean(cardName)) for cardName in
                            optionalCards if clean(cardName) in cleanNames]
 
+    errors = request.POST['errors']
+
     players = []
     if len(request.POST['players']) > 0:
         players = request.POST['players'].split(',')
     rawLogs = GameLog.objects.all()
 
-    def matchLog(rawLog, search, optional, players):
+    def matchLog(rawLog, search, optional, players, errors):
         rawLogCards = rawLog.supply.split('~')
         logCards = [int(card[:3], 16) for card in rawLogCards]
         for card in searchCardIndices:
@@ -241,10 +243,14 @@ def find_logs(request):
                 < min(len(players), 1):
             return False
 
+        if (errors == "0" and not rawLog.valid) or \
+           (errors == "2" and rawLog.valid):
+            return False
+
         return True
 
     outputLogs = [str(rawLog.game_id) for rawLog in rawLogs if
-                  matchLog(rawLog, searchCards, optionalCards, players)]
+                  matchLog(rawLog, searchCards, optionalCards, players, errors)]
     for i in range(5, len(outputLogs), 5):
         outputLogs[i] = '<br>' + outputLogs[i]
     outputLogString = ','.join(outputLogs)

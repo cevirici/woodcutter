@@ -136,44 +136,39 @@ h1{
 
 
 .search-container{
-	width: 70vh;
+	height: 70vh;
+	width: 35%;
 	padding-top: 10vh;
-	margin-right: 15%;
+	margin-right: 7.5%;
+	margin-left: 7.5%;
 
-	display: flex;
-	flex-direction: column;
-	justify-content: flex-start;
-	align-items: flex-end;
+	display: grid;
+	grid-template-columns: 40% 30% 30%;
+	grid-template-rows: 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
+	grid-row-gap: 1vh;
+	grid-column-gap: 3%;
+	justify-items: end;
 }
 
-
-.search-row{
-	width: 100%;
-	height: 5vh;
-	margin-top: 1vh;
-
-	display: flex;
-	flex-direction: row;
-	justify-content: center;
-	align-items: center;
-}
 
 .search-main{
-	width: 80vh;
+	width: 60vh;
 	height: 5vh;
-	margin-top: 1vh;
+	margin-top: 3vh;
 
-	display: flex;
-	flex-direction: row;
-	justify-content: center;
-	align-items: center;
+	display: grid;
+	grid-template-columns: 70% 27%;
+	grid-template-rows: 1fr;
+	grid-row-gap: 1vh;
+	grid-column-gap: 3%;
+	justify-items: end;
 }
 
 .searchbox{
-	width: 50%;
-	height: 100%;
-	padding-left: 1vh;
-	margin-right: 3vh;
+	grid-column: 2/4;
+	justify-self: stretch;
+
+	padding-left: 2vh;
 
 	font: 3vh "Segoe UI";
 	background: #444444;
@@ -182,9 +177,26 @@ h1{
 }
 
 
+.error-selector{
+	justify-self: stretch;
+
+	font: 3vh "Segoe UI";
+	background: #444444;
+	color:#FFFFFF;
+	border:#333 1px solid;
+
+	display: flex;
+	flex-direction: row;
+	justify-content: center;
+	align-items: center;
+}
+.error-selector:hover{
+    background: #3C75BC; 
+}
+
+
 .search-button{
-	width: 15vh;
-	height: 95%;
+	justify-self: stretch;
 
 	font: 3vh "Segoe UI";
 	background: #444444;
@@ -202,16 +214,22 @@ h1{
 
 
 .left-label{
-	width: 40%;
-	padding-right: 5%;
+	grid-column: 1/2;
+	justify-self: end;
+	align-self: center;
 
 	font: 2vh "Segoe UI";
 	color: #FFFFFF;
+}
 
-	display: flex;
-	flex-direction: row;	
-	justify-content: flex-end;
-	align-items: center;
+
+.center-label{
+	grid-column: 1/4;
+	justify-self: center;
+	align-self: center;
+
+	font: 2vh "Segoe UI";
+	color: #FFFFFF;
 }
 
 
@@ -240,4 +258,13 @@ h1{
 }
 .help-hint:hover, .random-log:hover{
 	color: #BBBB66;
+}
+
+
+.noTouchy{
+  -webkit-touch-callout: none;
+    -webkit-user-select: none;
+       -moz-user-select: none;
+        -ms-user-select: none;
+            user-select: none;
 }

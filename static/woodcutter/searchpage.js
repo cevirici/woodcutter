@@ -5,7 +5,8 @@ $('.search-button').click(function(){
         {
             'cards': $('#searchcards').val(),
             'optionals': $('#optionalcards').val(),
-            'players': $('#players').val()
+            'players': $('#players').val(),
+            'errors': $('.error-selector').attr('state')
         },
         function (data, status){
             $('.results-container > p').html(data);
@@ -14,4 +15,12 @@ $('.search-button').click(function(){
         console.log(errorThrown);
         console.log(jqXHR.responseText);
     });
+});
+
+
+$('.error-selector').click(function(){
+    currState = $('.error-selector').attr('state');
+    currState = (currState + 1) % 3;
+    $('.error-selector').html(['No', 'All', 'Yes'][currState]);
+    $('.error-selector').attr('state', currState);
 });

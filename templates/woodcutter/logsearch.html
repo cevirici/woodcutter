@@ -12,26 +12,17 @@
 {% block content %}
 	<div class = 'content-container-row'>
 		<div class = 'search-container'>
-			<img class = 'logo' src="{% static 'woodcutter/woodcuttericon_full.png' %}">
-			<div class = 'search-row'>
-				<div class = 'left-label'> Separate fields by commas.</div>
-			</div>
-			<div class = 'search-row'>
-				<div class = 'left-label'>Required Cards:</div>
-				<input id = 'searchcards' class = 'searchbox' type = 'text' placeholder = 'Cards'>
-			</div>
-			<div class = 'search-row'>
-				<div class = 'left-label'>One of the Following:</div>
-				<input id = 'optionalcards' class = 'searchbox' type = 'text' placeholder = 'Cards'>
-			</div>
-			<div class = 'search-row'>
-				<div class = 'left-label'>Players:</div>
-				<input id = 'players' class = 'searchbox' type = 'text' placeholder = 'Players'>
-			</div>
-			<div class = 'search-row'>
-				<div class = 'spacer'></div>
-				<div class = 'search-button'>Go!</div>
-			</div>
+			<img class = 'logo' style="grid-column: 1/4; grid-row: 1/2;" src="{% static 'woodcutter/woodcuttericon_full.png' %}">
+			<div class = 'center-label' style="grid-row: 2/3;"> Separate fields by commas.</div>
+			<div class = 'left-label' style="grid-row: 3/4;">Required Cards:</div>
+			<input id = 'searchcards' style="grid-row: 3/4;" class = 'searchbox' type = 'text' placeholder = 'Cards'>
+			<div class = 'left-label' style="grid-row: 4/5;">One of the Following:</div>
+			<input id = 'optionalcards' style="grid-row: 4/5;" class = 'searchbox' type = 'text' placeholder = 'Cards'>
+			<div class = 'left-label' style="grid-row: 5/6;">Players:</div>
+			<input id = 'players' style="grid-row: 5/6;" class = 'searchbox' type = 'text' placeholder = 'Players'>
+			<div class = 'left-label' style="grid-row: 6/7;">Log Has Errors?</div>
+			<div class = 'error-selector noTouchy' style="grid-column: 2/3; grid-row: 6/7;" state="1">All</div>
+			<div class = 'search-button noTouchy' style="grid-column: 2/3; grid-row: 7/8;">Go!</div>
 		</div>
 
 		<div class = 'results-container'>
