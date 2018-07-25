@@ -1677,7 +1677,7 @@ def graverobber_action(cM, gS, exc, tExc, pers):
     if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
         isRemodelling = False
         for chunk in cM[1:]:
-            if chunk[0].predName == 'TRASH':
+            if chunk[0].predName() == 'TRASH':
                 isRemodelling = True
 
         if not isRemodelling:
@@ -1802,6 +1802,8 @@ standardCards.append(t)
 def rogue_action(cM, gS, exc, tExc, pers):
     if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
         exc.append(standardException(['GAIN'], 'TRASH', 'DISCARDS'))
+        exc.append(Exception(standardCondition(['GAIN']),
+                             standardOnGains('DISCARDS')))
         exc.append(exc_revealDiscard)
         exc.append(exc_revealTrash)
 
