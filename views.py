@@ -4,6 +4,7 @@ from django.conf import settings
 from django.urls import reverse
 from django.core.exceptions import ObjectDoesNotExist
 from django.views.decorators.csrf import csrf_exempt
+
 from random import randint
 from .src import *
 from .models import GameLog
