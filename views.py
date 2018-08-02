@@ -20,7 +20,8 @@ def inputFields(request):
 
 
 def main(request):
-    return render(request, 'woodcutter/main.html')
+    logCount = len(GameLog.objects.all())
+    return render(request, 'woodcutter/main.html', {'logcount': logCount})
 
 
 def logSearch(request):
@@ -29,7 +30,7 @@ def logSearch(request):
 
 def random(request):
     logs = GameLog.objects.all()
-    i = randint(0, len(logs)-1)
+    i = randint(0, len(logs) - 1)
     gameIndex = logs[i].game_id
     return HttpResponseRedirect(reverse('woodcutter:display', args=(gameIndex,)))
 
@@ -65,7 +66,6 @@ def display(request, game_id):
     repairable = True
     while repairable:
         moveData = unpack(log.log, log.supply)
-        indents = [parsedLine.indent for parsedLine in moveData[0]]
         moveTree = parse_game(moveData[0])
         try:
             gameStates = get_decision_state(moveTree, moveData[1])

@@ -261,6 +261,15 @@ h1{
 }
 
 
+.count-text{
+	margin-top: 1vh;
+	
+	font-family: "Segoe UI";
+	font-size: 3vh;
+	color: #DDDDDD;	
+}
+
+
 .noTouchy{
   -webkit-touch-callout: none;
     -webkit-user-select: none;
