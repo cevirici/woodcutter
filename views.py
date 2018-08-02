@@ -100,7 +100,7 @@ def display(request, game_id):
     progressCards = find_shuffle_progress(turnPoints, cleanupPoints,
                                           gameStates)
 
-    vpCards = find_vp(turnPoints, gameStates)
+    vpCards = find_vp(turnPoints, gameStates, moveData[1])
 
     graph_all_top = render_graph_row(allCards, [''], 0)
     graph_all_bot = render_graph_row(allCards, [''], 1)

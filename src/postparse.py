@@ -267,7 +267,7 @@ def find_shuffle_progress(turnPoints, cleanupPoints, gameStates):
     return [discards, actives, decks]
 
 
-def find_vp(turnPoints, gameStates):
+def find_vp(turnPoints, gameStates, rawSupply):
     vpCounts = [[] for i in range(2)]
     vpWorths = [[] for i in range(2)]
     for point in turnPoints:
@@ -283,7 +283,7 @@ def find_vp(turnPoints, gameStates):
                     currWorths.insert(card, worth)
 
             landmarkVP = 0
-            for cardscape in gameStates[point+1].SUPPLY[0] :
+            for cardscape in rawSupply:
                 if standardCards[cardscape].simple_name in landmarks:
                     landmarkVP += standardCards[cardscape].worth(gameStates[point+1], p)
 
