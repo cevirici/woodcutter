@@ -162,6 +162,16 @@
                         <img src="{% static 'woodcutter/fixicon_yellow.png' %}">
                         <img src="{% static 'woodcutter/fixicon.png' %}">
                     </div>
+                    <div class = 'story-tool text'>
+                        <img src="{% static 'woodcutter/texticon_blue.png' %}">
+                        <img src="{% static 'woodcutter/texticon_yellow.png' %}">
+                        <img src="{% static 'woodcutter/texticon.png' %}">
+                    </div>
+                    <div class = 'story-tool copy'>
+                        <img src="{% static 'woodcutter/copyicon_blue.png' %}">
+                        <img src="{% static 'woodcutter/copyicon_yellow.png' %}">
+                        <img src="{% static 'woodcutter/copyicon.png' %}">
+                    </div>
                 </div>
                 <div class = 'story-main'>
                     <div class = 'story-window'>
@@ -169,6 +179,13 @@
                             {% for line in story_lines %}
                             <div class = 'story-line{% if line.2 == 0 %} alternate{% endif %}' style = 'padding-left:{{ line.0 }}%' turn = {{ line.3 }}>
                                 {{ line.1 | safe }}
+                            </div>
+                            {% endfor %}
+                        </div>
+                        <div class = 'story-container plaintext'>
+                            {% for line in storyPlain %}
+                            <div class = 'story-line' style = 'padding-left:2%'>
+                                {{ line | safe }}
                             </div>
                             {% endfor %}
                         </div>

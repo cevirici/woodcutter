@@ -519,6 +519,7 @@ modals{
     position: relative;
     width: 4vh;
     height: 4vh;
+    margin-left: 1vh;
 }
 .story-tool:hover > img:nth-child(3){
     opacity: 0;

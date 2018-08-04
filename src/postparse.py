@@ -252,7 +252,7 @@ def find_shuffle_progress(turnPoints, cleanupPoints, gameStates):
                 active += gameStates[i + 1].crunch(['HANDS','INPLAYS','OTHERS'],[p] 
                           ) - gameStates[i].crunch(['HANDS','INPLAYS','OTHERS'],[p])
 
-            #Making sure active is a subset of the full deck
+            # Making sure active is a subset of the full deck
             diff = active - endDeck
             active = active - diff
 

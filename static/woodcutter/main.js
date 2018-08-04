@@ -327,9 +327,25 @@ function updateBoardPosition(chunk){
 
 $('.story-line').hover(function(){
     lineIndex = $(this).index('.story-line');
-    console.log(lineIndex);
     updateBoardPosition(gameStates[lineIndex + 1]);
     $('.decks-display').css('opacity', '1');
 }, function(){
     $('.decks-display').css('opacity', '0');
 });
+
+
+$('.story-tool.text')
+    .click(function(){
+        $('.story-container:not(.plaintext)').toggle();
+        $(this).toggleClass('active');
+    });
+
+
+$('.story-tool.copy')
+    .click(function(){
+        var temp = $("<input>");
+        $("body").append(temp);
+        temp.val($('.plaintext').text()).select();
+        document.execCommand("copy");
+        temp.remove();
+    });
