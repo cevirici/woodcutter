@@ -1,24 +1,21 @@
 import re
-from functools import reduce
 from .classes import *
 from .standards import *
-import copy
+from functools import reduce
 
 
 def get_indent(line):
     t = re.search('padding-left:(.*?)em;', line).group(1)
-    return int(float(t)//1.5)
+    return int(float(t) // 1.5)
 
 
 def get_card(name):
-    res = [i for i in range(len(standardCards)) if
-           name in standardCards[i].names()]
+    res = [str(card) for card in Cards.values() if name in card.names()]
 
     if res:
         return res[0]
     else:
-        print('Unknown card {} found'.format(name))
-        return ARGUMENT_CARD
+        return 'ARGUMENT'
 
 
 def parse_card_phrase(cardlist):
@@ -26,137 +23,107 @@ def parse_card_phrase(cardlist):
     a = Cardstack({})
 
     for item in r:
-        item = item.split(' ', 1)
-        if len(item) == 2:
-            if re.match('^\d+$|^an?$', item[0]) is not None:
-                if item[0] in ['a', 'an']:
-                    item[0] = 1
+        m = re.match('^(\d+|a|(?:an) )?(.*)$', item)
+        prefix = m.group(1)
+        suffix = m.group(2)
 
-                item[0] = int(item[0])
+        if prefix is None:
+            card = get_card(suffix)
+            if card == 'ARGUMENT':
+                if re.match('^\d+$', suffix) is not None:
+                    item[0] = int(suffix)
+                a[card] = suffix
             else:
-                item[1] = ' '.join(item)
-                item[0] = 0
-
-            item[1] = get_card(item[1])
-
-            a.insert(item[1], item[0])
+                a[card] = 0
         else:
-            match = get_card(item[0])
-            if match == ARGUMENT_CARD:
-                if re.match('^\d+$', item[0]) is not None:
-                    item[0] = int(item[0])
-                a.insert(match, item[0])
-            else:
-                a.insert(match, 0)
+            if prefix in ['a', 'an']:
+                prefix = 1
+            a[get_card(suffix)] = int(prefix)
 
     return a
 
 
 def parse_line(line):
     indent = get_indent(line)
-    line = re.sub('<.*?>|&bull;|&sdot;', '', line)
-    line = line.strip()
+    line = re.sub('<.*?>|&bull;|&sdot;', '', line).strip()
 
-    parsedLine = parse_line_contents(line)
-    parsedLine.indent = indent
-
-    return parsedLine
-
-
-def parse_line_contents(line):
-    pred = standardPreds[-1]
-    for predIndex in pred_parse_order:
-        if re.match(standardPreds[predIndex].regex, line) is not None:
-            pred = standardPreds[predIndex]
+    pred = Pred['OTHERS']
+    for p in predParseOrder:
+        if re.match(p.regex, line) is not None:
+            pred = p
             break
 
     m = re.match(pred.regex, line)
-    player = -1
-    lowlim = 3
-    try:
-        player = m.group('player')
-    except BaseException:
-        lowlim -= 1
+    gd = m.groupdict()
 
-    cards = Cardstack({})
-    try:
-        c_raw = m.group('cards')
-        cards = parse_card_phrase(c_raw)
-    except BaseException:
-        lowlim -= 1
+    player = gd['player'] if 'player' in gd else None
+    cards = parse_card_phrase(gd['cards']) if 'cards' in gd else Cardstack({})
+    if 'argument' in gd:
+        arg = '~'.join([gd[x] for x in ['argument', 'argument2'] if x in gd])
+        cards['ARGUMENT'] = arg
 
-    for i in range(lowlim, len(m.groups())+1):
-        cards.insert(ARGUMENT_CARD, m.group(i))
-
-    parsedLine = ParsedLine(player, 0, pred, cards)
+    parsedLine = ParsedLine(player, indent, pred, cards)
 
     return parsedLine
 
 
 def translate_file(inString):
     f = inString.split('~')
-    a = []
-    player_list = ['GameStart']
-    backup_player = 'GameStart'
+    parsedLog = []
+    aliases = []
+    players = {}
+
     for line in f:
         t = parse_line(line)
-
-        # Player handling - special exception for 'Turn n' pred,
-        # because that uses long names.
-
-        if t.player == -1:
-            t.player = backup_player
-        else:
-            if t.pred != standardPreds[NEWTURN_PRED]:
-                if t.player not in player_list:
-                    player_list.append(t.player)
+        if t.player:
+            if t.pred == Preds['NEW TURN']:
+                matchedAliases = [alias for alias in aliases if
+                                  re.match('^' + alias, t.player) is not None]
+                matchedAliases.sort(key=lambda x: -len(x))
+                players[matchedAliases[0]] = t.player
+                t.player = matchedAliases[0]
             else:
-                match_names = [player for player in player_list if
-                               re.match('^'+player, t.player) is not None]
-                match_names.sort(key=lambda x: -len(x))
-                t.player = match_names[0]
+                if t.player not in players:
+                    aliases.append(t.player)
 
-        # Masq Pass exception
-        if t.pred.name == "PASS":
-            target = t.items[ARGUMENT_CARD]
-            match_names = [player for player in player_list if
-                           re.match('^'+player, target) is not None]
-            match_names.sort(key=lambda x: -len(x))
-            t.items.val[ARGUMENT_CARD] = player_list.index(match_names[0])
+                if t.pred == Preds['PASS']:
+                    t.items['ARGUMENT'] = players[t.items['ARGUMENT']]
 
-        backup_player = t.player
-        t.player = player_list.index(t.player)
-        a.append(t)
-    return [a, len(player_list)]
+            t.player = aliases.index(t.player) + 1
+        else:
+            t.player = 0
+
+        parsedLog.append(t)
+
+    return parsedLog
 
 
 def combined_parse(inStrings):
-    raws = [translate_file(x) for x in inStrings]
-    a = []
-    logs = [x[0] for x in raws]
-    gameNum = int(logs[0][0].items[ARGUMENT_CARD].split('/')[0])
+    logs = [translate_file(x) for x in inStrings]
+    parsedLog = []
+    gameNum = int(logs[0][0].items['ARGUMENT'].split('/')[0])
 
-    for i in range(min([len(log) for log in logs])):
-        t = [x[i] for x in logs]
-        combined = copy.copy(t[0])
+    actualLength = min([len(log) for log in logs])
+    for i in range(actualLength):
+        currentLine = [log[i] for log in logs]
+        default = currentLine[0]
 
-        candidate_items = [s_t.items for s_t in t if (CARD_CARD not in s_t.items) and
-                                                     (NOTHING_CARD not in s_t.items)]
+        passedItems = [pLn.items for pLn in currentLine if
+                       ('CARD' not in pLn.items) and
+                       ('NOTHING' not in pLn.items)
+                       ]
 
-        while len(candidate_items) > 1:
-            candidate_items[0] = candidate_items[0].merge(candidate_items[-1])
-            candidate_items.pop(-1)
+        passedItems = reduce(lambda x, y: x.merge(y), passedItems)
 
-        if len(candidate_items) > 0:
-            combined.items = candidate_items[0]
-        combined.player = hex(combined.player)[2:]
-        combined.indent = hex(combined.indent)[2:]
-        combined.pred = '{:0>2}'.format(hex(standardPreds
-                                            .index(combined.pred))[2:])
-        a.append(str(combined))
+        t = ParsedLine(default.player,
+                       default.indent,
+                       default.pred,
+                       passedItems if passedItems else default.items
+                       )
 
-    outstr = '~'.join(a)
-    return [outstr, gameNum]
+        parsedLog.append(repr(t))
+
+    return ('~'.join(parsedLog), gameNum)
 
 
 def parse_supply(inString):
@@ -164,10 +131,9 @@ def parse_supply(inString):
     cards = []
 
     for line in f:
-        r = line.strip().rsplit("-", 1)
-        card = get_card(r[0])
-        quant = '{:0>2}'.format(r[1])
-        cards.append('{:0>3}'.format(hex(card)[2:])+quant)
+        entry = line.strip().rsplit("-", 1)
+        cards.append('{:0>3}{:0>2}'.format(Cards[entry[0]],
+                                           entry[1]
+                                           ))
 
-    outstr = '~'.join(cards)
-    return outstr
+    return '~'.join(cards)

@@ -1,139 +1,121 @@
-import copy
-
 from .classes import *
 from .standards import *
+from copy import deepcopy
 
 
-def unpack(logstring, supplystring):
-    t = logstring.split('~')
-    g = []
-    for c in t:
-        player = int(c[0:1], 16)-1
-        indent = int(c[1:2], 16)
-        pred = int(c[2:4], 16)
-        cardString = c[4:]
+def unpack(logString, supplyString):
+    lines = logString.split('~')
+    gL = []
+    for line in lines:
+        stack = Cardstack({})
 
-        if len(cardString) > 0:
-            cards = [x.split(':') for x in cardString.split('|')]
-            for card in cards:
-                if int(card[1], 16) != ARGUMENT_CARD:
-                    card[0] = int(card[0])
-            stack = Cardstack({int(x[1], 16): x[0] for x in cards})
-        else:
-            stack = Cardstack({})
+        if len(itemString) > 0:
+            items = [x.split(':') for x in itemString.split('|')]
+            for item in items:
+                cardName = str(CardList[int(item[1], 16)])
+                quantity = item[0]
+                if card != Card['ARGUMENT']:
+                    quantity = int(quantity)
+                stack[cardName] += quantity
 
-        g.append(ParsedLine(player, indent, pred, stack))
+        gL.append(ParsedLine(int(line[0:1], 16),  # Player
+                             int(line[1:2], 16),  # Indent
+                             PredList[int(line[2:4], 16)],  # Pred
+                             stack))  # Items
 
-    t = supplystring.split('~')
-    s = Cardstack({})
-    for c in t:
-        card = int(c[0:3], 16)
-        amount = int(c[3:5])
-        s += Cardstack({card: amount})
+    supplyItems = supplyString.split('~')
+    supply = Cardstack({})
+    for item in supplyItems:
+        cardName = str(CardList[int(item[0:3], 16)])
+        quantity = int(quantity[3:5])
+        s[card] += quantity
 
-    return [g, s]
+    return (gL, supply)
 
 
 def parse_game(parsedLog):
-    moveTree = []
-    currentTurn = []
-    lastIndent = 0
-    indentBugDiff = 0
-    indentBugThreshold = 0
+    gameMoves = []
+    blockLengths = []
+    pointers = {}
 
-    for i in range(len(parsedLog)):
-        currentMove = parsedLog[i]
-        if currentMove.pred == NEWTURN_PRED:
-            moveTree.append(currentTurn)
-            currentTurn = [currentMove]
-            lastIndent = -1
+    for line in parsedLog:
+        if line.pred == Pred('GAME START') or line.pred == Pred('NEW TURN'):
+            pointers[0] = len(gameMoves)
         else:
-            if currentMove.pred == currentMove.pred == GAMESTART_PRED:
-                currentTurn = [currentMove]
-            else:
-                pointer = currentTurn
-                # grrr
-                if currentMove.indent > lastIndent + 1:
-                    indentBugDiff = currentMove.indent - lastIndent - 1
-                    indentBugThreshold = currentMove.indent
-                elif currentMove.indent < indentBugThreshold:
-                    indentBugDiff = 0
+            pointers[line.indent + 1] = len(gameMoves)
+            for i in range(line.indent + 1):
+                blockLengths[pointers[i]] += 1
 
-                for j in range(currentMove.indent - indentBugDiff):
-                    pointer = pointer[-1]
+        gameMoves.append(line)
+        blockLengths.append(1)
 
-                pointer.append([currentMove])
-                lastIndent = currentMove.indent
+    tail = blockLengths[0]
+    limit = len(gameMoves)
+    while tail < limit:
+        tail += blockLengths[tail]
+        head = tail - 1
+        indentCap = gameMoves[head].indent
+        while gameMoves[head].indent <= indentCap and blockLengths[head] == 1:
+            indentCap = min(gameMoves[head].indent, indentCap)
+            gameMoves[head].isCleanup = True
+            head -= 1
 
-    moveTree.append(currentTurn)
-
-    for turn in moveTree[1:-1]:
-        pointer = turn
-        while len(pointer[-1]) > 1:
-            pointer = pointer[-1]
-        for move in pointer[:0:-1]:
-            if len(move) > 1:
-                break
-            move[0].isCleanup = True
-
-    return moveTree
+    return (gameMoves, blockLengths)
 
 
-def get_decision_state(moveTree, supply):
-    startState = gameState()
+def get_decision_state(gM, blockLengths, supply):
+    def updateExceptions(object, move, i, bL, gM, cS, t):
+        a = object.action(move, i, bL, gM, cS)
+        for exc in a:
+            if exc.priority == 0:
+                exc.priority = move.indent
+            t[exc] = a[exc]
+
+    startState = GameState()
     for card in supply:
-        if standardCards[card].simple_name not in DONT_LOAD:
+        if card not in DONT_LOAD:
             startState.add(0, 'SUPPLY', Cardstack({card: supply[card]}))
     # Zombies
-    if ZOMBIES[0] in supply:
-        startState.move(0, 'SUPPLY', 'TRASH',
-                        Cardstack({zombie: 1 for zombie in ZOMBIES}))
+    if 'ZOMBIE APPRENTICE' in supply:
+        zombieStack = Cardstack({z: 1 for z in ('ZOMBIE APPRENTICE',
+                                                'ZOMBIE MASON',
+                                                'ZOMBIE SPY')})
+        startState.move(0, 'SUPPLY', 'TRASH', zombieStack)
 
     gameStates = [startState]
-    for turn in moveTree:
-        turnExceptions = []
+    activeExceptions = INTRINSIC_EXCEPTIONS  # Exceptions, and time left
+    for i, move, bL in enumerate(zip(gM, blockLengths)):
+        currentState = deepcopy(gameStates[-1])
 
-        def parse_chunk(chunk, exceptions, turnExceptions, persistents):
-            subexceptions = []
-            gameStates.append(deepcopy(gameStates[-1]))
+        priorities = [exception.priority for exception in activeExceptions]
+        pSorted = [[exc for exc in activeExceptions if exc.priority == p]
+                   for p in priorities]
+        t = {}
 
-            passedExceptions = [exc for exc in exceptions + persistents
-                                if exc.condition(chunk)]
-            passedTurnExceptions = [exception for exception in turnExceptions
-                                    if exception.condition(chunk)]
+        for layer in pSorted:
+            triggered = False
+            for exc in layer:
+                if exc.condition(move):
+                    triggered = True
+                    updateExceptions(exc, move, i, bL, gM, currentState, t)
+                    if not exc.persistent:
+                        del activeExceptions[exc]
 
-            if passedExceptions + passedTurnExceptions:
-                maxPrio = max([exc.priority for exc
-                               in passedExceptions + passedTurnExceptions])
-                passedExceptions = [exc for exc in passedExceptions if
-                                    exc.priority == maxPrio]
-                passedTurnExceptions = [exc for exc in passedTurnExceptions if
-                                        exc.priority == maxPrio]
+            if triggered:
+                break
 
-                for exception in passedExceptions + passedTurnExceptions:
-                    exception.action(chunk, gameStates, subexceptions, turnExceptions, persistents)
+        for exc in activeExceptions:
+            activeExceptions[exc] -= 1
+            if activeExceptions[exc] == 0:
+                del activeExceptions[exc]
 
-                for exception in passedTurnExceptions:
-                    if exception in turnExceptions:
-                        turnExceptions.remove(exception)
-            else:
-                standardPreds[chunk[0].pred].action(chunk, gameStates, subexceptions, turnExceptions, persistents)
+        if not triggered:
+            updateExceptions(move.pred, move, i, bL, gM, currentState, t)
+        for card in move.items.cardList():
+            updateExceptions(card, move, i, bL, gM, currentState, t)
 
-                for card in chunk[0].items:
-                    if card != ARGUMENT_CARD:
-                        for i in range(chunk[0].items[card]):
-                            standardCards[card].action(chunk, gameStates, subexceptions, turnExceptions, persistents)
-
-            for exception in turnExceptions:
-                if exception.expiry > 0:
-                    exception.expiry -= 1
-                    if exception.expiry == 0:
-                        turnExceptions.remove(exception)
-
-            for subchunk in chunk[1:]:
-                parse_chunk(subchunk, subexceptions, turnExceptions, persistents)
-
-        parse_chunk(turn, [], turnExceptions, standardPersistents)
+        activeExceptions.update(t)
+        gameStates.append(currentState)
 
     return gameStates
 

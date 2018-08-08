@@ -1,0 +1,466 @@
+0,Argument,Argument,Argument,0,0,666666,666666
+1,nothing,other cards,nothing,0,-1,666666,666666
+2,card,cards,a card,0,-1,666666,1528B7
+3,Curse,Curses,a Curse,0,-1,b571b3,a2b8b8,-1
+4,Copper,Coppers,a Copper,0,-1,f1d14d,a05624
+5,Silver,Silvers,a Silver,3,-1,f1d14d,709aa4
+6,Gold,Golds,a Gold,6,-1,f1d14d,ffae06
+7,Estate,Estates,an Estate,2,-1,548C2B,bfb597,1
+8,Duchy,Duchies,a Duchy,5,-1,548C2B,6aa09a,3
+9,Province,Provinces,a Province,8,-1,548C2B,efaf49,6
+a,Artisan,Artisans,an Artisan,6,0,c4c0b4,bc5a00
+b,Bandit,Bandits,a Bandit,5,0,c4c0b4,8a861e
+c,Bureaucrat,Bureaucrats,a Bureaucrat,4,0,c4c0b4,95633b
+d,Cellar,Cellars,a Cellar,2,0,c4c0b4,3e4646
+e,Chapel,Chapels,a Chapel,2,0,c4c0b4,605444
+f,Council Room,Council Rooms,a Council Room,5,0,c4c0b4,815121
+10,Festival,Festivals,a Festival,5,0,c4c0b4,636d61
+11,Gardens,Gardens,a Gardens,4,0,9cbe8a,5f792f
+12,Harbinger,Harbingers,a Harbinger,3,0,c4c0b4,8e8a3c
+13,Laboratory,Laboratories,a Laboratory,5,0,c4c0b4,614739
+14,Library,Libraries,a Library,5,0,c4c0b4,7a7e4a
+15,Market,Markets,a Market,5,0,c4c0b4,684830
+16,Merchant,Merchants,a Merchant,3,0,c4c0b4,917911
+17,Militia,Militias,a Militia,4,0,c4c0b4,856961
+18,Mine,Mines,a Mine,5,0,c4c0b4,433935
+19,Moat,Moats,a Moat,2,0,8ca2be,586472
+1a,Moneylender,Moneylenders,a Moneylender,4,0,c4c0b4,7a644c
+1b,Poacher,Poachers,a Poacher,4,0,c4c0b4,8f810d
+1c,Remodel,Remodels,a Remodel,4,0,c4c0b4,8e7e4a
+1d,Sentry,Sentries,a Sentry,5,0,c4c0b4,5a361e
+1e,Smithy,Smithies,a Smithy,4,0,c4c0b4,6a523a
+1f,Throne Room,Throne Rooms,a Throne Room,4,0,c4c0b4,d76315
+20,Vassal,Vassals,a Vassal,3,0,c4c0b4,ba6816
+21,Village,Villages,a Village,3,0,c4c0b4,7e9078
+22,Witch,Witches,a Witch,5,0,c4c0b4,52444e
+23,Workshop,Workshops,a Workshop,3,0,c4c0b4,8c6428
+24,Courtyard,Courtyards,a Courtyard,2,0,c4c0b4,74a454
+25,Conspirator,Conspirators,a Conspirator,4,0,c4c0b4,2b5989
+26,Courtier,Courtiers,a Courtier,5,0,c4c0b4,ac6228
+27,Baron,Barons,a Baron,4,0,c4c0b4,876341
+28,Bridge,Bridges,a Bridge,4,0,c4c0b4,859b6b
+29,Diplomat,Diplomats,a Diplomat,4,0,8ca2be,91595f
+2a,Duke,Dukes,a Duke,5,0,9cbe8a,8a7e5e
+2b,Harem,Harems,a Harem,6,0,a9c35d,c3510d,2
+2c,Nobles,Nobles,a Nobles,6,0,aac298,816155,2
+2d,Ironworks,Ironworks,an Ironworks,4,0,c4c0b4,7d3b1f
+2e,Lurker,Lurkers,a Lurker,2,0,c4c0b4,909ab2
+2f,Masquerade,Masquerades,a Masquerade,3,0,c4c0b4,635d51
+30,Mill,Mills,a Mill,4,0,aac298,78b294
+31,Mining Village,Mining Villages,a Mining Village,4,0,c4c0b4,aea090
+32,Minion,Minions,a Minion,5,0,c4c0b4,6c382e
+33,Patrol,Patrols,a Patrol,5,0,c4c0b4,98ae70
+34,Pawn,Pawns,a Pawn,2,0,c4c0b4,3f2f25
+35,Replace,Replaces,a Replace,5,0,c4c0b4,564850
+36,Secret Passage,Secret Passages,a Secret Passage,4,0,c4c0b4,261e12
+37,Shanty Town,Shanty Towns,a Shanty Town,3,0,c4c0b4,124e44
+38,Steward,Stewards,a Steward,3,0,c4c0b4,4f4d5d
+39,Swindler,Swindlers,a Swindler,3,0,c4c0b4,b78d49
+3a,Torturer,Torturers,a Torturer,5,0,c4c0b4,842804
+3b,Trading Post,Trading Posts,a Trading Post,5,0,c4c0b4,686434
+3c,Upgrade,Upgrades,an Upgrade,5,0,c4c0b4,979773
+3d,Wishing Well,Wishing Wells,a Wishing Well,3,0,c4c0b4,61756b
+3e,Ambassador,Ambassadors,an Ambassador,3,0,c4c0b4,b8602c
+3f,Bazaar,Bazaars,a Bazaar,5,0,c4c0b4,a6765e
+40,Caravan,Caravans,a Caravan,4,0,dda561,b9ab7f
+41,Cutpurse,Cutpurses,a Cutpurse,4,0,c4c0b4,826a4e
+42,Embargo,Embargos,an Embargo,2,0,c4c0b4,9da381
+43,Explorer,Explorers,an Explorer,5,0,c4c0b4,74D0F6
+44,Fishing Village,Fishing Villages,a Fishing Village,3,0,dda561,7db9b3
+45,Ghost Ship,Ghost Ships,a Ghost Ship,5,0,c4c0b4,59814d
+46,Haven,Havens,a Haven,2,0,dda561,866846
+47,Island,Islands,an Island,4,0,aac298,5d9fbd
+48,Lighthouse,Lighthouses,a Lighthouse,2,0,dda561,559773
+49,Lookout,Lookouts,a Lookout,3,0,c4c0b4,723a6a
+4a,Merchant Ship,Merchant Ships,a Merchant Ship,5,0,dda561,b58127
+4b,Native Village,Native Villages,a Native Village,2,0,c4c0b4,6f919f
+4c,Navigator,Navigators,a Navigator,4,0,c4c0b4,5ba7ad
+4d,Outpost,Outposts,an Outpost,5,0,dda561,949ab2
+4e,Pearl Diver,Pearl Divers,a Pearl Diver,2,0,c4c0b4,00aee6
+4f,Pirate Ship,Pirate Ships,a Pirate Ship,4,0,c4c0b4,7e9ec2
+50,Salvager,Salvagers,a Salvager,4,0,c4c0b4,397b7b
+51,Sea Hag,Sea Hags,a Sea Hag,4,0,c4c0b4,745a44
+52,Smugglers,Smugglers,a Smugglers,3,0,c4c0b4,464c50
+53,Tactician,Tacticians,a Tactician,5,0,dda561,785c44
+54,Treasure Map,Treasure Maps,a Treasure Map,4,0,c4c0b4,9d651b
+55,Treasury,Treasuries,a Treasury,5,0,c4c0b4,884a00
+56,Warehouse,Warehouses,a Warehouse,3,0,c4c0b4,59635b
+57,Wharf,Wharves,a Wharf,5,0,dda561,7b778f
+58,Alchemist,Alchemists,an Alchemist,5,0,c4c0b4,49A4E4
+59,Apothecary,Apothecaries,an Apothecary,4,0,c4c0b4,a36713
+5a,Apprentice,Apprentices,an Apprentice,5,0,c4c0b4,ce5800
+5b,Familiar,Familiars,a Familiar,5,0,c4c0b4,aa6656
+5c,Golem,Golems,a Golem,6,0,c4c0b4,5e6c80
+5d,Herbalist,Herbalists,a Herbalist,2,0,c4c0b4,b8884e
+5e,Philosopher's Stone,Philosopher's Stones,a Philosopher's Stone,5,0,d8c280,980642
+5f,Possession,Possessions,a Possession,8,0,c4c0b4,736157
+60,Potion,Potions,a Potion,4,2,f1d14d,1768C4
+61,Scrying Pool,Scrying Pools,a Scrying Pool,4,0,c4c0b4,a45e08
+62,Transmute,Transmutes,a Transmute,2,0,c4c0b4,764a76
+63,University,Universities,a University,4,0,c4c0b4,77714b
+64,Vineyard,Vineyards,a Vineyard,2,0,9cbe8a,8c9652
+65,Bank,Banks,a Bank,7,0,d8c280,616745
+66,Bishop,Bishops,a Bishop,4,0,c4c0b4,6a587c
+67,Colony,Colonies,a Colony,11,2,548C2B,9494d8,10
+68,Contraband,Contrabands,a Contraband,5,0,d8c280,68442c
+69,Counting House,Counting Houses,a Counting House,5,0,c4c0b4,6f5143
+6a,City,Cities,a City,5,0,c4c0b4,a4a07c
+6b,Expand,Expands,an Expand,7,0,c4c0b4,d77b07
+6c,Forge,Forges,a Forge,7,0,c4c0b4,d05a2a
+6d,Grand Market,Grand Markets,a Grand Market,6,0,c4c0b4,ab735b
+6e,Goons,Goons,a Goons,6,0,c4c0b4,6d6129
+6f,Hoard,Hoards,a Hoard,6,0,d8c280,917d25
+70,King's Court,King's Courts,a King's Court,7,0,c4c0b4,926634
+71,Loan,Loans,a Loan,3,0,d8c280,9d936f
+72,Mint,Mints,a Mint,5,0,c4c0b4,7a5e40
+73,Monument,Monuments,a Monument,4,0,c4c0b4,8191ab
+74,Mountebank,Mountebanks,a Mountebank,5,0,c4c0b4,866a6a
+75,Peddler,Peddlers,a Peddler,8,0,c4c0b4,9a5a2e
+76,Platinum,Platina,a Platinum,9,2,f1d14d,948266
+77,Quarry,Quarries,a Quarry,4,0,d8c280,b9b59f
+78,Rabble,Rabbles,a Rabble,5,0,c4c0b4,88422c
+79,Royal Seal,Royal Seals,a Royal Seal,5,0,d8c280,d8b08e
+7a,Talisman,Talismans,a Talisman,4,0,d8c280,b28038
+7b,Trade Route,Trade Routes,a Trade Route,3,0,c4c0b4,65a167
+7c,Vault,Vaults,a Vault,5,0,c4c0b4,947e4e
+7d,Venture,Ventures,a Venture,5,0,d8c280,624e36
+7e,Watchtower,Watchtowers,a Watchtower,3,0,8ca2be,7496c0
+7f,Worker's Village,Worker's Villages,a Worker's Village,4,0,c4c0b4,cd7119
+80,Prize Pile,Prize Piles,a Prize Pile,0,0,666666,666666
+81,Bag of Gold,Bags of Gold,a Bag of Gold,0,1,c4c0b4,b47214
+82,Diadem,Diadems,a Diadem,0,1,d8c280,ffba14
+83,Fairgrounds,Fairgrounds,a Fairgrounds,6,0,9cbe8a,9a8462
+84,Farming Village,Farming Villages,a Farming Village,4,0,c4c0b4,8d7f67
+85,Followers,Followers,a Followers,0,1,c4c0b4,ab670b
+86,Fortune Teller,Fortune Tellers,a Fortune Teller,3,0,c4c0b4,884214
+87,Hamlet,Hamlets,a Hamlet,2,0,c4c0b4,8e9886
+88,Harvest,Harvests,a Harvest,5,0,c4c0b4,cd9f49
+89,Horse Traders,Horse Traders,a Horse Traders,4,0,8ca2be,595561
+8a,Horn of Plenty,Horns of Plenty,a Horn of Plenty,5,0,d8c280,7b4d27
+8b,Hunting Party,Hunting Parties,a Hunting Party,5,0,c4c0b4,4e4e48
+8c,Jester,Jesters,a Jester,5,0,c4c0b4,9f7967
+8d,Menagerie,Menageries,a Menagerie,3,0,c4c0b4,8a7234
+8e,Princess,Princesses,a Princess,0,1,c4c0b4,804e10
+8f,Remake,Remakes,a Remake,4,0,c4c0b4,b46614
+90,Tournament,Tournaments,a Tournament,4,0,c4c0b4,937755
+91,Trusty Steed,Trusty Steeds,a Trusty Steed,0,1,c4c0b4,6e726a
+92,Young Witch,Young Witches,a Young Witch,4,0,c4c0b4,7b653b
+93,Border Village,Border Villages,a Border Village,6,0,c4c0b4,758791
+94,Cache,Caches,a Cache,5,0,d8c280,6e7846
+95,Cartographer,Cartographers,a Cartographer,5,0,c4c0b4,a45a14
+96,Crossroads,Crossroads,a Crossroads,2,0,c4c0b4,a7a187
+97,Develop,Develops,a Develop,3,0,c4c0b4,c09864
+98,Duchess,Duchesses,a Duchess,2,0,c4c0b4,999b77
+99,Embassy,Embassies,an Embassy,5,0,c4c0b4,8e725c
+9a,Farmland,Farmlands,a Farmland,6,0,9cbe8a,4fbb9d,2
+9b,Fool's Gold,Fool's Golds,a Fool's Gold,2,0,939E9D,b8a62e
+9c,Haggler,Hagglers,a Haggler,5,0,c4c0b4,a07a56
+9d,Highway,Highways,a Highway,5,0,c4c0b4,a0be8c
+9e,Ill-Gotten Gains,Ill-Gotten Gains,an Ill-Gotten Gains,5,0,d8c280,9d6d41
+9f,Inn,Inns,an Inn,5,0,c4c0b4,71957d
+a0,Jack of All Trades,Jacks of All Trades,a Jack of All Trades,4,0,c4c0b4,7aa2a4
+a1,Mandarin,Mandarins,a Mandarin,5,0,c4c0b4,b38f2d
+a2,Noble Brigand,Noble Brigands,a Noble Brigand,4,0,c4c0b4,645c46
+a3,Nomad Camp,Nomad Camps,a Nomad Camp,4,0,c4c0b4,87a1b1
+a4,Oasis,Oases,an Oasis,3,0,c4c0b4,8e9864
+a5,Oracle,Oracles,an Oracle,3,0,c4c0b4,69491b
+a6,Margrave,Margraves,a Margrave,5,0,c4c0b4,7c6c48
+a7,Scheme,Schemes,a Scheme,3,0,c4c0b4,7f7d7d
+a8,Silk Road,Silk Roads,a Silk Road,4,0,9cbe8a,948452
+a9,Spice Merchant,Spice Merchants,a Spice Merchant,4,0,c4c0b4,af7b4d
+aa,Stables,Stables,a Stables,5,0,c4c0b4,875d33
+ab,Trader,Traders,a Trader,4,0,8ca2be,988a34
+ac,Tunnel,Tunnels,a Tunnel,3,0,879E96,545258,2
+ad,Ruins,Ruins,a Ruins,0,2,b29462,666666
+ae,Knights,Knights,a Knights,5,0,c4c0b4,819381
+af,Abandoned Mine,Abandoned Mines,an Abandoned Mine,0,-1,b29462,633b29
+b0,Altar,Altars,an Altar,6,0,c4c0b4,7e3800
+b1,Armory,Armories,an Armory,4,0,c4c0b4,54564e
+b2,Band of Misfits,Bands of Misfits,a Band of Misfits,5,0,c4c0b4,56505c
+b3,Bandit Camp,Bandit Camps,a Bandit Camp,5,0,c4c0b4,42889e
+b4,Beggar,Beggars,a Beggar,2,0,8ca2be,503626
+b5,Catacombs,Catacombs,a Catacombs,5,0,c4c0b4,472f1f
+b6,Count,Counts,a Count,5,0,c4c0b4,58605c
+b7,Counterfeit,Counterfeits,a Counterfeit,5,0,d8c280,a66e28
+b8,Cultist,Cultists,a Cultist,5,0,c4c0b4,4b4957
+b9,Dame Anna,Dame Annas,a Dame Anna,5,-1,c4c0b4,775f35
+ba,Dame Josephine,Dame Josephines,a Dame Josephine,5,-1,aac298,635147,2
+bb,Dame Molly,Dame Mollies,a Dame Molly,5,-1,c4c0b4,946e50
+bc,Dame Natalie,Dame Natalies,a Dame Natalie,5,-1,c4c0b4,56665a
+bd,Dame Sylvia,Dame Sylvias,a Dame Sylvia,5,-1,c4c0b4,744c36
+be,Death Cart,Death Carts,a Death Cart,4,0,c4c0b4,826636
+bf,Feodum,Feoda,a Feodum,4,0,9cbe8a,b4a67e
+c0,Forager,Foragers,a Forager,3,0,c4c0b4,a46618
+c1,Fortress,Fortresses,a Fortress,4,0,c4c0b4,62524c
+c2,Graverobber,Graverobbers,a Graverobber,5,0,c4c0b4,4e4052
+c3,Hermit,Hermits,a Hermit,3,0,c4c0b4,977d5b
+c4,Hovel,Hovels,a Hovel,1,2,a48892,25716f
+c5,Hunting Grounds,Hunting Grounds,a Hunting Grounds,6,0,c4c0b4,a08250
+c6,Ironmonger,Ironmongers,an Ironmonger,4,0,c4c0b4,72787a
+c7,Junk Dealer,Junk Dealers,a Junk Dealer,5,0,c4c0b4,7b5f2d
+c8,Madman,Madmen,a Madman,0,1,c4c0b4,8b513d
+c9,Market Square,Market Squares,a Market Square,3,0,8ca2be,956d43
+ca,Marauder,Marauders,a Marauder,4,0,c4c0b4,7e4826
+cb,Mercenary,Mercenaries,a Mercenary,0,1,c4c0b4,6b8193
+cc,Mystic,Mystics,a Mystic,5,0,c4c0b4,695729
+cd,Necropolis,Necropolis,a Necropolis,1,2,d59f89,778793
+ce,Overgrown Estate,Overgrown Estates,an Overgrown Estate,1,2,b4a65e,58664c
+cf,Pillage,Pillages,a Pillage,5,0,c4c0b4,8d7f63
+d0,Poor House,Poor Houses,a Poor House,1,0,c4c0b4,65573d
+d1,Procession,Processions,a Procession,4,0,c4c0b4,775f3d
+d2,Rats,Rats,a Rats,4,0,c4c0b4,795743
+d3,Rebuild,Rebuilds,a Rebuild,5,0,c4c0b4,64748c
+d4,Rogue,Rogues,a Rogue,5,0,c4c0b4,363c4c
+d5,Ruined Library,Ruined Libraries,a Ruined Library,0,-1,b29462,806a34
+d6,Ruined Market,Ruined Markets,a Ruined Market,0,-1,b29462,6d5753
+d7,Ruined Village,Ruined Villages,a Ruined Village,0,-1,b29462,a4886a
+d8,Sage,Sages,a Sage,3,0,c4c0b4,89612f
+d9,Scavenger,Scavengers,a Scavenger,4,0,c4c0b4,34404e
+da,Sir Bailey,Sir Baileys,a Sir Bailey,5,-1,c4c0b4,506070
+db,Sir Destry,Sir Destries,a Sir Destry,5,-1,c4c0b4,797d7f
+dc,Sir Martin,Sir Martins,a Sir Martin,4,-1,c4c0b4,cc9e60
+dd,Sir Michael,Sir Michaels,a Sir Michael,5,-1,c4c0b4,47454b
+de,Sir Vander,Sir Vanders,a Sir Vander,5,-1,c4c0b4,9ca6ac
+df,Spoils,Spoils,a Spoils,0,1,d8c280,646032
+e0,Storeroom,Storerooms,a Storeroom,3,0,c4c0b4,69492f
+e1,Squire,Squires,a Squire,2,0,c4c0b4,937b4b
+e2,Survivors,Survivors,a Survivors,0,-1,b29462,706a46
+e3,Urchin,Urchins,an Urchin,3,0,c4c0b4,634b33
+e4,Vagrant,Vagrants,a Vagrant,2,0,c4c0b4,593f2b
+e5,Wandering Minstrel,Wandering Minstrels,a Wandering Minstrel,4,0,c4c0b4,905414
+e6,Advisor,Advisors,an Advisor,4,0,c4c0b4,77675b
+e7,Baker,Bakers,a Baker,5,0,c4c0b4,815b3b
+e8,Butcher,Butchers,a Butcher,5,0,c4c0b4,9c6426
+e9,Candlestick Maker,Candlestick Makers,a Candlestick Maker,2,0,c4c0b4,7d6137
+ea,Doctor,Doctors,a Doctor,3,0,c4c0b4,895923
+eb,Herald,Heralds,a Herald,4,0,c4c0b4,996941
+ec,Journeyman,Journeymen,a Journeyman,5,0,c4c0b4,78704e
+ed,Masterpiece,Masterpieces,a Masterpiece,3,0,d8c280,d5c361
+ee,Merchant Guild,Merchant Guilds,a Merchant Guild,5,0,c4c0b4,a44410
+ef,Plaza,Plazas,a Plaza,4,0,c4c0b4,87573f
+f0,Taxman,Taxmen,a Taxman,4,0,c4c0b4,70583a
+f1,Soothsayer,Soothsayers,a Soothsayer,5,0,c4c0b4,514135
+f2,Stonemason,Stonemasons,a Stonemason,2,0,c4c0b4,915d23
+f3,Alms,Alms,an Alms,0,2,a9a39d,9f793f
+f4,Amulet,Amulets,an Amulet,3,0,dda561,d39d25
+f5,Artificer,Artificers,an Artificer,5,0,c4c0b4,754f2b
+f6,Ball,Balls,a Ball,5,2,a9a39d,8b6323
+f7,Bonfire,Bonfires,a Bonfire,3,2,a9a39d,844e52
+f8,Borrow,Borrows,a Borrow,0,2,a9a39d,8a3620
+f9,Bridge Troll,Bridge Trolls,a Bridge Troll,5,0,dda561,524830
+fa,Caravan Guard,Caravan Guards,a Caravan Guard,3,0,a7a39b,7c8e68
+fb,Champion,Champions,a Champion,6,1,dda561,594c3e
+fc,Coin of the Realm,Coins of the Realm,a Coin of the Realm,2,0,c2a85c,ae6c00
+fd,Disciple,Disciples,a Disciple,5,1,c2bfba,966a2c
+fe,Distant Lands,Distant Lands,a Distant Lands,5,0,9DA97D,c49e8c
+ff,Dungeon,Dungeons,a Dungeon,3,0,dda561,4f472d
+100,Duplicate,Duplicates,a Duplicate,4,0,c5af85,8a887c
+101,Expedition,Expeditions,an Expedition,3,2,a9a39d,ca8c28
+102,Ferry,Ferries,a Ferry,3,2,a9a39d,798593
+103,Fugitive,Fugitives,a Fugitive,4,1,c2bfba,888095
+104,Gear,Gears,a Gear,3,0,dda561,877969
+105,Giant,Giants,a Giant,5,0,c4c0b4,9c7c5a
+106,Guide,Guides,a Guide,3,0,c5af85,486e4a
+107,Haunted Woods,Haunted Woods,a Haunted Woods,5,0,dda561,314b39
+108,Hero,Heroes,a Hero,5,1,c2bfba,423732
+109,Hireling,Hirelings,a Hireling,6,0,dda561,745666
+10a,Inheritance,Inheritances,an Inheritance,7,2,a9a39d,657759
+10b,Lost Arts,Lost Arts,a Lost Arts,6,2,a9a39d,ab4f1f
+10c,Lost City,Lost Cities,a Lost City,5,0,c4c0b4,969c6c
+10d,Magpie,Magpies,a Magpie,4,0,c4c0b4,707870
+10e,Messenger,Messengers,a Messenger,4,0,c4c0b4,99afc3
+10f,Miser,Misers,a Miser,4,0,c4c0b4,726a60
+110,Mission,Missions,a Mission,4,2,a9a39d,7e767c
+111,Pathfinding,Pathfindings,a Pathfinding,8,2,a9a39d,664820
+112,Page,Pages,a Page,2,0,c2bfba,553d33
+113,Peasant,Peasants,a Peasant,2,0,c2bfba,cab026
+114,Pilgrimage,Pilgrimages,a Pilgrimage,4,2,a9a39d,6e4e28
+115,Plan,Plans,a Plan,3,2,a9a39d,6c4630
+116,Port,Ports,a Port,4,0,c4c0b4,586c6e
+117,Quest,Quests,a Quest,0,2,a9a39d,685456
+118,Ranger,Rangers,a Ranger,4,0,c4c0b4,8c7236
+119,Raid,Raids,a Raid,5,0,a9a39d,4f4347
+11a,Ratcatcher,Ratcatchers,a Ratcatcher,2,0,c5af85,655d4f
+11b,Raze,Razes,a Raze,2,0,c4c0b4,6b5949
+11c,Relic,Relics,a Relic,5,0,d8c280,616959
+11d,Royal Carriage,Royal Carriages,a Royal Carriage,5,0,c5af85,9a7450
+11e,Save,Saves,a Save,1,2,a9a39d,814d3b
+11f,Scouting Party,Scouting Parties,a Scouting Party,2,0,a9a39d,97875b
+120,Seaway,Seaways,a Seaway,5,2,a9a39d,7195a3
+121,Soldier,Soldiers,a Soldier,3,1,c2bfba,a58e74
+122,Storyteller,Storytellers,a Storyteller,5,0,c4c0b4,ad735f
+123,Swamp Hag,Swamp Hags,a Swamp Hag,5,0,dda561,8c462e
+124,Teacher,Teachers,a Teacher,6,1,c5af85,bb7937
+125,Travelling Fair,Travelling Fairs,a Travelling Fair,2,2,a9a39d,d2942c
+126,Trade,Trades,a Trade,5,2,a9a39d,735941
+127,Training,Trainings,a Training,6,2,a9a39d,533f33
+128,Transmogrify,Transmogrifies,a Transmogrify,4,0,c5af85,6e6258
+129,Treasure Trove,Treasure Troves,a Treasure Trove,5,0,d8c280,95795f
+12a,Treasure Hunter,Treasure Hunters,a Treasure Hunter,3,1,c2bfba,494343
+12b,Warrior,Warriors,a Warrior,4,1,c2bfba,564543
+12c,Wine Merchant,Wine Merchants,a Wine Merchant,5,0,c5af85,855b31
+12d,Encampment,Encampments,an Encampment,2,0,c4c0b4,6d4527
+12e,Plunder,Plunders,a Plunder,5,0,d8c280,573E30
+12f,Patrician,Patricians,a Patrician,2,0,c4c0b4,6a80a0
+130,Emporium,Emporia,an Emporium,5,0,c4c0b4,50ABDF
+131,Settlers,Settlers,a Settlers,2,0,c4c0b4,784624
+132,Bustling Village,Bustling Villages,a Bustling Village,5,0,c4c0b4,745E4D
+133,Catapult,Catapults,a Catapult,3,0,c4c0b4,839f55
+134,Rocks,Rocks,a Rocks,4,0,d8c280,80963a
+135,Gladiator,Gladiators,a Gladiator,3,0,c4c0b4,b28674
+136,Fortune,Fortunes,a Fortune,16,0,d8c280,94794F
+137,Castles,Castles,a Castles,3,0,9cbe8a,2d7bbb
+138,Humble Castle,Humble Castles,a Humble Castle,3,-1,a9c35d,63af7f
+139,Crumbling Castle,Crumbling Castles,a Crumbling Castle,4,-1,9cbe8a,ceb22c
+13a,Small Castle,Small Castles,a Small Castle,5,-1,aac298,96a692
+13b,Haunted Castle,Haunted Castles,a Haunted Castle,6,-1,9cbe8a,4a6064
+13c,Opulent Castle,Opulent Castles,an Opulent Castle,7,-1,aac298,4f9391
+13d,Sprawling Castle,Sprawling Castles,a Sprawling Castle,8,-1,9cbe8a,ffb300
+13e,Grand Castle,Grand Castles,a Grand Castle,9,-1,9cbe8a,9e7e5a
+13f,King's Castle,King's Castles,a King's Castle,10,-1,9cbe8a,cd8959
+140,Advance,Advances,an Advance,0,2,a9a39d,714d41
+141,Annex,Annexes,an Annex,8,2,a9a39d,7a5a36
+142,Archive,Archives,an Archive,5,0,dda561,7b5d47
+143,Aqueduct,Aqueducts,an Aqueduct,0,2,65ab6f,9a905c
+144,Arena,Arenas,an Arena,0,2,65ab6f,b0587c
+145,Bandit Fort,Bandit Forts,a Bandit Fort,0,2,65ab6f,b0a66e
+146,Banquet,Banquets,a Banquet,3,2,a9a39d,6f5735
+147,Basilica,Basilicas,a Basilica,0,2,65ab6f,835945
+148,Baths,Baths,a Baths,0,2,65ab6f,746c44
+149,Battlefield,Battlefields,a Battlefield,0,2,65ab6f,528ec6
+14a,Capital,Capitals,a Capital,5,0,d8c280,765648
+14b,Charm,Charms,a Charm,5,0,d8c280,756349
+14c,Chariot Race,Chariot Races,a Chariot Race,3,0,c4c0b4,7f7569
+14d,City Quarter,City Quarters,a City Quarter,8,0,c4c0b4,7e6a30
+14e,Colonnade,Colonnades,a Colonnade,0,2,65ab6f,9f7b27
+14f,Conquest,Conquests,a Conquest,6,2,a9a39d,7c9692
+150,Crown,Crowns,a Crown,5,0,cec28a,7b4b33
+151,Delve,Delves,a Delve,2,2,a9a39d,716149
+152,Defiled Shrine,Defiled Shrines,a Defiled Shrine,0,2,65ab6f,5a746e
+153,Dominate,Dominates,a Dominate,14,2,a9a39d,896b71
+154,Donate,Donates,a Donate,8,2,a9a39d,886c7a
+155,Enchantress,Enchantresses,an Enchantress,3,0,dda561,a5855f
+156,Engineer,Engineers,an Engineer,4,0,c4c0b4,733719
+157,Farmers' Market,Farmers' Markets,a Farmers' Market,3,0,c4c0b4,867642
+158,Forum,Forums,a Forum,5,0,c4c0b4,bc9256
+159,Fountain,Fountains,a Fountain,0,0,65ab6f,7c5a34
+15a,Groundskeeper,Groundskeepers,a Groundskeeper,5,0,c4c0b4,978957
+15b,Keep,Keeps,a Keep,0,2,65ab6f,6f4f7d
+15c,Labyrinth,Labyrinths,a Labyrinth,0,2,65ab6f,5e884c
+15d,Legionary,Legionaries,a Legionary,5,0,c4c0b4,714b41
+15e,Mountain Pass,Mountain Passes,a Mountain Pass,0,2,65ab6f,657d8d
+15f,Museum,Museums,a Museum,0,2,65ab6f,c47a00
+160,Obelisk,Obelisks,an Obelisk,0,2,65ab6f,774d29
+161,Orchard,Orchards,an Orchard,0,2,65ab6f,707c5c
+162,Overlord,Overlords,an Overlord,8,0,c4c0b4,9a8a90
+163,Palace,Palaces,a Palace,0,2,65ab6f,c07442
+164,Ritual,Rituals,a Ritual,4,2,a9a39d,7a5224
+165,Royal Blacksmith,Royal Blacksmiths,a Royal Blacksmith,8,0,c4c0b4,69452b
+166,Sacrifice,Sacrifices,a Sacrifice,4,0,c4c0b4,9b675f
+167,Salt the Earth,Salt the Earths,a Salt the Earth,4,2,a9a39d,7b8383
+168,Tax,Taxes,a Tax,2,2,a9a39d,a0745a
+169,Temple,Temples,a Temple,4,0,c4c0b4,d6b452
+16a,Tomb,Tombs,a Tomb,0,2,65ab6f,8b8585
+16b,Tower,Towers,a Tower,0,2,65ab6f,bb9b3d
+16c,Triumph,Triumphs,a Triumph,5,2,a9a39d,913d05
+16d,Triumphal Arch,Triumphal Arches,a Triumphal Arch,0,2,65ab6f,8f8b51
+16e,Villa,Villas,a Villa,4,0,c4c0b4,87b34f
+16f,Wall,Walls,a Wall,0,2,65ab6f,5e4a54
+170,Wolf Den,Wolf Dens,a Wolf Den,0,2,65ab6f,a1a18f
+171,Wedding,Weddings,a Wedding,7,2,a9a39d,715919
+172,Wild Hunt,Wild Hunts,a Wild Hunt,5,0,c4c0b4,15516f
+173,Windfall,Windfalls,a Windfall,5,2,a9a39d,9e5402
+174,Boon Drawpile,Boon Drawpiles,a Boon Drawpile,0,-1,dbcf00,666666
+175,Boon Discardpile,Boon Discardpiles,a Boon Discardpile,0,-1,dbcf00,666666
+176,The Earth's Gift,The Earth's Gifts,The Earth's Gift,0,-1,dbcf00,6b6733
+177,The Field's Gift,The Field's Gifts,The Field's Gift,0,-1,dbcf00,d3cd17
+178,The Flame's Gift,The Flame's Gifts,The Flame's Gift,0,-1,dbcf00,ff8f00
+179,The Forest's Gift,The Forest's Gifts,The Forest's Gift,0,-1,dbcf00,3b8d0b
+17a,The Moon's Gift,The Moon's Gifts,The Moon's Gift,0,-1,dbcf00,001ee4
+17b,The Mountain's Gift,The Mountain's Gifts,The Mountain's Gift,0,-1,dbcf00,005cff
+17c,The River's Gift,The River's Gifts,The River's Gift,0,-1,dbcf00,4e9c92
+17d,The Sea's Gift,The Sea's Gifts,The Sea's Gift,0,-1,dbcf00,0071d7
+17e,The Sky's Gift,The Sky's Gifts,The Sky's Gift,0,-1,dbcf00,1cbeff
+17f,The Sun's Gift,The Sun's Gifts,The Sun's Gift,0,-1,dbcf00,fcbe00
+180,The Swamp's Gift,The Swamp's Gifts,The Swamp's Gift,0,-1,dbcf00,39650b
+181,The Wind's Gift,The Wind's Gifts,The Wind's Gift,0,-1,dbcf00,67d35b
+182,Hex Drawpile,Hex Drawpiles,a Hex Drawpile,0,-1,4137df,666666
+183,Hex Discardpile,Hex Discardpiles,a Hex Discardpile,0,-1,4137df,666666
+184,Bad Omens,Bad Omens,Bad Omens,0,-1,4137df,4d4135
+185,Delusion,Delusions,Delusion,0,-1,4137df,65634d
+186,Envy,Envies,Envy,0,-1,4137df,618f55
+187,Famine,Famines,Famine,0,-1,4137df,919f8f
+188,Fear,Fears,Fear,0,-1,4137df,1f3347
+189,Greed,Greeds,Greed,0,-1,4137df,c13f0b
+18a,Haunting,Hauntings,Haunting,0,-1,4137df,344860
+18b,Locusts,Locusts,Locusts,0,-1,4137df,43c95f
+18c,Misery,Miseries,Misery,0,-1,4137df,1c161a
+18d,Plague,Plagues,Plague,0,-1,4137df,42aa6c
+18e,Poverty,Poverties,Poverty,0,-1,4137df,2e2a2a
+18f,War,Wars,War,0,-1,4137df,a12700
+190,Miserable,Miserables,Miserable,0,-1,ceb0a4,1c161a
+191,Twice Miserable,Twice Miserables,Twice Miserable,0,-1,ceb0a4,1c161a
+192,Envious,Envious,Envious,0,-1,ceb0a4,618f55
+193,Deluded,Deludeds,Deluded,0,-1,ceb0a4,65634d
+194,Lost In The Woods,Lost In The Woods,Lost In The Woods,0,-1,ceb0a4,527052
+195,Bard,Bards,a Bard,4,0,c4c0b4,57932f
+196,Blessed Village,Blessed Villages,a Blessed Village,4,0,c4c0b4,8f7737
+197,Changeling,Changelings,a Changeling,3,0,30484e,183442
+198,Cemetery,Cemeteries,a Cemetery,4,0,9cbe8a,53735b
+199,Cobbler,Cobblers,a Cobbler,5,0,7a5622,5a501c
+19a,Conclave,Conclaves,a Conclave,4,0,c4c0b4,9c6a14
+19b,Crypt,Crypts,a Crypt,5,0,7a5622,0d494f
+19c,Cursed Village,Cursed Villages,a Cursed Village,5,0,c4c0b4,265ea6
+19d,Den Of Sin,Dens Of Sin,a Den Of Sin,5,0,7a5622,2c2226
+19e,Devil's Workshop,Devil's Workshops,a Devil's Workshop,4,0,30484e,7d5b83
+19f,Druid,Druids,a Druid,2,0,c4c0b4,49b921
+1a0,Exorcist,Exorcists,an Exorcist,4,0,30484e,3763b5
+1a1,Faithful Hound,Faithful Hounds,a Faithful Hound,2,0,8ca2be,8c7640
+1a2,Fool,Fools,a Fool,3,0,c4c0b4,a7af3f
+1a3,Ghost Town,Ghost Towns,a Ghost Town,3,0,7a5622,173b57
+1a4,Guardian,Guardians,a Guardian,2,0,7a5622,376db9
+1a5,Idol,Idols,a Idol,5,0,d8c280,b13700
+1a6,Leprechaun,Leprechauns,a Leprechaun,3,0,c4c0b4,5e7c04
+1a7,Monastery,Monasteries,a Monastery,2,0,30484e,02268a
+1a8,Necromancer,Necromancers,a Necromancer,4,0,c4c0b4,525a36
+1a9,Night Watchman,Night Watchmen,a Night Watchman,3,0,30484e,464266
+1aa,Pixie,Pixies,a Pixie,2,0,c4c0b4,a9db75
+1ab,Pooka,Pookas,a Pooka,5,0,c4c0b4,6b6700
+1ac,Raider,Raiders,a Raider,6,0,7a5622,00238b
+1ad,Sacred Grove,Sacred Groves,a Sacred Grove,5,0,c4c0b4,5e7632
+1ae,Secret Cave,Secret Caves,a Secret Cave,3,0,dda561,be741c
+1af,Shepherd,Shepherds,a Shepherd,4,0,c4c0b4,9caa90
+1b0,Skulk,Skulks,a Skulk,4,0,c4c0b4,7e6060
+1b1,Tormentor,Tormentors,a Tormentor,5,0,c4c0b4,884c6a
+1b2,Tragic Hero,Tragic Heroes,a Tragic Hero,5,0,c4c0b4,5c88a4
+1b3,Tracker,Trackers,a Tracker,2,0,c4c0b4,87c7d9
+1b4,Vampire,Vampires,a Vampire,5,0,30484e,523a4c
+1b5,Werewolf,Werewolves,a Werewolf,5,0,30484e,9f8193
+1b6,Cursed Gold,Cursed Golds,a Cursed Gold,4,2,d8c280,7D4D22
+1b7,Goat,Goats,a Goat,2,2,d8c280,a1e15d
+1b8,Haunted Mirror,Haunted Mirrors,a Haunted Mirror,0,2,d8c280,4F302B
+1b9,Lucky Coin,Lucky Coins,a Lucky Coin,4,2,d8c280,9ed654
+1ba,Magic Lamp,Magic Lamps,a Magic Lamp,0,2,d8c280,8c3400
+1bb,Pasture,Pastures,a Pasture,2,2,a9c35d,959D8D
+1bc,Pouch,Pouches,a Pouch,2,2,d8c280,4A4A55
+1bd,Bat,Bats,a Bat,2,1,30484e,475B5D
+1be,Ghost,Ghosts,a Ghost,4,1,7a5622,13b12f
+1bf,Imp,Imps,an Imp,2,1,c4c0b4,936d69
+1c0,Will-o'-wisp,Will-o'-wisps,a Will-o'-wisp,0,1,c4c0b4,1d593f
+1c1,Wish,Wishes,a Wish,0,1,c4c0b4,0f6551
+1c2,Zombie Apprentice,Zombie Apprentices,a Zombie Apprentice,3,1,c4c0b4,292d23
+1c3,Zombie Mason,Zombie Masons,a Zombie Mason,3,1,c4c0b4,5f513d
+1c4,Zombie Spy,Zombie Spies,a Zombie Spy,3,1,c4c0b4,363438
+1c5,Avanto,Avantos,an Avanto,5,0,c4c0b4,9fa3af
+1c6,Black Market,Black Markets,a Black Market,3,0,c4c0b4,b5b5b5
+1c7,Envoy,Envoys,an Envoy,4,0,c4c0b4,425064
+1c8,Governor,Governors,a Governor,5,0,c4c0b4,8f9989
+1c9,Prince,Princes,a Prince,8,0,c4c0b4,a4863c
+1ca,Sauna,Saunas,a Sauna,5,0,c4c0b4,9f8d7b
+1cb,Stash,Stashes,a Stash,5,0,d8c280,666666
+1cc,Summon,Summons,a Summon,5,0,a9a39d,c19b59
+1cd,Walled Village,Walled Villages,a Walled Village,4,0,c4c0b4,6eaa70
+1ce,Black Market Deck,Black Market Decks,a Black Market Deck,0,0,666666,666666
+1cf,Dismantle,Dismantles,a Dismantle,4,0,c4c0b4,8DAEB6
+1d0,Debt,Debt,1 Debt,0,0,C73400,A02900
+1d1,debt,debt,1 debt,0,0,C73400,A02900

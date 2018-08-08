@@ -1,108 +1,77 @@
-from .classes import *
 from .lists import *
 from copy import deepcopy
+from django.conf import settings
+import os
+
+CARD_URLS_PATH = 'woodcutter/card_images/imageurls.txt'
+
+cardUrls = {}
+f = open(os.path.join(settings.STATIC_ROOT, CARD_URLS_PATH))
+for line in f:
+    raw = line.strip().split(':')
+    raw[1] = 'woodcutter/card_images/{}'.format(raw[1][raw[1].rfind('/') + 1:])
+    cardUrls[raw[0]] = raw[1]
 
 
-def empty(cM, gS, exc, tExc, pers):
-    pass
+class Card:
+    def __init__(self, index, simple_name, multi_name, phrase_name,
+                 cost, supply_type, border_color, card_color,
+                 action, worth=lambda x, y: 0):
 
+        self.index = index
+        self.simple_name = simple_name
+        self.multi_name = multi_name
+        self.phrase_name = phrase_name
+        self.cost = cost
+        self.supply_type = supply_type
+        self.action = action
+        self.border_color = border_color
+        self.card_color = card_color
+        self.worth = worth
 
-def standardCondition(predList, targetList=[]):
-    def out_function(cM):
-        if predList:
-            if standardPreds[cM[0].pred].name not in predList:
-                return False
-        if targetList:
-            inside = False
-            for card in targetList:
-                if standardNames.index(card) in cM[0].items:
-                    inside = True
-            if not inside:
-                return False
-        return True
-
-    return out_function
-
-
-def moveException(src, dest):
-    def out_function(cM, gS, exc, tExc, pers):
-        standardMove(src, dest, cM, gS)
-    return out_function
-
-
-def standardMove(src, dest, cM, gS):
-    if cM[0].items.count() > 0:
-        gS[-1].move(cM[0].player, src, dest, cM[0].items)
-
-
-def standardException(predList, src, dest, targetList=[]):
-    return Exception(standardCondition(predList, targetList),
-                     moveException(src, dest))
-
-
-def gainCash(amount):
-    def out_function(cM, gS, exc, tExc, pers):
-        player = cM[0].player
-        gS[-1].coins[player] += amount
-
-    return out_function
-
-
-def standardOnGains(src):
-    def specificCondition(predList, gainedCard):
-        def out_function(cM):
-            if standardPreds[cM[0].pred].name not in predList:
-                return False
-            return (cM[0].items - gainedCard).count() == 0 or\
-                cM[0].items.primary() == 'card'
-        return out_function
-
-    def villaException(cM, gS, exc, tExc, pers):
-        moveException(src, 'HANDS')(cM, gS, exc, tExc, pers)
-        gS[-1].phase = 0
-
-    def out_function(cM, gS, exc, tExc, pers):
-        if cM[0].predName() in ['GAIN', 'BUY AND GAIN', 'GAIN TOPDECK', 'GAIN TRASH']:
-            gainedCard = cM[0].items
+        if self.simple_name in cardUrls:
+            self.cardurl = cardUrls[self.simple_name]
         else:
-            for subchunk in cM[1:]:
-                if subchunk[0].predName() in ['GAIN', 'BUY AND GAIN', 'GAIN TOPDECK', 'GAIN TRASH']:
-                    gainedCard = subchunk[0].items
+            self.cardurl = cardUrls['card']
 
-        def topdeckerMove(cM, gS, exc, tExc, pers):
-            gS[-1].move(cM[0].player, src, 'DECKS', gainedCard)
+    def __repr__(self):
+        return '{:0>3}'.format(hex(self.index)[2:])
 
-        def trasherMove(cM, gS, exc, tExc, pers):
-            gS[-1].move(cM[0].player, src, 'TRASH', gainedCard)
+    def __str__(self):
+        return self.simple_name.upper()
 
-        def returnMove(cM, gS, exc, tExc, pers):
-            gS[-1].move(cM[0].player, src, 'SUPPLY', gainedCard)
+    def __hash__(self):
+        return self.index
 
-        exc.append(Exception(specificCondition(['TOPDECK'], gainedCard),
-                             topdeckerMove))
-        exc.append(Exception(specificCondition(['TRASH'], gainedCard),
-                             trasherMove))
-        exc.append(Exception(specificCondition(['RETURN'], gainedCard),
-                             returnMove))
-        if gainedCard.primary() == 'Villa':
-            exc.append(Exception(standardCondition(['PUT INHAND'], ['Villa']),
-                                 villaException))
+    def __eq__(self, other):
+        return self.index == other.index
 
-    return out_function
+    def names(self):
+        return [self.simple_name, self.multi_name, self.phrase_name]
 
 
-def standardOnPlay(cM, gS, exc, tExc, pers):
-    for card in cM[0].items:
-        if card != ARGUMENT_CARD:
-            for i in range(cM[0].items[card]):
-                standardCards[card].action(cM, gS, exc, tExc, pers)
+class Pred:
+    def __init__(self, index, regex, action, name):
+        self.index = index
+        self.regex = regex
+        self.action = action
+        self.name = name
+
+    def __repr__(self):
+        return '{:0>2}'.format(hex(self.index)[2:])
+
+    def __str__(self):
+        return self.name
+
+    def __hash__(self):
+        return self.index
+
+    def __eq__(self, other):
+        return self.index == other.index
 
 
-def standardOnTrash(cM, gS, exc, tExc, pers):
-    for card in cM[0].items:
-        if card != ARGUMENT_CARD:
-            for i in range(cM[0].items[card]):
-                standardCards[card].action(cM, gS, exc, tExc, pers)
+def empty(move, i, bL, moves, cS):
+    return {}
 
 
 def staticWorth(val):
@@ -111,1531 +80,718 @@ def staticWorth(val):
     return out_function
 
 
-def knightsTrashCondition(knightPlayer):
-    def out_function(cM):
-        return cM[0].predName() == 'TRASH' and cM[0].player != knightPlayer
+Cards = {}
+CardList = []
+Preds = {}
+PredList = []
+
+cardFile = open(os.path.join(settings.STATIC_ROOT,
+                             'woodcutter/data/carddata.txt'), 'r')
+for i, line in enumerate(cardFile):
+    t = line.split(',')
+    c = Card(i, t[1], t[2], t[3], t[4],
+             t[5], t[6], t[7], empty)
+    if len(t) > 8:
+        c.worth = staticWorth(int(t[8]))
+
+    Cards[t[1].upper()] = c
+    CardList.append(c)
+
+cardFile.close()
+
+predFile = open(os.path.join(settings.STATIC_ROOT,
+                             'woodcutter/data/preddata.txt'), 'r')
+for i, line in enumerate(predFile):
+    t = line.split(',')
+    p = Pred(i, t[1], empty, t[2])
+    Preds[t[2]] = p
+    PredList.append(p)
+
+predFile.close()
+
+predParseOrder = PredList[:26] + PredList[119:119] + PredList[26:]
+
+PLAY_PREDS = ('PLAY', 'PLAY AGAIN', 'PLAY THIRD')
+GAIN_PREDS = ('GAIN', 'BUY AND GAIN', 'GAIN TOPDECK', 'GAIN TRASH')
+
+
+def check(predList, targetList=[]):
+    def out_function(move):
+        if predList:
+            if str(move.pred) not in predList:
+                return False
+
+        if targetList:
+            if len([t for t in targetList if (t in move.items)]) == 0:
+                return False
+        return True
+
     return out_function
 
 
-exc_revealTrash = standardException(['TRASH'], 'DECKS', 'TRASH')
-exc_revealTopdeck = standardException(['TOPDECK'], 'DECKS', 'DECKS')
-exc_revealDiscard = standardException(['DISCARD'], 'DECKS', 'DISCARDS')
-exc_harbinger = standardException(['TOPDECK'], 'DISCARDS', 'DECKS')
-exc_gainHand = standardException(['GAIN'], 'SUPPLY', 'HANDS')
-exc_supplyTrash = standardException(['TRASH'], 'SUPPLY', 'TRASH')
-exc_inplayTrash = standardException(['TRASH'], 'INPLAYS', 'TRASH')
-exc_standardTrash = Exception(standardCondition(['TRASH']), standardOnTrash)
+def transfer(src, dest, move, cS):
+    if move.items.count() > 0:
+        cS.move(move.player, src, dest, move.items)
+    return {}
 
-# First: Argument
-t = Card('Argument', 'Argument', 'Argument', 0, 0, '666666', '666666', empty)
-standardCards.append(t)
 
-# 0: nothing
-t = Card('nothing', 'other cards', 'nothing', 0, -1, '666666', '666666', empty)
-standardCards.append(t)
+def moveFunct(src, dest):
+    def out_function(move, i, bL, moves, cS):
+        transfer(src, dest, move, cS)
+    return out_function
 
-# 1: card
-t = Card('card', 'cards', 'a card', 0, -1, '666666', '1528B7', empty)
-standardCards.append(t)
 
-# 2: Curse
-t = Card('Curse', 'Curses', 'a Curse', 0, -1, 'b571b3', 'a2b8b8', empty, staticWorth(-1))
-standardCards.append(t)
+def checkMove(predList, src, dest, targetList=[]):
+    return Exception(check(predList, targetList),
+                     moveFunct(src, dest))
 
 
-# 3: Copper
-def copper_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        gainCash(1)(cM, gS, exc, tExc, pers)
+def gainCash(amount):
+    def out_function(move, i, bL, moves, cS):
+        cS['COINS'][move.player] += amount
+        return {}
 
+    return out_function
 
-t = Card('Copper', 'Coppers', 'a Copper', 0, -1, 'f1d14d', 'a05624', copper_action)
-standardCards.append(t)
 
+def onGains(src, gainedCards):
+    def wasGained(predList):
+        def out_function(move):
+            if str(move.pred) not in predList:
+                return False
+            return gainedCards > move.items
+        return out_function
 
-# 4: Silver
-def silver_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        gainCash(2)(cM, gS, exc, tExc, pers)
+    def villaExcAction(move, i, bL, moves, cS):
+        transfer(src, 'HANDS', moves, cS)
+        cS.phase = 0
 
+    villaException = Exception(check(['PUT INHAND'], ['VILLA']),
+                               villExcAction)
 
-t = Card('Silver', 'Silvers', 'a Silver', 3, -1, 'f1d14d', '709aa4', silver_action)
-standardCards.append(t)
+    def out_function(move, i, bL, moves, cS):
+        newExcs = {}
 
+        if 'VILLA' in gainedCards:
+            newExcs[villaException] = bL
 
-# 5: Gold
-def gold_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        gainCash(3)(cM, gS, exc, tExc, pers)
+        for exc in [Exception(wasGained(['TOPDECK']), moveFunct(src, 'DECKS')),
+                    Exception(wasGained(['TRASH']), moveFunct(src, 'TRASH')),
+                    Exception(wasGained(['RETURN']), moveFunct(src, 'SUPPLY'))
+                    ]:
+            newExcs[exc] = bL
+        return newExcs
 
+    return out_function
 
-t = Card('Gold', 'Golds', 'a Gold', 6, -1, 'f1d14d', 'ffae06', gold_action)
-standardCards.append(t)
 
+def onPlay(move, i, bL, moves, cS):
+    for card in move.items.strip():
+        for i in range(move.items[card]):
+            Cards[card].action(move, i, bL, moves, cS)
 
-# 6: Estate
-def estate_action(cM, gS, exc, tExc, pers):
-    card = standardCards[gS[-1].INHERITED_CARDS[cM[0].player]]
-    card.action(cM, gS, exc, tExc, pers)
 
+def onTrash(move, i, bL, moves, cS):
+    for card in move.items.strip():
+        for i in range(move.items[card]):
+            Cards[card].action(move, i, bL, moves, cS)
 
-t = Card('Estate', 'Estates', 'an Estate', 2, -1, '548C2B', 'bfb597', estate_action, staticWorth(1))
-standardCards.append(t)
 
-# 7: Duchy
-t = Card('Duchy', 'Duchies', 'a Duchy', 5, -1, '548C2B', '6aa09a', empty, staticWorth(3))
-standardCards.append(t)
+exc_revealTrash = checkMove(['TRASH'], 'DECKS', 'TRASH')
+exc_revealTopdeck = checkMove(['TOPDECK'], 'DECKS', 'DECKS')
+exc_revealDiscard = checkMove(['DISCARD'], 'DECKS', 'DISCARDS')
+exc_harbinger = checkMove(['TOPDECK'], 'DISCARDS', 'DECKS')
+exc_gainHand = checkMove(['GAIN'], 'SUPPLY', 'HANDS')
+exc_supplyTrash = checkMove(['TRASH'], 'SUPPLY', 'TRASH')
+exc_inplayTrash = checkMove(['TRASH'], 'INPLAYS', 'TRASH')
+exc_standardTrash = Exception(check(['TRASH']), onTrash)
 
-# 8: Province
-t = Card('Province', 'Provinces', 'a Province', 8, -1, '548C2B', 'efaf49', empty, staticWorth(6))
-standardCards.append(t)
 
+# -- Standard Actions -- #
 
-# 9: Artisan
-def artisan_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exc.append(exc_gainHand)
-        exc.append(Exception(standardCondition(['GAIN']),
-                             standardOnGains('HANDS')))
 
+def deckchuck(move, i, bL, moves, cS):
+    if str(move.pred) in PLAY_PREDS:
+        return {exc_revealDiscard: bL}
 
-t = Card('Artisan', 'Artisans', 'an Artisan', 6, 0, 'c4c0b4', 'bc5a00', artisan_action)
-standardCards.append(t)
 
+def decksifter(move, i, bL, moves, cS):
+    if str(move.pred) in PLAY_PREDS:
+        return {exc: bL for exc in [exc_revealTopdeck, exc_revealDiscard]}
 
-# 10: Bandit
-def bandit_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exc.append(exc_revealTrash)
-        exc.append(exc_standardTrash)
-        exc.append(exc_revealDiscard)
 
+def selftrasher(move, i, bL, moves, cS):
+    if str(move.pred) in PLAY_PREDS:
+        return {exc: bL for exc in [exc_inplayTrash, exc_standardTrash]}
 
-t = Card('Bandit', 'Bandits', 'a Bandit', 5, 0, 'c4c0b4', '8a861e', bandit_action)
-standardCards.append(t)
 
+def sentrylike(move, i, bL, moves, cS):
+    if str(move.pred) in PLAY_PREDS:
+        return {exc: bL for exc in [exc_revealTrash,
+                                    exc_standardTrash,
+                                    exc_revealDiscard,
+                                    exc_revealTopdeck]}
 
-# 11: Bureaucrat
-def bureaucrat_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exc.append(standardException(['GAIN'], 'SUPPLY', 'DECKS', ['Silver']))
-        exc.append(Exception(standardCondition(['GAIN']),
-                             standardOnGains('DECKS')))
 
+def banditlike(move, i, bL, moves, cS):
+    if str(move.pred) in PLAY_PREDS:
+        return {exc: bL for exc in [exc_revealTrash,
+                                    exc_standardTrash,
+                                    exc_revealDiscard]}
 
-t = Card('Bureaucrat', 'Bureaucrats', 'a Bureaucrat', 4, 0, 'c4c0b4', '95633b', bureaucrat_action)
-standardCards.append(t)
 
-# 12: Cellar
-t = Card('Cellar', 'Cellars', 'a Cellar', 2, 0, 'c4c0b4', '3e4646', empty)
-standardCards.append(t)
+def golemlike(move, i, bL, moves, cS):
+    if str(move.pred) in PLAY_PREDS:
+        playExc = checkMove(['PLAY'], 'DECKS', 'INPLAYS')
+        onPlayExc = Exception(check(['PLAY']), standardOnPlay)
+        return {exc: bL for exc in [playExc, onPlayExc, exc_revealDiscard]}
 
-# 13: Chapel
-t = Card('Chapel', 'Chapels', 'a Chapel', 2, 0, 'c4c0b4', '605444', empty)
-standardCards.append(t)
 
-# 14: Council Room
-t = Card('Council Room', 'Council Rooms', 'a Council Room', 5, 0, 'c4c0b4', '815121', empty)
-standardCards.append(t)
+def deckGain(move, i, bL, moves, cS):
+    if str(move.pred) in PLAY_PREDS:
+        gainExc = checkMove(['GAIN'], 'SUPPLY', 'DECKS')
+        onGainExc = Exception(check(['GAIN']), onGains('DECKS', move.items))
+        return {exc: bL for exc in [gainExc, onGainExc]}
 
 
-# 15: Festival
-def festival_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        gainCash(2)(cM, gS, exc, tExc, pers)
+def emulate(move, i, bL, moves, cS):
+    if str(move.pred) in PLAY_PREDS:
+        playExc = checkMove(['PLAY'], 'SUPPLY', 'SUPPLY')
+        onPlayExc = Exception(check(['PLAY']), standardOnPlay)
+        return {exc: bL for exc in [playExc, onPlayExc]}
 
 
-t = Card('Festival', 'Festivals', 'a Festival', 5, 0, 'c4c0b4', '636d61', festival_action)
-standardCards.append(t)
+# -- Individual Cards -- #
 
+def estate_action(move, i, bL, moves, cS):
+    return cS['INHERITED_CARDS'][move.player].action(move, i, bL, moves, cS)
 
-# 16: Gardens
-def gardens_worth(gameState, player):
-    return gameState.crunch(['DECKS', 'HANDS', 'DISCARDS', 'OTHERS',
-                             'INPLAYS'], [player]).count()//10
 
+Cards['ESTATE'].action = estate_action
 
-t = Card('Gardens', 'Gardens', 'a Gardens', 4, 0, '9cbe8a', '5f792f', empty, gardens_worth)
-standardCards.append(t)
 
+def artisan_action(move, i, bL, moves, cS):
+    if str(move.pred) in PLAY_PREDS:
+        onGainExc = Exception(check(['GAIN']), onGains('HANDS', move.items))
+        return {exc_gainHand: bL, onGainExc: bL}
 
-# 17: Harbinger
-def harbinger_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exc.append(exc_harbinger)
 
+Cards['ARTISAN'].action = artisan_action
 
-t = Card('Harbinger', 'Harbingers', 'a Harbinger', 3, 0, 'c4c0b4', '8e8a3c', harbinger_action)
-standardCards.append(t)
+Cards['BANDIT'].action = banditlike
 
 
-# 18: Laboratory
-t = Card('Laboratory', 'Laboratories', 'a Laboratory', 5, 0, 'c4c0b4', '614739', empty)
-standardCards.append(t)
+def bureaucrat_action(move, i, bL, moves, cS):
+    if str(move.pred) in PLAY_PREDS:
+        onGainExc = Exception(check(['GAIN']), onGains('DECKS', move.items))
+        gainExc = checkMove(['GAIN'], 'SUPPLY', 'DECKS', ['Silver'])
+        return {exc: bL for exc in [onGainExc, gainExc]}
 
 
-# 19: Library
-def library_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exc.append(standardException(['SETS ASIDE WITH'], 'DECKS', 'OTHERS'))
-        exc.append(standardException(['DISCARD'], 'OTHERS', 'DISCARDS'))
+Cards['BUREAUCRAT'].action = bureaucrat_action
 
 
-t = Card('Library', 'Libraries', 'a Library', 5, 0, 'c4c0b4', '7a7e4a', library_action)
-standardCards.append(t)
+def gardens_worth(gS, player):
+    return gS.crunch(PERSONAL_ZONES, (player)).count() // 10
 
 
-# 20: Market
-def market_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        gainCash(1)(cM, gS, exc, tExc, pers)
+Cards['GARDENS'].worth = gardens_worth
 
 
-t = Card('Market', 'Markets', 'a Market', 5, 0, 'c4c0b4', '684830', market_action)
-standardCards.append(t)
+def harbinger_action(move, i, bL, moves, cS):
+    if str(move.pred) in PLAY_PREDS:
+        return {exc_harbinger: bL}
 
 
-# 21: Merchant
-t = Card('Merchant', 'Merchants', 'a Merchant', 3, 0, 'c4c0b4', '917911', empty)
-standardCards.append(t)
+Cards['HARBINGER'].action = harbinger_action
 
 
-# 22: Militia
-def militia_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        gainCash(2)(cM, gS, exc, tExc, pers)
+def library_action(move, i, bL, moves, cS):
+    if str(move.pred) in PLAY_PREDS:
+        setAsideExc = checkMove(['SETS ASIDE WITH'], 'DECKS', 'OTHERS')
+        libDiscardExc = checkMove(['DISCARD'], 'OTHERS', 'DISCARDS')
+        return {exc: bL for exc in [setAsideExc, libDiscardExc]}
 
-t = Card('Militia', 'Militias', 'a Militia', 4, 0, 'c4c0b4', '856961', militia_action)
-standardCards.append(t)
 
+Cards['LIBRARY'].action = library_action
 
-# 23: Mine
-def mine_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exc.append(exc_gainHand)
-        exc.append(Exception(standardCondition(['GAIN']),
-                             standardOnGains('HANDS')))
 
+def mine_action(move, i, bL, moves, cS):
+    if str(move.pred) in PLAY_PREDS:
+        onGainExc = Exception(check(['GAIN']), onGains('HANDS', move.items))
+        return {exc: bL for exc in [exc_gainHand, onGainExc]}
 
-t = Card('Mine', 'Mines', 'a Mine', 5, 0, 'c4c0b4', '433935', mine_action)
-standardCards.append(t)
 
-# 24: Moat
-t = Card('Moat', 'Moats', 'a Moat', 2, 0, '8ca2be', '586472', empty)
-standardCards.append(t)
+Cards['MINE'].action = mine_action
 
+Cards['SENTRY'].action = sentrylike
 
-# 25: Moneylender
-t = Card('Moneylender', 'Moneylenders', 'a Moneylender', 4, 0, 'c4c0b4', '7a644c', empty)
-standardCards.append(t)
 
+def vassal_action(move, i, bL, moves, cS):
+    if str(move.pred) in PLAY_PREDS:
+        outputExcs = {exc_revealDiscard: bL}
 
-# 26: Poacher
-def poacher_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        gainCash(1)(cM, gS, exc, tExc, pers)
-
-t = Card('Poacher', 'Poachers', 'a Poacher', 4, 0, 'c4c0b4', '8f810d', poacher_action)
-standardCards.append(t)
-
-# 27: Remodel
-t = Card('Remodel', 'Remodels', 'a Remodel', 4, 0, 'c4c0b4', '8e7e4a', empty)
-standardCards.append(t)
-
-
-# 28: Sentry
-def sentry_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exc.append(exc_revealTrash)
-        exc.append(exc_standardTrash)
-        exc.append(exc_revealDiscard)
-        exc.append(exc_revealTopdeck)
-
-
-t = Card('Sentry', 'Sentries', 'a Sentry', 5, 0, 'c4c0b4', '5a361e', sentry_action)
-standardCards.append(t)
-
-# 29: Smithy
-t = Card('Smithy', 'Smithies', 'a Smithy', 4, 0, 'c4c0b4', '6a523a', empty)
-standardCards.append(t)
-
-# 30: Throne Room
-t = Card('Throne Room', 'Throne Rooms', 'a Throne Room', 4, 0, 'c4c0b4', 'd76315', empty)
-standardCards.append(t)
-
-
-# 31: Vassal
-def vassal_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        gainCash(2)(cM, gS, exc, tExc, pers)
-
-        exc.append(exc_revealDiscard)
-        discardedCard = standardCards[CARD_CARD].simple_name
-        for subchunk in cM[1:]:
-            if subchunk[0].predName() == 'DISCARD':
-                discardedCard = subchunk[0].items.primary()
+        for scan in moves[i + 1: i + bL]:
+            if str(scan.pred) == 'DISCARD':
+                discardedCard = str(scan.primary())
+                vassalCheck = check(['PLAY'], [discardedCard])
+                playExc = Exception(vassalCheck, move('DISCARDS', 'INPLAYS'))
+                actionExc = Exception(vassalCheck, onPlay)
+                outputExcs.update({playExc: bL, actionExc: bL})
                 break
 
-        # You're fucked up, vassal.
-        tExc.append(Exception(standardCondition(['PLAY'], [discardedCard]),
-                              moveException('DISCARDS', 'INPLAYS'), len(cM)))
-        tExc.append(Exception(standardCondition(['PLAY'], [discardedCard]),
-                              standardOnPlay, len(cM)))
+        return outputExcs
 
 
-t = Card('Vassal', 'Vassals', 'a Vassal', 3, 0, 'c4c0b4', 'ba6816', vassal_action)
-standardCards.append(t)
-
-# 32: Village
-t = Card('Village', 'Villages', 'a Village', 3, 0, 'c4c0b4', '7e9078', empty)
-standardCards.append(t)
-
-# 33: Witch
-t = Card('Witch', 'Witches', 'a Witch', 5, 0, 'c4c0b4', '52444e', empty)
-standardCards.append(t)
-
-# 34: Workshop
-t = Card('Workshop', 'Workshops', 'a Workshop', 3, 0, 'c4c0b4', '8c6428', empty)
-standardCards.append(t)
-
-# 35: Courtyard
-t = Card('Courtyard', 'Courtyards', 'a Courtyard', 2, 0, 'c4c0b4', '74a454', empty)
-standardCards.append(t)
-
-
-# 36: Conspirator
-def conspirator_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        gainCash(2)(cM, gS, exc, tExc, pers)
-
-
-t = Card('Conspirator', 'Conspirators', 'a Conspirator', 4, 0, 'c4c0b4', '2b5989', conspirator_action)
-standardCards.append(t)
-
-# 37: Courtier
-t = Card('Courtier', 'Courtiers', 'a Courtier', 5, 0, 'c4c0b4', 'ac6228', empty)
-standardCards.append(t)
-
-# 38: Baron
-t = Card('Baron', 'Barons', 'a Baron', 4, 0, 'c4c0b4', '876341', empty)
-standardCards.append(t)
-
-
-# 39: Bridge
-def bridge_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        gainCash(1)(cM, gS, exc, tExc, pers)
-
-
-t = Card('Bridge', 'Bridges', 'a Bridge', 4, 0, 'c4c0b4', '859b6b', bridge_action)
-standardCards.append(t)
+Cards['VASSAL'].action = vassal_action
 
 
 # 40: Diplomat
-def diplomat_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['REACT']:
-        newExc = standardException(['DISCARD'], 'HANDS', 'DISCARDS')
-        newExc.priority = 2
-        tExc.append(newExc)
+def diplomat_action(move, i, bL, moves, cS):
+    if str(move.pred) in ['REACT']:
+        return {checkMove(['DISCARD'], 'HANDS', 'DISCARDS'): bL}
 
 
-t = Card('Diplomat', 'Diplomats', 'a Diplomat', 4, 0, '8ca2be', '91595f', diplomat_action)
-standardCards.append(t)
+Cards['DIPLOMAT'].action = diplomat_action
 
 
-# 41: Duke
 def duke_worth(gS, player):
-    playerDeck = gS.crunch(['DECKS', 'HANDS', 'DISCARDS', 'OTHERS'],
-                           [player])
+    playerDeck = gS.crunch(PERSONAL_ZONES, (player))
+    return playerDeck['DUCHY']
 
-    for card in playerDeck:
-        if standardCards[card].simple_name == 'Duchy':
-            return playerDeck[card]
-    return 0
 
+Cards['DUKE'].worth = duke_worth
 
-t = Card('Duke', 'Dukes', 'a Duke', 5, 0, '9cbe8a', '8a7e5e', empty, duke_worth)
-standardCards.append(t)
 
+def lurker_action(move, i, bL, moves, cS):
+    if str(move.pred) in PLAY_PREDS:
+        return {exc: bL for exc in [exc_supplyTrash,
+                                    exc_standardTrash,
+                                    checkMove(['GAIN'], 'TRASH', 'DISCARDS'),
+                                    Exception(check(['GAIN']),
+                                              onGains('DISCARDS', move.items))
+                                    ]}
 
-# 42: Harem
-t = Card('Harem', 'Harems', 'a Harem', 6, 0, 'a9c35d', 'c3510d', empty, staticWorth(2))
-standardCards.append(t)
 
+Cards['LURKER'].action = lurker_action
 
-# 43: Nobles
-t = Card('Nobles', 'Nobles', 'a Nobles', 6, 0, 'aac298', '816155', empty, staticWorth(2))
-standardCards.append(t)
+Cards['MINING VILLAGE'].action = selftrasher
 
 
-# 44: Ironworks
-t = Card('Ironworks', 'Ironworks', 'an Ironworks', 4, 0, 'c4c0b4', '7d3b1f', empty)
-standardCards.append(t)
+def patrol_action(move, i, bL, moves, cS):
+    if str(move.pred) in PLAY_PREDS:
+        return{exc_revealTopdeck: bL}
 
 
-# 45: Lurker
-def lurker_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exc.append(exc_supplyTrash)
-        exc.append(exc_standardTrash)
-        exc.append(standardException(['GAIN'], 'TRASH', 'DISCARDS'))
-        exc.append(Exception(standardCondition(['GAIN']),
-                             standardOnGains('DECKS')))
+Cards['PATROL'].action = patrol_action
 
 
-t = Card('Lurker', 'Lurkers', 'a Lurker', 2, 0, 'c4c0b4', '909ab2', lurker_action)
-standardCards.append(t)
+def replace_action(move, i, bL, moves, cS):
+    if str(move.pred) in PLAY_PREDS:
+        for scan in moves[i + 1: i + bL]:
+            if str(scan) == 'GAIN' and scan.player == move.player:
+                gainedCard = scan.items.primary()
+                gainedStack = Cardstack({gainedCard: 1})
 
+                def topdeckGainedCard(move, i, bL, moves, cS):
+                    cS.move(move.player, 'DISCARDS', 'DECKS', gainedStack)
 
-# 46: Masquerade
-t = Card('Masquerade', 'Masquerades', 'a Masquerade', 3, 0, 'c4c0b4', '635d51', empty)
-standardCards.append(t)
+                return {Exception(check(['TOPDECK']), topdeckGainedCard): bL}
 
-# 47: Mill
-t = Card('Mill', 'Mills', 'a Mill', 4, 0, 'aac298', '78b294', empty, staticWorth(1))
-standardCards.append(t)
 
-# 48: Mining Village
-def minevillage_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exc.append(exc_inplayTrash)
-        exc.append(exc_standardTrash)
+Cards['REPLACE'].action = replace_action
 
-t = Card('Mining Village', 'Mining Villages', 'a Mining Village', 4, 0, 'c4c0b4', 'aea090', minevillage_action)
-standardCards.append(t)
+Cards['SWINDLER'].action = banditlike
 
-# 49: Minion
-def minion_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        for chunk in cM[1:]:
-            if standardPreds[chunk[0].pred].name != 'DISCARD':
-                gainCash(2)(cM, gS, exc, tExc, pers)
 
-t = Card('Minion', 'Minions', 'a Minion', 5, 0, 'c4c0b4', '6c382e', minion_action)
-standardCards.append(t)
+def torturer_action(move, i, bL, moves, cS):
+    if str(move.pred) in PLAY_PREDS:
+        gainExc = checkMove(['GAIN'], 'SUPPLY', 'HANDS', ['Curse'])
+        onGainExc = Exception(check(['GAIN'], ['Curse']),
+                              onGains('HANDS', move.items))
+        return {exc: bL for exc in [gainExc, onGainExc]}
 
-# 50: Patrol
-def patrol_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exc.append(exc_revealTopdeck)
 
-t = Card('Patrol', 'Patrols', 'a Patrol', 5, 0, 'c4c0b4', '98ae70', patrol_action)
-standardCards.append(t)
+Cards['TORTURER'].action = torturer_action
 
-# 51: Pawn
-t = Card('Pawn', 'Pawns', 'a Pawn', 2, 0, 'c4c0b4', '3f2f25', empty)
-standardCards.append(t)
 
+def tradepost_action(move, i, bL, moves, cS):
+    if str(move.pred) in PLAY_PREDS:
+        onGainExc = Exception(check(['GAIN'], ['Silver']),
+                              onGains('HANDS', move.items))
+        gainExc = checkMove(['GAIN'], 'SUPPLY', 'HANDS', ['Silver'])
+        return {exc: bL for exc in [onGainExc, gainExc]}
 
-# 52: Replace
-def replace_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        gainedCard = CARD_CARD
-        for subchunk in cM[1:]:
-            if subchunk[0].predName() == 'GAIN' and \
-               subchunk[0].player == cM[0].player:
-                gainedCard = subchunk[0].items.cardList()[0]
-        gainedCardStack = Cardstack({gainedCard: 1})
 
-        def topdeckGainedCard(cM, gS, exc, tExc, pers):
-            gS[-1].move(cM[0].player, 'DISCARDS', 'DECKS', gainedCardStack)
+Cards['TRADING POST'].action = tradepost_action
 
-        exc.append(Exception(standardCondition(['TOPDECK']), topdeckGainedCard))
 
+def ambassador_action(move, i, bL, moves, cS):
+    if str(move.pred) in PLAY_PREDS:
+        return {checkMove(['RETURN TO'], 'HANDS', 'SUPPLY'): bL}
 
-t = Card('Replace', 'Replaces', 'a Replace', 5, 0, 'c4c0b4', '564850', replace_action)
-standardCards.append(t)
 
-# 53: Secret Passage
-t = Card('Secret Passage', 'Secret Passages', 'a Secret Passage', 4, 0, 'c4c0b4', '261e12', empty)
-standardCards.append(t)
+Cards['AMBASSADOR'].action = ambassador_action
 
-# 54: Shanty Town
-t = Card('Shanty Town', 'Shanty Towns', 'a Shanty Town', 3, 0, 'c4c0b4', '124e44', empty)
-standardCards.append(t)
+Cards['EMBARGO'].action = selftrasher
 
-# 55: Steward
-t = Card('Steward', 'Stewards', 'a Steward', 3, 0, 'c4c0b4', '4f4d5d', empty)
-standardCards.append(t)
 
-# 56: Swindler
-def swindler_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exc.append(exc_revealTrash)
-        exc.append(exc_standardTrash)
+def explorer_action(move, i, bL, moves, cS):
+    if str(move.pred) in PLAY_PREDS:
+        onGainExc = Exception(check(['GAIN'], ['Silver', 'Gold']),
+                              onGains('HANDS', move.items))
+        gainExc = checkMove(['GAIN'], 'SUPPLY', 'HANDS', ['Silver', 'Gold'])
+        return {exc: bL for exc in [onGainExc, gainExc]}
 
 
-t = Card('Swindler', 'Swindlers', 'a Swindler', 3, 0, 'c4c0b4', 'b78d49', swindler_action)
-standardCards.append(t)
+Cards['EXPLORER'].action = explorer_action
 
-# 57: Torturer
-def torturer_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exc.append(standardException(['GAIN'], 'SUPPLY', 'HANDS', ['Curse']))
-        exc.append(Exception(standardCondition(['GAIN'], ['Curse']),
-                             standardOnGains('HANDS')))
 
-t = Card('Torturer', 'Torturers', 'a Torturer', 5, 0, 'c4c0b4', '842804', torturer_action)
-standardCards.append(t)
-
-# 58: Trading Post
-def tradepost_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exc.append(standardException(['GAIN'], 'SUPPLY', 'HANDS', ['Silver']))
-        exc.append(Exception(standardCondition(['GAIN'], ['Silver']),
-                             standardOnGains('HANDS')))
-
-t = Card('Trading Post', 'Trading Posts', 'a Trading Post', 5, 0, 'c4c0b4', '686434', tradepost_action)
-standardCards.append(t)
-
-# 59: Upgrade
-t = Card('Upgrade', 'Upgrades', 'an Upgrade', 5, 0, 'c4c0b4', '979773', empty)
-standardCards.append(t)
-
-# 60: Wishing Well
-t = Card('Wishing Well', 'Wishing Wells', 'a Wishing Well', 3, 0, 'c4c0b4', '61756b', empty)
-standardCards.append(t)
-
-
-# 61: Ambassador
-def ambassador_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exc.append(standardException(['RETURN TO'], 'HANDS', 'SUPPLY'))
-
-
-t = Card('Ambassador', 'Ambassadors', 'an Ambassador', 3, 0, 'c4c0b4', 'b8602c', ambassador_action)
-standardCards.append(t)
-
-
-# 62: Bazaar
-def bazaar_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        gainCash(1)(cM, gS, exc, tExc, pers)
-
-
-t = Card('Bazaar', 'Bazaars', 'a Bazaar', 5, 0, 'c4c0b4', 'a6765e', bazaar_action)
-standardCards.append(t)
-
-# 63: Caravan
-t = Card('Caravan', 'Caravans', 'a Caravan', 4, 0, 'dda561', 'b9ab7f', empty)
-standardCards.append(t)
-
-
-# 64: Cutpurse
-def cutpurse_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        gainCash(2)(cM, gS, exc, tExc, pers)
-
-
-t = Card('Cutpurse', 'Cutpurses', 'a Cutpurse', 4, 0, 'c4c0b4', '826a4e', cutpurse_action)
-standardCards.append(t)
-
-
-# 65: Embargo
-def embargo_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        gainCash(2)(cM, gS, exc, tExc, pers)
-        exc.append(exc_inplayTrash)
-        exc.append(exc_standardTrash)
-
-
-t = Card('Embargo', 'Embargos', 'an Embargo', 2, 0, 'c4c0b4', '9da381', embargo_action)
-standardCards.append(t)
-
-
-# 66: Explorer
-def explorer_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exc.append(standardException(['GAIN'], 'SUPPLY', 'HANDS',
-                                     ['Silver', 'Gold']))
-        exc.append(Exception(standardCondition(['GAIN'], ['Silver', 'Gold']),
-                             standardOnGains('HANDS')))
-
-
-t = Card('Explorer', 'Explorers', 'an Explorer', 5, 0, 'c4c0b4', '74D0F6', explorer_action)
-standardCards.append(t)
-
-
-# 67: Fishing Village
-def fishvillage_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        gainCash(1)(cM, gS, exc, tExc, pers)
-
-t = Card('Fishing Village', 'Fishing Villages', 'a Fishing Village', 3, 0, 'dda561', '7db9b3', fishvillage_action)
-standardCards.append(t)
-
-# 68: Ghost Ship
-t = Card('Ghost Ship', 'Ghost Ships', 'a Ghost Ship', 5, 0, 'c4c0b4', '59814d', empty)
-standardCards.append(t)
-
-# 69: Haven
-t = Card('Haven', 'Havens', 'a Haven', 2, 0, 'dda561', '866846', empty)
-standardCards.append(t)
-
-
-# 70: Island
-def island_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        islandID = standardNames.index('Island')
-        islandStack = Cardstack({islandID: 1})
-        otherStuff = cM[0].items - islandStack
+def island_action(move, i, bL, moves, cS):
+    if str(move.pred) in PLAY_PREDS:
+        islandStack = Cardstack({"ISLAND": 1})
+        otherStuff = move.items - islandStack
 
         def islandSetaside(islandStack, otherStuff):
-            def out_function(cM, gS, exc, tExc, pers):
-                gS[-1].move(cM[0].player, 'INPLAYS', 'OTHERS', islandStack)
-                gS[-1].move(cM[0].player, 'HANDS', 'OTHERS', otherStuff)
+            def out_function(move, i, bL, moves, cS):
+                cS.transfer(move.player, 'INPLAYS', 'OTHERS', islandStack)
+                cS.transfer(move.player, 'HANDS', 'OTHERS', otherStuff)
             return out_function
 
-        exc.append(Exception(standardCondition(['PUT ONTO']),
-                                    islandSetaside(islandStack, otherStuff)))
+        return {Exception(check(['PUT ONTO']),
+                          islandSetaside(islandStack, otherStuff)): bL}
 
 
-t = Card('Island', 'Islands', 'an Island', 4, 0, 'aac298', '5d9fbd', island_action, staticWorth(2))
-standardCards.append(t)
+Cards['ISLAND'].action = island_action
+
+Cards['LOOKOUT'].action = sentrylike
 
 
-# 71: Lighthouse
-def lighthouse_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        gainCash(1)(cM, gS, exc, tExc, pers)
+def nv_action(move, i, bL, moves, cS):
+    if str(move.pred) in PLAY_PREDS:
+        pullExc = checkMove(['PUT INHAND'], 'OTHERS', 'HANDS')
+        setExc = checkMove(['SET ASIDE WITH'], 'DECKS', 'OTHERS')
+        return {exc: bL for exc in [pullExc, setExc]}
 
 
-t = Card('Lighthouse', 'Lighthouses', 'a Lighthouse', 2, 0, 'dda561', '559773', lighthouse_action)
-standardCards.append(t)
+Cards['NATIVE VILLAGE'].action = nv_action
+
+Cards['NAVIGATOR'].action = decksifter
 
 
-# 72: Lookout
-def lookout_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exc.append(exc_revealTrash)
-        exc.append(exc_standardTrash)
-        exc.append(exc_revealDiscard)
-        exc.append(exc_revealTopdeck)
+def pearldiver_action(move, i, bL, moves, cS):
+    if str(move.pred) in PLAY_PREDS:
+        return {checkMove(['TOPDECK'], 'DECKS', 'DECKS'): bL}
 
 
-t = Card('Lookout', 'Lookouts', 'a Lookout', 3, 0, 'c4c0b4', '723a6a', lookout_action)
-standardCards.append(t)
+Cards['PEARL DIVER'].action = pearldiver_action
+
+Cards['PIRATE SHIP'] = banditlike
 
 
-# 73: Merchant Ship
-def merchship_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        gainCash(2)(cM, gS, exc, tExc, pers)
+def seahag_action(move, i, bL, moves, cS):
+    if str(move.pred) in PLAY_PREDS:
+        gainExc = checkMove(['GAIN'], 'SUPPLY', 'DECKS', ['CURSE'])
+        onGainExc = Exception(check(['GAIN'], ['CURSE']),
+                              onGains('DECKS', move.items))
+        return {exc: bL for exc in [exc_revealDiscard, gainExc, onGainExc]}
 
 
-t = Card('Merchant Ship', 'Merchant Ships', 'a Merchant Ship', 5, 0, 'dda561', 'b58127', merchship_action)
-standardCards.append(t)
+Cards['SEA HAG'].action = seahag_act
 
 
-# 74: Native Village
-def nv_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exc.append(standardException(['PUT INHAND'], 'OTHERS', 'HANDS'))
-        exc.append(standardException(['SET ASIDE WITH'], 'DECKS', 'OTHERS'))
-
-
-t = Card('Native Village', 'Native Villages', 'a Native Village', 2, 0, 'c4c0b4', '6f919f', nv_action)
-standardCards.append(t)
-
-
-# 75: Navigator
-def navigator_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        gainCash(2)(cM, gS, exc, tExc, pers)
-        exc.append(exc_revealTopdeck)
-        exc.append(exc_revealDiscard)
-
-
-t = Card('Navigator', 'Navigators', 'a Navigator', 4, 0, 'c4c0b4', '5ba7ad', navigator_action)
-standardCards.append(t)
-
-
-# 76: Outpost
-t = Card('Outpost', 'Outposts', 'an Outpost', 5, 0, 'dda561', '949ab2', empty)
-standardCards.append(t)
-
-
-# 77: Pearl Diver
-def pearldiver_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exc.append(standardException(['TOPDECK'], 'DECKS', 'DECKS'))
-
-
-t = Card('Pearl Diver', 'Pearl Divers', 'a Pearl Diver', 2, 0, 'c4c0b4', '00aee6', pearldiver_action)
-standardCards.append(t)
-
-
-# 78: Pirate Ship
-def generalized_pirateship(value):
-    def pirateship_action(cM, gS, exc, tExc, pers):
-        if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-            exc.append(exc_revealTrash)
-            exc.append(exc_revealDiscard)
-            exc.append(exc_standardTrash)
-            gainCash(value)(cM, gS, exc, tExc, pers)
-
-            for chunk in cM[1:]:
-                if chunk[0].predName == 'REVEAL':
-                    gainCash(-value)(cM, gS, exc, tExc, pers)
-
-                if chunk[0].predName == 'TRASH':
-                    pers.append(Exception(
-                        standardCondition(['PLAY', 'PLAY AGAIN', 'PLAY THIRD'],
-                                          ['Pirate Ship']),
-                        generalized_pirateship(value + 1))
-                    )
-
-    return pirateship_action
-
-
-t = Card('Pirate Ship', 'Pirate Ships', 'a Pirate Ship', 4, 0, 'c4c0b4', '7e9ec2', generalized_pirateship(0))
-standardCards.append(t)
-
-
-# 79: Salvager
-t = Card('Salvager', 'Salvagers', 'a Salvager', 4, 0, 'c4c0b4', '397b7b', empty)
-standardCards.append(t)
-
-
-# 80: Sea Hag
-def seahag_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exc.append(exc_revealDiscard)
-        exc.append(standardException(['GAIN'], 'SUPPLY', 'DECKS', ['Curse']))
-        exc.append(Exception(standardCondition(['GAIN']),
-                             standardOnGains('DECKS')))
-
-
-t = Card('Sea Hag', 'Sea Hags', 'a Sea Hag', 4, 0, 'c4c0b4', '745a44', seahag_action)
-standardCards.append(t)
-
-# 81: Smugglers
-t = Card('Smugglers', 'Smugglers', 'a Smugglers', 3, 0, 'c4c0b4', '464c50', empty)
-standardCards.append(t)
-
-# 82: Tactician
-t = Card('Tactician', 'Tacticians', 'a Tactician', 5, 0, 'dda561', '785c44', empty)
-standardCards.append(t)
-
-
-# 83: Treasure Map
-def tmap_action(cM, gS, exc, tExc, pers):
-    def tmap_one_tmap(cM):
-        if cM[0].predName() == 'TRASH':
-            if cM[0].items.primary() == 'Treasure Map':
-                if cM[0].items[standardNames.index('Treasure Map')] == 1:
-                    return True
+def tmap_action(move, i, bL, moves, cS):
+    def tmap_one(cM):
+        if str(move.pred) == 'TRASH':
+            if move.items['TREASURE MAP'] == 1:
+                return True
         return False
 
-    def tmap_two_tmap(cM):
-        if cM[0].predName() == 'TRASH':
-            if cM[0].items.primary() == 'Treasure Map':
-                if cM[0].items[standardNames.index('Treasure Map')] == 2:
-                    return True
+    def tmap_two(cM):
+        if str(move.pred) == 'TRASH':
+            if move.items['TREASURE MAP'] == 2:
+                return True
         return False
 
-    def tmap_double_trash(cM, gS, exc, tExc, pers):
-        single_map = Cardstack({standardNames.index('Treasure Map'): 1})
-        gS[-1].move(cM[0].player, 'INPLAYS', 'TRASH', single_map)
-        gS[-1].move(cM[0].player, 'HANDS', 'TRASH', single_map)
+    def tmap_double_trash(move, i, bL, moves, cS):
+        single_map = Cardstack({'TREASURE MAP': 1})
+        cS.transfer(move.player, 'INPLAYS', 'TRASH', single_map)
+        cS.transfer(move.player, 'HANDS', 'TRASH', single_map)
 
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exc.append(Exception(tmap_one_tmap, moveException('INPLAYS', 'TRASH')))
-        exc.append(Exception(tmap_two_tmap, tmap_double_trash))
-
-
-t = Card('Treasure Map', 'Treasure Maps', 'a Treasure Map', 4, 0, 'c4c0b4', '9d651b', tmap_action)
-standardCards.append(t)
+    if str(move.pred) in PLAY_PREDS:
+        return {Exception(tmap_one, moveFunct('INPLAYS', 'TRASH')): bL,
+                Exception(tmap_two, tmap_double_trash): bL}
 
 
-# 84: Treasury
-def treasury_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        gainCash(1)(cM, gS, exc, tExc, pers)
+Cards['TREASURE MAP'].action = tmap_action
 
 
-t = Card('Treasury', 'Treasuries', 'a Treasury', 5, 0, 'c4c0b4', '884a00', treasury_action)
-standardCards.append(t)
+def apoth_action(move, i, bL, moves, cS):
+    if str(move.pred) in PLAY_PREDS:
+        return {exc_revealTopdeck: bL}
 
 
-# 85: Warehouse
-t = Card('Warehouse', 'Warehouses', 'a Warehouse', 3, 0, 'c4c0b4', '59635b', empty)
-standardCards.append(t)
+Cards['APOTHECARY'].action = apoth_action
 
-# 86: Wharf
-t = Card('Wharf', 'Wharves', 'a Wharf', 5, 0, 'dda561', '7b778f', empty)
-standardCards.append(t)
-
-# 87: Alchemist
-t = Card('Alchemist', 'Alchemists', 'an Alchemist', 5, 0, 'c4c0b4', '49A4E4', empty)
-standardCards.append(t)
-
-# 88: Apothecary
-def apoth_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exc.append(exc_revealTopdeck)
+Cards['GOLEM'].action = golemlike
 
 
-t = Card('Apothecary', 'Apothecaries', 'an Apothecary', 4, 0, 'c4c0b4', 'a36713', apoth_action)
-standardCards.append(t)
-
-# 89: Apprentice
-t = Card('Apprentice', 'Apprentices', 'an Apprentice', 5, 0, 'c4c0b4', 'ce5800', empty)
-standardCards.append(t)
-
-# 90: Familiar
-t = Card('Familiar', 'Familiars', 'a Familiar', 5, 0, 'c4c0b4', 'aa6656', empty)
-standardCards.append(t)
+def herbalist_action(move, i, bL, moves, cS):
+    if str(move.pred) in PLAY_PREDS:
+        return {checkMove(['TOPDECK'], 'INPLAYS', 'DECKS'): bL}
 
 
-# 91: Golem
-def golem_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exc.append(standardException(['PLAY'], 'DECKS', 'INPLAYS'))
-        exc.append(Exception(standardCondition(['PLAY']), standardOnPlay))
-        exc.append(exc_revealDiscard)
+Cards['HERBALIST'].action = herbalist_action
+
+Cards['SCRYING POOL'].action = decksifter
 
 
-t = Card('Golem', 'Golems', 'a Golem', 6, 0, 'c4c0b4', '5e6c80', golem_action)
-standardCards.append(t)
-
-
-# 92: Herbalist
-def herbalist_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exc.append(standardException(['TOPDECK'], 'INPLAYS', 'DECKS'))
-
-
-t = Card('Herbalist', 'Herbalists', 'a Herbalist', 2, 0, 'c4c0b4', 'b8884e', herbalist_action)
-standardCards.append(t)
-
-# 93: Philosopher\'s Stone
-t = Card('Philosopher\'s Stone', 'Philosopher\'s Stones', 'a Philosopher\'s Stone', 5, 0, 'd8c280', '980642', empty)
-standardCards.append(t)
-
-# 94: Possession
-t = Card('Possession', 'Possessions', 'a Possession', 8, 0, 'c4c0b4', '736157', empty)
-standardCards.append(t)
-
-# 95: Potion
-t = Card('Potion', 'Potions', 'a Potion', 4, 2, 'f1d14d', '1768C4', empty)
-standardCards.append(t)
-
-
-# 96: Scrying Pool
-def pool_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exc.append(exc_revealTopdeck)
-        exc.append(exc_revealDiscard)
-
-
-t = Card('Scrying Pool', 'Scrying Pools', 'a Scrying Pool', 4, 0, 'c4c0b4', 'a45e08', pool_action)
-standardCards.append(t)
-
-# 97: Transmute
-t = Card('Transmute', 'Transmutes', 'a Transmute', 2, 0, 'c4c0b4', '764a76', empty)
-standardCards.append(t)
-
-# 98: University
-t = Card('University', 'Universities', 'a University', 4, 0, 'c4c0b4', '77714b', empty)
-standardCards.append(t)
-
-
-# 99: Vineyard
 def vineyard_worth(gS, player):
-    playerDeck = gS.crunch(['DECKS', 'DISCARDS', 'HANDS', 'OTHERS', 'INPLAYS'], [player])
+    playerDeck = gS.crunch(PERSONAL_ZONES, (player))
     return sum([playerDeck[item] for item in playerDeck if
-                standardCards[item].simple_name in actionList]) // 3
+                item in actionList]) // 3
 
 
-t = Card('Vineyard', 'Vineyards', 'a Vineyard', 2, 0, '9cbe8a', '8c9652', empty, vineyard_worth)
-standardCards.append(t)
+Cards['VINEYARDS'].worth = vineyard_worth
 
-# 100: Bank
-t = Card('Bank', 'Banks', 'a Bank', 7, 0, 'd8c280', '616745', empty)
-standardCards.append(t)
 
+def countinghouse_action(move, i, bL, moves, cS):
+    if str(move.pred) in PLAY_PREDS:
+        return {checkMove(['PUT INHAND'], 'DISCARDS', 'HANDS'): bL}
 
-# 101: Bishop
-def bishop_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        gainCash(1)(cM, gS, exc, tExc, pers)
 
+Cards['COUNTING HOUSE'].action = countinghouse_action
 
-t = Card('Bishop', 'Bishops', 'a Bishop', 4, 0, 'c4c0b4', '6a587c', bishop_action)
-standardCards.append(t)
+Cards['LOAN'].action = banditlike
 
-# 102: Colony
-t = Card('Colony', 'Colonies', 'a Colony', 11, 2, '548C2B', '9494d8', empty, staticWorth(10))
-standardCards.append(t)
 
+def mint_action(move, i, bL, moves, cS):
+    if str(move.pred) in ['BUY AND GAIN', 'BUY']:
+        return {checkMove(['TRASH'], 'INPLAYS', 'TRASH'): bL}
 
-# 103: Contraband
-def contraband_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        gainCash(3)(cM, gS, exc, tExc, pers)
 
+Cards['MINT'].action = mint_action
 
-t = Card('Contraband', 'Contrabands', 'a Contraband', 5, 0, 'd8c280', '68442c', contraband_action)
-standardCards.append(t)
+Cards['RABBLE'].action = decksifter
 
+Cards['VENTURE'].action = golemlike
 
-# 104: Counting House
-def countinghouse_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exc.append(standardException(['PUT INHAND'], 'DISCARDS', 'HANDS'))
 
+def bagofgold_action(move, i, bL, moves, cS):
+    if str(move.pred) in PLAY_PREDS:
+        gainExc = checkMove(['GAIN'], 'SUPPLY', 'DECKS', ['GOLD'])
+        onGainExc = Exception(check(['GAIN'], ['GOLD']),
+                              onGains('DECKS', move.items))
+        return {exc: bL for exc in [gainExc, onGainExc]}
 
-t = Card('Counting House', 'Counting Houses', 'a Counting House', 5, 0, 'c4c0b4', '6f5143', countinghouse_action)
-standardCards.append(t)
 
-# 105: City
-t = Card('City', 'Cities', 'a City', 5, 0, 'c4c0b4', 'a4a07c', empty)
-standardCards.append(t)
+Cards['BAG OF GOLD'].action = bagofgold_action
 
-# 106: Expand
-t = Card('Expand', 'Expands', 'an Expand', 7, 0, 'c4c0b4', 'd77b07', empty)
-standardCards.append(t)
 
-# 107: Forge
-t = Card('Forge', 'Forges', 'a Forge', 7, 0, 'c4c0b4', 'd05a2a', empty)
-standardCards.append(t)
-
-
-# 108: Grand Market
-def gm_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        gainCash(2)(cM, gS, exc, tExc, pers)
-
-
-t = Card('Grand Market', 'Grand Markets', 'a Grand Market', 6, 0, 'c4c0b4', 'ab735b', gm_action)
-standardCards.append(t)
-
-
-# 109: Goons
-def goons_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        gainCash(2)(cM, gS, exc, tExc, pers)
-
-
-t = Card('Goons', 'Goons', 'a Goons', 6, 0, 'c4c0b4', '6d6129', goons_action)
-standardCards.append(t)
-
-
-# 110: Hoard
-def hoard_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        gainCash(2)(cM, gS, exc, tExc, pers)
-
-
-t = Card('Hoard', 'Hoards', 'a Hoard', 6, 0, 'd8c280', '917d25', hoard_action)
-standardCards.append(t)
-
-# 111: King\'s Court
-t = Card('King\'s Court', 'King\'s Courts', 'a King\'s Court', 7, 0, 'c4c0b4', '926634', empty)
-standardCards.append(t)
-
-
-# 112: Loan
-def loan_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        gainCash(1)(cM, gS, exc, tExc, pers)
-        exc.append(exc_revealTrash)
-        exc.append(exc_standardTrash)
-        exc.append(exc_revealDiscard)
-
-
-t = Card('Loan', 'Loans', 'a Loan', 3, 0, 'd8c280', '9d936f', loan_action)
-standardCards.append(t)
-
-
-# 113: Mint
-def mint_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['BUY AND GAIN', 'BUY']:
-        exc.append(standardException(['TRASH'], 'INPLAYS', 'TRASH'))
-
-
-t = Card('Mint', 'Mints', 'a Mint', 5, 0, 'c4c0b4', '7a5e40', mint_action)
-standardCards.append(t)
-
-
-# 114: Monument
-def monument_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        gainCash(2)(cM, gS, exc, tExc, pers)
-
-
-t = Card('Monument', 'Monuments', 'a Monument', 4, 0, 'c4c0b4', '8191ab', monument_action)
-standardCards.append(t)
-
-
-# 115: Mountebank
-def mountebank_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        gainCash(2)(cM, gS, exc, tExc, pers)
-
-
-t = Card('Mountebank', 'Mountebanks', 'a Mountebank', 5, 0, 'c4c0b4', '866a6a', mountebank_action)
-standardCards.append(t)
-
-
-# 116: Peddler
-def peddler_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        gainCash(1)(cM, gS, exc, tExc, pers)
-
-
-t = Card('Peddler', 'Peddlers', 'a Peddler', 8, 0, 'c4c0b4', '9a5a2e', peddler_action)
-standardCards.append(t)
-
-
-# 117: Platinum
-def platinum_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        gainCash(5)(cM, gS, exc, tExc, pers)
-
-
-t = Card('Platinum', 'Platina', 'a Platinum', 9, 2, 'f1d14d', '948266', platinum_action)
-standardCards.append(t)
-
-
-# 118: Quarry
-def quarry_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        gainCash(1)(cM, gS, exc, tExc, pers)
-
-
-t = Card('Quarry', 'Quarries', 'a Quarry', 4, 0, 'd8c280', 'b9b59f', quarry_action)
-standardCards.append(t)
-
-
-# 119: Rabble
-def rabble_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exc.append(exc_revealTopdeck)
-        exc.append(exc_revealDiscard)
-
-
-t = Card('Rabble', 'Rabbles', 'a Rabble', 5, 0, 'c4c0b4', '88422c', rabble_action)
-standardCards.append(t)
-
-
-# 120: Royal Seal
-def royalseal_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        gainCash(2)(cM, gS, exc, tExc, pers)
-
-
-t = Card('Royal Seal', 'Royal Seals', 'a Royal Seal', 5, 0, 'd8c280', 'd8b08e', royalseal_action)
-standardCards.append(t)
-
-
-# 121: Talisman
-def talisman_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        gainCash(1)(cM, gS, exc, tExc, pers)
-
-
-t = Card('Talisman', 'Talismans', 'a Talisman', 4, 0, 'd8c280', 'b28038', talisman_action)
-standardCards.append(t)
-
-# 122: Trade Route
-t = Card('Trade Route', 'Trade Routes', 'a Trade Route', 3, 0, 'c4c0b4', '65a167', empty)
-standardCards.append(t)
-
-# 123: Vault
-t = Card('Vault', 'Vaults', 'a Vault', 5, 0, 'c4c0b4', '947e4e', empty)
-standardCards.append(t)
-
-
-# 124: Venture
-def venture_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        gainCash(1)(cM, gS, exc, tExc, pers)
-        exc.append(standardException(['PLAY'], 'DECKS', 'INPLAYS'))
-        exc.append(Exception(standardCondition(['PLAY']), standardOnPlay))
-        exc.append(standardException(['DISCARD'], 'DECKS', 'DISCARDS'))
-
-
-t = Card('Venture', 'Ventures', 'a Venture', 5, 0, 'd8c280', '624e36', venture_action)
-standardCards.append(t)
-
-# 125: Watchtower
-t = Card('Watchtower', 'Watchtowers', 'a Watchtower', 3, 0, '8ca2be', '7496c0', empty)
-standardCards.append(t)
-
-# 126: Worker\'s Village
-t = Card('Worker\'s Village', 'Worker\'s Villages', 'a Worker\'s Village', 4, 0, 'c4c0b4', 'cd7119', empty)
-standardCards.append(t)
-
-# 127: Prize Pile
-t = Card('Prize Pile', 'Prize Piles', 'a Prize Pile', 0, 0, '666666', '666666', empty)
-standardCards.append(t)
-
-
-# 128: Bag of Gold
-def bagofgold_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exc.append(standardException(['GAIN'], 'SUPPLY', 'DECKS', ['Gold']))
-        exc.append(Exception(standardCondition(['GAIN'], ['Gold']),
-                             standardOnGains('DECKS')))
-
-
-t = Card('Bag of Gold', 'Bags of Gold', 'a Bag of Gold', 0, 1, 'c4c0b4', 'b47214', bagofgold_action)
-standardCards.append(t)
-
-# 129: Diadem
-t = Card('Diadem', 'Diadems', 'a Diadem', 0, 1, 'd8c280', 'ffba14', empty)
-standardCards.append(t)
-
-
-# 130: Fairgrounds
 def fairgrounds_worth(gS, player):
-    playerDeck = gS.crunch(['DECKS', 'DISCARDS', 'HANDS', 'OTHERS', 'INPLAYS'], [player])
+    playerDeck = gS.crunch(PERSONAL_ZONES, (player))
     return len(playerDeck.cardList()) // 5
 
 
-t = Card('Fairgrounds', 'Fairgrounds', 'a Fairgrounds', 6, 0, '9cbe8a', '9a8462', empty, fairgrounds_worth)
-standardCards.append(t)
+Cards['FAIRGROUNDS'].worth = fairgrounds_worth
 
 
-# 131: Farming Village
-def farmvillage_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exc.append(exc_revealDiscard)
+def farmvillage_action(move, i, bL, moves, cS):
+    if str(move.pred) in PLAY_PREDS:
+        return {exc_revealDiscard: bL}
 
 
-t = Card('Farming Village', 'Farming Villages', 'a Farming Village', 4, 0, 'c4c0b4', '8d7f67', farmvillage_action)
-standardCards.append(t)
+Cards['FARMING VILLAGE'].action = deckchuck
 
-# 132: Followers
-t = Card('Followers', 'Followers', 'a Followers', 0, 1, 'c4c0b4', 'ab670b', empty)
-standardCards.append(t)
+Cards['FORTUNE TELLER'].action = decksifter
 
+Cards['HARVEST'].action = deckchuck
 
-# 133: Fortune Teller
-def fortuneteller_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exc.append(exc_revealTopdeck)
-        exc.append(exc_revealDiscard)
 
-t = Card('Fortune Teller', 'Fortune Tellers', 'a Fortune Teller', 3, 0, 'c4c0b4', '884214', fortuneteller_action)
-standardCards.append(t)
+def horseTraders_action(move, i, bL, moves, cS):
+    if str(move.pred) == 'REACT':
+        return {checkMove(['SET ASIDE'], 'HANDS', 'OTHERS',
+                          ['HORSE TRADERS']): 2}
 
-# 134: Hamlet
-t = Card('Hamlet', 'Hamlets', 'a Hamlet', 2, 0, 'c4c0b4', '8e9886', empty)
-standardCards.append(t)
 
-# 135: Harvest
-def harvest_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exc.append(exc_revealDiscard)
+Cards['HORSE TRADERS'].action = horseTraders_action
 
-t = Card('Harvest', 'Harvests', 'a Harvest', 5, 0, 'c4c0b4', 'cd9f49', harvest_action)
-standardCards.append(t)
 
+def hop_action(move, i, bL, moves, cS):
+    if str(move.pred) in PLAY_PREDS:
+        return {checkMove(['TRASH'], 'INPLAYS', 'TRASH',
+                          ['HORN OF PLENTY']): bL}
 
-# 136: Horse Traders
-def horseTraders_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() == 'REACT':
-        tExc.append(standardException(['SET ASIDE'], 'HANDS', 'OTHERS',
-                                      ['Horse Traders']))
 
+Cards['HORN OF PLENTY'].action = hop_action
 
-t = Card('Horse Traders', 'Horse Traders', 'a Horse Traders', 4, 0, '8ca2be', '595561', horseTraders_action)
-standardCards.append(t)
+Cards['HUNTING PARTY'].action = deckchuck
 
-# 137: Horn of Plenty
-def hop_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exc.append(standardException(['TRASH'], 'INPLAYS', 'TRASH',
-                                     ['Horn of Plenty']))
+Cards['JESTER'].action = deckchuck
 
-t = Card('Horn of Plenty', 'Horns of Plenty', 'a Horn of Plenty', 5, 0, 'd8c280', '7b4d27', hop_action)
-standardCards.append(t)
+Cards['TOURNAMENT'].action = deckGain
 
-# 138: Hunting Party
-def huntingparty_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exc.append(exc_revealDiscard)
 
-t = Card('Hunting Party', 'Hunting Parties', 'a Hunting Party', 5, 0, 'c4c0b4', '4e4e48', huntingparty_action)
-standardCards.append(t)
+def steed_action(move, i, bL, moves, cS):
+    if str(move.pred) in PLAY_PREDS:
+        onGainExc = Exception(check(['GAIN']), onGains('DECKS', move.items))
+        gainExc = checkMove(['GAIN'], 'SUPPLY', 'DECKS', ['Silver'])
+        return {exc: bL for exc in [onGainExc, gainExc]}
 
-# 139: Jester
-def jester_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exc.append(exc_revealDiscard)
 
-t = Card('Jester', 'Jesters', 'a Jester', 5, 0, 'c4c0b4', '9f7967', jester_action)
-standardCards.append(t)
+Cards['TRUSTY STEED'].action = steed_action
 
-# 140: Menagerie
-t = Card('Menagerie', 'Menageries', 'a Menagerie', 3, 0, 'c4c0b4', '8a7234', empty)
-standardCards.append(t)
+Cards['CARTOGRAPHER'].action = decksifter
 
-# 141: Princess
-t = Card('Princess', 'Princesses', 'a Princess', 0, 1, 'c4c0b4', '804e10', empty)
-standardCards.append(t)
+Cards['DEVELOP'].action = deckGain
 
-# 142: Remake
-t = Card('Remake', 'Remakes', 'a Remake', 4, 0, 'c4c0b4', 'b46614', empty)
-standardCards.append(t)
+Cards['DUCHESS'].action = decksifter
 
 
-# 143: Tournament
-def tournament_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exc.append(standardException(['GAIN'], 'SUPPLY', 'DECKS'))
-        exc.append(Exception(standardCondition(['GAIN']),
-                             standardOnGains('DECKS')))
+def fg_action(move, i, bL, moves, cS):
+    if str(move.pred) in ['TRASH']:
+        gainExc = checkMove(['GAIN'], 'SUPPLY', 'DECKS', ['GOLD'])
+        onGainExc = Exception(check(['GAIN'], ['GOLD']),
+                              onGains('DECKS', move.items))
+        return {exc: bL for exc in [gainExc, onGainExc]}
 
 
-t = Card('Tournament', 'Tournaments', 'a Tournament', 4, 0, 'c4c0b4', '937755', tournament_action)
-standardCards.append(t)
+Cards["FOOL'S GOLD"].action = fg_action
 
 
-# 144: Trusty Steed
-def steed_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exc.append(standardException(['GAIN'], 'SUPPLY', 'DECKS', ['Silver']))
-        exc.append(Exception(standardCondition(['GAIN']),
-                             standardOnGains('DECKS')))
+def igg_action(move, i, bL, moves, cS):
+    if str(move.pred) in PLAY_PREDS:
+        gainExc = checkMove(['GAIN'], 'SUPPLY', 'HANDS', ['COPPER'])
+        onGainExc = Exception(check(['GAIN'], ['COPPER']),
+                              onGains('HANDS', move.items))
+        return {exc: bL for exc in [gainExc, onGainExc]}
 
 
-t = Card('Trusty Steed', 'Trusty Steeds', 'a Trusty Steed', 0, 1, 'c4c0b4', '6e726a', steed_action)
-standardCards.append(t)
+Cards['ILL-GOTTEN GAINS'].action = igg_action
 
-# 145: Young Witch
-t = Card('Young Witch', 'Young Witches', 'a Young Witch', 4, 0, 'c4c0b4', '7b653b', empty)
-standardCards.append(t)
+Cards['JACK OF ALL TRADES'].action = decksifter
 
-# 146: Border Village
-t = Card('Border Village', 'Border Villages', 'a Border Village', 6, 0, 'c4c0b4', '758791', empty)
-standardCards.append(t)
 
-# 147: Cache
-t = Card('Cache', 'Caches', 'a Cache', 5, 0, 'd8c280', '6e7846', empty)
-standardCards.append(t)
+def mandarin_action(move, i, bL, moves, cS):
+    if str(move.pred) in GAIN_PREDS:
+        return {checkMove(['TOPDECK'], 'INPLAYS', 'DECKS'): bL}
 
 
-# 148: Cartographer
-def cartographer_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exc.append(exc_revealDiscard)
-        exc.append(exc_revealTopdeck)
+Cards['MANDARIN'].action = mandarin_action
 
 
-t = Card('Cartographer', 'Cartographers', 'a Cartographer', 5, 0, 'c4c0b4', 'a45a14', cartographer_action)
-standardCards.append(t)
+def brigand_action(move, i, bL, moves, cS):
+    if str(move.pred) in PLAY_PREDS or str(move.pred) == 'BUY':
+        return {exc: bL for exc in [exc_revealTrash,
+                                    exc_standardTrash,
+                                    exc_revealDiscard]}
 
-# 149: Crossroads
-t = Card('Crossroads', 'Crossroads', 'a Crossroads', 2, 0, 'c4c0b4', 'a7a187', empty)
-standardCards.append(t)
 
+Cards['NOBLE BRIGAND'].action = brigand_action
 
-# 150: Develop
-def develop_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exc.append(standardException(['GAIN'], 'SUPPLY', 'DECKS'))
-        exc.append(Exception(standardCondition(['GAIN']),
-                             standardOnGains('DECKS')))
+Cards['ORACLE'].action = decksifter
 
 
-t = Card('Develop', 'Develops', 'a Develop', 3, 0, 'c4c0b4', 'c09864', develop_action)
-standardCards.append(t)
-
-
-# 151: Duchess
-def duchess_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exc.append(exc_revealDiscard)
-        exc.append(exc_revealTopdeck)
-
-
-t = Card('Duchess', 'Duchesses', 'a Duchess', 2, 0, 'c4c0b4', '999b77', duchess_action)
-standardCards.append(t)
-
-# 152: Embassy
-t = Card('Embassy', 'Embassies', 'an Embassy', 5, 0, 'c4c0b4', '8e725c', empty)
-standardCards.append(t)
-
-# 153: Farmland
-t = Card('Farmland', 'Farmlands', 'a Farmland', 6, 0, '9cbe8a', '4fbb9d', empty, staticWorth(2))
-standardCards.append(t)
-
-
-# 154: Fool\'s Gold
-def fg_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['TRASH']:
-        tExc.append(standardException(['GAIN'], 'SUPPLY', 'DECKS', ['Gold']))
-
-
-t = Card('Fool\'s Gold', 'Fool\'s Golds', 'a Fool\'s Gold', 2, 0, '939E9D', 'b8a62e', fg_action)
-standardCards.append(t)
-
-# 155: Haggler
-t = Card('Haggler', 'Hagglers', 'a Haggler', 5, 0, 'c4c0b4', 'a07a56', empty)
-standardCards.append(t)
-
-# 156: Highway
-t = Card('Highway', 'Highways', 'a Highway', 5, 0, 'c4c0b4', 'a0be8c', empty)
-standardCards.append(t)
-
-
-# 157: Ill-Gotten Gains
-def igg_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        tExc.append(standardException(['GAIN'], 'SUPPLY', 'HANDS', ['Copper']))
-
-
-t = Card('Ill-Gotten Gains', 'Ill-Gotten Gains', 'an Ill-Gotten Gains', 5, 0, 'd8c280', '9d6d41', igg_action)
-standardCards.append(t)
-
-# 158: Inn
-t = Card('Inn', 'Inns', 'an Inn', 5, 0, 'c4c0b4', '71957d', empty)
-standardCards.append(t)
-
-
-# 159: Jack of All Trades
-def jack_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exc.append(exc_revealDiscard)
-        exc.append(exc_revealTopdeck)
-
-
-t = Card('Jack of All Trades', 'Jacks of All Trades', 'a Jack of All Trades', 4, 0, 'c4c0b4', '7aa2a4', jack_action)
-standardCards.append(t)
-
-
-# 160: Mandarin
-def mandarin_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['BUY AND GAIN', 'GAIN TOPDECK',
-                            'GAIN TRASH', 'GAIN']:
-        exc.append(standardException(['TOPDECK'], 'INPLAYS', 'DECKS'))
-
-
-t = Card('Mandarin', 'Mandarins', 'a Mandarin', 5, 0, 'c4c0b4', 'b38f2d', mandarin_action)
-standardCards.append(t)
-
-
-# 161: Noble Brigand
-def brigand_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD', 'BUY']:
-        exc.append(exc_revealTrash)
-        exc.append(exc_standardTrash)
-        exc.append(exc_revealDiscard)
-
-
-t = Card('Noble Brigand', 'Noble Brigands', 'a Noble Brigand', 4, 0, 'c4c0b4', '645c46', brigand_action)
-standardCards.append(t)
-
-# 162: Nomad Camp
-t = Card('Nomad Camp', 'Nomad Camps', 'a Nomad Camp', 4, 0, 'c4c0b4', '87a1b1', empty)
-standardCards.append(t)
-
-# 163: Oasis
-t = Card('Oasis', 'Oases', 'an Oasis', 3, 0, 'c4c0b4', '8e9864', empty)
-standardCards.append(t)
-
-
-# 164: Oracle
-def oracle_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exc.append(exc_revealDiscard)
-        exc.append(exc_revealTopdeck)
-
-
-t = Card('Oracle', 'Oracles', 'an Oracle', 3, 0, 'c4c0b4', '69491b', oracle_action)
-standardCards.append(t)
-
-# 165: Margrave
-t = Card('Margrave', 'Margraves', 'a Margrave', 5, 0, 'c4c0b4', '7c6c48', empty)
-standardCards.append(t)
-
-# 166: Scheme
-t = Card('Scheme', 'Schemes', 'a Scheme', 3, 0, 'c4c0b4', '7f7d7d', empty)
-standardCards.append(t)
-
-
-# 167: Silk Road
 def silkroad_worth(gameState, player):
-    playerDeck = gameState.crunch(['DECKS', 'DISCARDS', 'HANDS',
-                                   'OTHERS', 'INPLAYS'], [player])
+    playerDeck = gameState.crunch(PERSONAL_ZONES, (player))
     return sum([playerDeck[item] for item in playerDeck if
-                standardCards[item].simple_name in victoryCards])//4
+                str(item) in victoryCards]) // 4
 
 
-t = Card('Silk Road', 'Silk Roads', 'a Silk Road', 4, 0, '9cbe8a', '948452', empty, silkroad_worth)
-standardCards.append(t)
+Cards['SILK ROAD'].worth = silkroad_worth
 
-# 168: Spice Merchant
-t = Card('Spice Merchant', 'Spice Merchants', 'a Spice Merchant', 4, 0, 'c4c0b4', 'af7b4d', empty)
-standardCards.append(t)
+Cards['ARMORY'].action = deckGain
 
-# 169: Stables
-t = Card('Stables', 'Stables', 'a Stables', 5, 0, 'c4c0b4', '875d33', empty)
-standardCards.append(t)
-
-# 170: Trader
-t = Card('Trader', 'Traders', 'a Trader', 4, 0, '8ca2be', '988a34', empty)
-standardCards.append(t)
-
-# 171: Tunnel
-t = Card('Tunnel', 'Tunnels', 'a Tunnel', 3, 0, '879E96', '545258', empty, staticWorth(2))
-standardCards.append(t)
-
-# 172: Ruins
-t = Card('Ruins', 'Ruins', 'a Ruins', 0, 2, 'b29462', '666666', empty)
-standardCards.append(t)
-
-# 173: Knights
-t = Card('Knights', 'Knights', 'a Knights', 5, 0, 'c4c0b4', '819381', empty)
-standardCards.append(t)
-
-# 174: Abandoned Mine
-t = Card('Abandoned Mine', 'Abandoned Mines', 'an Abandoned Mine', 0, -1, 'b29462', '633b29', empty)
-standardCards.append(t)
-
-# 175: Altar
-t = Card('Altar', 'Altars', 'an Altar', 6, 0, 'c4c0b4', '7e3800', empty)
-standardCards.append(t)
+Cards['BAND OF MISFITS'].action = emulate
 
 
-# 176: Armory
-def armory_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exc.append(standardException(['GAIN'], 'SUPPLY', 'DECKS'))
-        exc.append(Exception(standardCondition(['GAIN']),
-                             standardOnGains('DECKS')))
+def beggar_action(move, i, bL, moves, cS):
+    if str(move.pred) in PLAY_PREDS:
+        gainExc = checkMove(['GAIN'], 'SUPPLY', 'HANDS', ['COPPER'])
+        onGainExc = Exception(check(['GAIN'], ['COPPER']),
+                              onGains('HANDS', move.items))
+        return {exc: bL for exc in [gainExc, onGainExc]}
 
 
-t = Card('Armory', 'Armories', 'an Armory', 4, 0, 'c4c0b4', '54564e', armory_action)
-standardCards.append(t)
+Cards['BEGGAR'].action = beggar_action
 
-# 177: Band of Misfits
-def BoM_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exc.append(standardException(['PLAY'], 'SUPPLY', 'SUPPLY'))
-        exc.append(Exception(standardCondition(['PLAY']), standardOnPlay))
+Cards['CATACOMBS'].action = deckchuck
+
+Cards['COUNTERFEIT'].action = selftrasher
 
 
-t = Card('Band of Misfits', 'Bands of Misfits', 'a Band of Misfits', 5, 0, 'c4c0b4', '56505c', BoM_action)
-standardCards.append(t)
-
-# 178: Bandit Camp
-t = Card('Bandit Camp', 'Bandit Camps', 'a Bandit Camp', 5, 0, 'c4c0b4', '42889e', empty)
-standardCards.append(t)
-
-
-# 179: Beggar
-def beggar_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exc.append(standardException(['GAIN'], 'SUPPLY', 'HANDS', ['Copper']))
-        exc.append(Exception(standardCondition(['GAIN'], ['Copper']),
-                             standardOnGains('HANDS')))
-
-
-t = Card('Beggar', 'Beggars', 'a Beggar', 2, 0, '8ca2be', '503626', beggar_action)
-standardCards.append(t)
-
-
-# 180: Catacombs
-def catacombs_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exc.append(exc_revealDiscard)
-
-
-t = Card('Catacombs', 'Catacombs', 'a Catacombs', 5, 0, 'c4c0b4', '472f1f', catacombs_action)
-standardCards.append(t)
-
-# 181: Count
-t = Card('Count', 'Counts', 'a Count', 5, 0, 'c4c0b4', '58605c', empty)
-standardCards.append(t)
-
-
-# 182: Counterfeit
-def counterfeit_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exc.append(exc_inplayTrash)
-        exc.append(exc_standardTrash)
-
-
-t = Card('Counterfeit', 'Counterfeits', 'a Counterfeit', 5, 0, 'd8c280', 'a66e28', counterfeit_action)
-standardCards.append(t)
-
-# 183: Cultist
-t = Card('Cultist', 'Cultists', 'a Cultist', 5, 0, 'c4c0b4', '4b4957', empty)
-standardCards.append(t)
-
-
-def knightsSuicideCondition(knightPlayer):
-    def out_function(cM):
-        isKnight = cM[0].items.primary() in knights
-        return cM[0].predName() == 'TRASH' and cM[0].player == knightPlayer and isKnight
+def knightSuicide(knightPlayer):
+    def out_function(move):
+        isKnight = move.items.primary() in KNIGHTS
+        return str(move.pred) == 'TRASH' and move.player == knightPlayer and \
+            isKnight
     return out_function
 
 
-def standardKnightsAction(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exc.append(exc_revealDiscard)
-        exc.append(Exception(knightsTrashCondition(cM[0].player),
-                             moveException('DECKS', 'TRASH')))
-        exc.append(Exception(knightsTrashCondition(cM[0].player),
-                             standardOnTrash))
-        exc.append(Exception(knightsSuicideCondition(cM[0].player),
-                             moveException('INPLAYS', 'TRASH')))
-
-
-# 184: Dame Anna
-def anna_trash_condition(knightPlayer):
-    def out_function(cM):
-        trashPart = cM[0].predName() == 'TRASH' and cM[0].items.primary() != 'Dame Anna'
-        return trashPart and cM[0].player == knightPlayer
+def knightTrash(knightPlayer):
+    def out_function(move):
+        isKnight = move.items.primary() in KNIGHTS
+        return str(move.pred) == 'TRASH' and move.player != knightPlayer and \
+            isKnight
     return out_function
 
 
-def anna_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+def knightAction(move, i, bL, moves, cS):
+    if str(move.pred) in PLAY_PREDS:
         exc.append(exc_revealDiscard)
-        exc.append(Exception(knightsTrashCondition(cM[0].player),
-                             moveException('DECKS', 'TRASH')))
-        exc.append(Exception(knightsTrashCondition(cM[0].player),
-                             standardOnTrash))
-        exc.append(Exception(knightsSuicideCondition(cM[0].player),
-                             moveException('INPLAYS', 'TRASH')))
-        exc.append(Exception(anna_trash_condition(cM[0].player),
-                             moveException('HANDS', 'TRASH')))
-        exc.append(Exception(anna_trash_condition(cM[0].player),
-                             standardOnTrash))
+        trashExc = Exception(knightsTrash(move.player),
+                             moveFunct('DECKS', 'TRASH'))
+        onTrashExc = Exception(knightsTrash(move.player),
+                               standardOnTrash)
+        suicideExc = Exception(knightsSuicide(move.player),
+                               moveFunct('INPLAYS', 'TRASH'))
+        return {exc: bL for exc in [exc_revealDiscard,
+                                    trashExc,
+                                    onTrashExc,
+                                    suicideExc]}
 
 
-t = Card('Dame Anna', 'Dame Annas', 'a Dame Anna', 5, -1, 'c4c0b4', '775f35', anna_action)
-standardCards.append(t)
+def annaTrash(knightPlayer):
+    def out_function(move):
+        trashPart = str(move.pred) == 'TRASH' and \
+            move.items.primary() != 'DAME ANNA'
+        return trashPart and move.player == knightPlayer
+    return out_function
 
 
-# 185: Dame Josephine
-t = Card('Dame Josephine', 'Dame Josephines', 'a Dame Josephine', 5, -1,
-         'aac298', '635147', standardKnightsAction, staticWorth(2))
-standardCards.append(t)
+def annaAction(move, i, bL, moves, cS):
+    if str(move.pred) in PLAY_PREDS:
+        exc.append(exc_revealDiscard)
+        trashExc = Exception(knightsTrash(move.player),
+                             moveFunct('DECKS', 'TRASH'))
+        onTrashExc = Exception(knightsTrash(move.player),
+                               standardOnTrash)
+        suicideExc = Exception(knightsSuicide(move.player),
+                               moveFunct('INPLAYS', 'TRASH'))
+        annaTrash = Exception(annaTrash(move.player),
+                              moveFunct('HANDS', 'TRASH'))
+        annaOnTrash = Exception(annaTrash(move.player),
+                                standardOnTrash)
+        return {exc: bL for exc in [exc_revealDiscard,
+                                    trashExc,
+                                    onTrashExc,
+                                    suicideExc,
+                                    annaTrash,
+                                    annaOnTrash]}
 
-# 186: Dame Molly
-t = Card('Dame Molly', 'Dame Mollies', 'a Dame Molly', 5, -1, 'c4c0b4', '946e50', standardKnightsAction)
-standardCards.append(t)
 
-# 187: Dame Natalie
-t = Card('Dame Natalie', 'Dame Natalies', 'a Dame Natalie', 5, -1, 'c4c0b4', '56665a', standardKnightsAction)
-standardCards.append(t)
+for knight in KNIGHTS:
+    if knight == 'DAME ANNA':
+        Cards[knight].action = annaAction
+    else:
+        Cards[knight].action = knightAction
 
-# 188: Dame Sylvia
-t = Card('Dame Sylvia', 'Dame Sylvias', 'a Dame Sylvia', 5, -1, 'c4c0b4', '744c36', standardKnightsAction)
-standardCards.append(t)
 
-# 189: Death Cart
-def deathcart_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exc.append(standardException(['TRASH'], 'INPLAYS', 'TRASH', ['Death Cart']))
-        exc.append(Exception(standardCondition(['TRASH'], ['Death Cart']), standardOnTrash))
+def deathcart_action(move, i, bL, moves, cS):
+    if str(move.pred) in PLAY_PREDS:
+        trashExc = checkMove(['TRASH'], 'INPLAYS', 'TRASH', ['Death Cart'])
+        onTrashExc = Exception(check(['TRASH'], ['Death Cart']), standardOnTrash)
+        return {exc: bL for exc in [trashExc, onTrashExc]}
 
 
 t = Card('Death Cart', 'Death Carts', 'a Death Cart', 4, 0, 'c4c0b4', '826636', deathcart_action)
@@ -1645,7 +801,7 @@ standardCards.append(t)
 # 190: Feodum
 def feodum_worth(gameState, player):
     playerDeck = gameState.crunch(['DECKS', 'DISCARDS', 'HANDS',
-                                   'OTHERS', 'INPLAYS'], [player])
+                                   'OTHERS', 'INPLAYS'], (player))
 
     for card in playerDeck:
         if standardCards[card].simple_name == 'Silver':
@@ -1663,9 +819,9 @@ standardCards.append(t)
 
 
 # 192: Fortress
-def fortress_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['TRASH']:
-        exc.append(standardException(['PUT INHAND'], 'TRASH', 'HANDS'))
+def fortress_action(move, i, bL, moves, cS):
+    if str(move.pred) in ['TRASH']:
+        exc.append(checkMove(['PUT INHAND'], 'TRASH', 'HANDS'))
 
 
 t = Card('Fortress', 'Fortresses', 'a Fortress', 4, 0, 'c4c0b4', '62524c', fortress_action)
@@ -1673,15 +829,15 @@ standardCards.append(t)
 
 
 # 193: Graverobber
-def graverobber_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+def graverobber_action(move, i, bL, moves, cS):
+    if str(move.pred) in PLAY_PREDS:
         isRemodelling = False
         for chunk in cM[1:]:
             if chunk[0].predName() == 'TRASH':
                 isRemodelling = True
 
         if not isRemodelling:
-            exc.append(standardException(['GAIN'], 'TRASH', 'DECKS'))
+            exc.append(checkMove(['GAIN'], 'TRASH', 'DECKS'))
 
 
 t = Card('Graverobber', 'Graverobbers', 'a Graverobber', 5, 0, 'c4c0b4', '4e4052', graverobber_action)
@@ -1689,13 +845,13 @@ standardCards.append(t)
 
 
 # 194: Hermit
-def hermit_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+def hermit_action(move, i, bL, moves, cS):
+    if str(move.pred) in PLAY_PREDS:
         playerDiscard = gS[-1].DISCARDS[cM[0].player]
 
         def hermitTrashCondition(playerDiscard):
             def out_function(cM):
-                return (cM[0].items - playerDiscard).count() == 0 and cM[0].predName() == 'TRASH'
+                return (cM[0].items - playerDiscard).count() == 0 and str(move.pred) == 'TRASH'
             return out_function
 
         exc.append(Exception(hermitTrashCondition(playerDiscard),
@@ -1715,8 +871,8 @@ standardCards.append(t)
 
 
 # 197: Ironmonger
-def ironmonger_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+def ironmonger_action(move, i, bL, moves, cS):
+    if str(move.pred) in PLAY_PREDS:
         exc.append(exc_revealDiscard)
         exc.append(exc_revealTopdeck)
 
@@ -1758,9 +914,9 @@ standardCards.append(t)
 
 
 # 206: Pillage
-def pillage_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exc.append(standardException(['TRASH'], 'INPLAYS', 'TRASH',
+def pillage_action(move, i, bL, moves, cS):
+    if str(move.pred) in PLAY_PREDS:
+        exc.append(checkMove(['TRASH'], 'INPLAYS', 'TRASH',
                                      ['Pillage']))
 
 
@@ -1773,8 +929,8 @@ standardCards.append(t)
 
 
 # 208: Procession
-def procession_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+def procession_action(move, i, bL, moves, cS):
+    if str(move.pred) in PLAY_PREDS:
         exc.append(exc_inplayTrash)
         exc.append(exc_standardTrash)
 
@@ -1788,8 +944,8 @@ standardCards.append(t)
 
 
 # 210: Rebuild
-def rebuild_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+def rebuild_action(move, i, bL, moves, cS):
+    if str(move.pred) in PLAY_PREDS:
         exc.append(exc_revealTrash)
         exc.append(exc_revealDiscard)
 
@@ -1799,10 +955,10 @@ standardCards.append(t)
 
 
 # 211: Rogue
-def rogue_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exc.append(standardException(['GAIN'], 'TRASH', 'DISCARDS'))
-        exc.append(Exception(standardCondition(['GAIN']),
+def rogue_action(move, i, bL, moves, cS):
+    if str(move.pred) in PLAY_PREDS:
+        exc.append(checkMove(['GAIN'], 'TRASH', 'DISCARDS'))
+        exc.append(Exception(check(['GAIN']),
                              standardOnGains('DISCARDS')))
         exc.append(exc_revealDiscard)
         exc.append(exc_revealTrash)
@@ -1825,8 +981,8 @@ standardCards.append(t)
 
 
 # 215: Sage
-def sage_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+def sage_action(move, i, bL, moves, cS):
+    if str(move.pred) in PLAY_PREDS:
         exc.append(exc_revealDiscard)
 
 
@@ -1835,8 +991,8 @@ standardCards.append(t)
 
 
 # 216: Scavenger
-def scavenger_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+def scavenger_action(move, i, bL, moves, cS):
+    if str(move.pred) in PLAY_PREDS:
         exc.append(exc_harbinger)
 
 
@@ -1856,17 +1012,17 @@ t = Card('Sir Martin', 'Sir Martins', 'a Sir Martin', 4, -1, 'c4c0b4', 'cc9e60',
 standardCards.append(t)
 
 # 220: Sir Michael
-def michael_action(cM, gS, exc, tExc, pers):
+def michael_action(move, i, bL, moves, cS):
     def michaelRevealException(outerExceptions):
-        def out_function(cM, gS, exc, tExc, pers):
+        def out_function(move, i, bL, moves, cS):
             outerExceptions.append(exc_revealDiscard)
         return out_function
 
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+    if str(move.pred) in PLAY_PREDS:
         exc.append(Exception(knightsTrashCondition(cM[0].player),
                              moveException('DECKS', 'TRASH')))
         exc.append(exc_standardTrash)
-        exc.append(Exception(standardCondition(['REVEAL']),
+        exc.append(Exception(check(['REVEAL']),
                              michaelRevealException(exc)))
         exc.append(Exception(knightsSuicideCondition(cM[0].player),
                              moveException('INPLAYS', 'TRASH')))
@@ -1893,8 +1049,8 @@ standardCards.append(t)
 
 
 # 225: Survivors
-def survivors_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+def survivors_action(move, i, bL, moves, cS):
+    if str(move.pred) in PLAY_PREDS:
         exc.append(exc_revealTopdeck)
         exc.append(exc_revealDiscard)
 
@@ -1908,8 +1064,8 @@ standardCards.append(t)
 
 
 # 227: Vagrant
-def vagrant_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+def vagrant_action(move, i, bL, moves, cS):
+    if str(move.pred) in PLAY_PREDS:
         exc.append(exc_revealTopdeck)
 
 
@@ -1918,8 +1074,8 @@ standardCards.append(t)
 
 
 # 228: Wandering Minstrel
-def minstrel_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+def minstrel_action(move, i, bL, moves, cS):
+    if str(move.pred) in PLAY_PREDS:
         exc.append(exc_revealTopdeck)
         exc.append(exc_revealDiscard)
 
@@ -1929,8 +1085,8 @@ standardCards.append(t)
 
 
 # 229: Advisor
-def advisor_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+def advisor_action(move, i, bL, moves, cS):
+    if str(move.pred) in PLAY_PREDS:
         exc.append(exc_revealDiscard)
 
 
@@ -1951,8 +1107,8 @@ standardCards.append(t)
 
 
 # 233: Doctor
-def doctor_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD', 'BUY']:
+def doctor_action(move, i, bL, moves, cS):
+    if str(move.pred) in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD', 'BUY']:
         exc.append(exc_revealTopdeck)
         exc.append(exc_revealDiscard)
         exc.append(exc_revealTrash)
@@ -1964,12 +1120,12 @@ standardCards.append(t)
 
 
 # 234: Herald
-def herald_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exc.append(standardException(['PLAY'], 'DECKS', 'INPLAYS'))
-        exc.append(Exception(standardCondition(['PLAY']), standardOnPlay))
+def herald_action(move, i, bL, moves, cS):
+    if str(move.pred) in PLAY_PREDS:
+        exc.append(checkMove(['PLAY'], 'DECKS', 'INPLAYS'))
+        exc.append(Exception(check(['PLAY']), standardOnPlay))
 
-    if cM[0].predName() in ['BUY']:
+    if str(move.pred) in ['BUY']:
         exc.append(exc_harbinger)
 
 
@@ -1978,8 +1134,8 @@ standardCards.append(t)
 
 
 # 235: Journeyman
-def journeyman_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+def journeyman_action(move, i, bL, moves, cS):
+    if str(move.pred) in PLAY_PREDS:
         exc.append(exc_revealDiscard)
 
 
@@ -2000,10 +1156,10 @@ standardCards.append(t)
 
 
 # 239: Taxman
-def taxman_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exc.append(standardException(['GAIN'], 'SUPPLY', 'DECKS'))
-        exc.append(Exception(standardCondition(['GAIN']),
+def taxman_action(move, i, bL, moves, cS):
+    if str(move.pred) in PLAY_PREDS:
+        exc.append(checkMove(['GAIN'], 'SUPPLY', 'DECKS'))
+        exc.append(Exception(check(['GAIN']),
                              standardOnGains('DECKS')))
 
 
@@ -2028,10 +1184,10 @@ standardCards.append(t)
 
 
 # 244: Artificer
-def artificer_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exc.append(standardException(['GAIN'], 'SUPPLY', 'DECKS'))
-        exc.append(Exception(standardCondition(['GAIN']),
+def artificer_action(move, i, bL, moves, cS):
+    if str(move.pred) in PLAY_PREDS:
+        exc.append(checkMove(['GAIN'], 'SUPPLY', 'DECKS'))
+        exc.append(Exception(check(['GAIN']),
                              standardOnGains('DECKS')))
 
 
@@ -2044,8 +1200,8 @@ standardCards.append(t)
 
 
 # 246: Bonfire
-def bonfire_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['BUY']:
+def bonfire_action(move, i, bL, moves, cS):
+    if str(move.pred) in ['BUY']:
         exc.append(exc_inplayTrash)
         exc.append(exc_standardTrash)
 
@@ -2071,9 +1227,9 @@ standardCards.append(t)
 
 
 # 251: Coin of the Realm
-def standard_reserve(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exc.append(standardException(['PUT ONTO'], 'INPLAYS', 'OTHERS'))
+def standard_reserve(move, i, bL, moves, cS):
+    if str(move.pred) in PLAY_PREDS:
+        exc.append(checkMove(['PUT ONTO'], 'INPLAYS', 'OTHERS'))
 
 
 t = Card('Coin of the Realm', 'Coins of the Realm', 'a Coin of the Realm', 2, 0, 'c2a85c', 'ae6c00', standard_reserve)
@@ -2086,15 +1242,15 @@ standardCards.append(t)
 
 # 253: Distant Lands
 def distantlands_worth(gS, player):
-    playerDeck = gS.crunch(['DECKS', 'OTHERS'], [player])
+    playerDeck = gS.crunch(['DECKS', 'OTHERS'], (player))
     DLCard = standardNames.index('Distant Lands')
     for card in playerDeck:
         if standardCards[card].simple_name == 'Distant Lands':
             total = playerDeck[card]
             break
 
-    if DLCard in gS.OTHERS[player]:
-        return gS.OTHERS[player][DLCard] / total
+    if DLCard in gS.OTHERS(player):
+        return gS.OTHERS(player)[DLCard] / total
     return 0
 
 
@@ -2127,8 +1283,8 @@ standardCards.append(t)
 
 
 # 260: Giant
-def giant_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+def giant_action(move, i, bL, moves, cS):
+    if str(move.pred) in PLAY_PREDS:
         exc.append(exc_revealDiscard)
         exc.append(exc_revealTrash)
         exc.append(exc_standardTrash)
@@ -2167,8 +1323,8 @@ standardCards.append(t)
 
 
 # 268: Magpie
-def magpie_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+def magpie_action(move, i, bL, moves, cS):
+    if str(move.pred) in PLAY_PREDS:
         exc.append(exc_revealTopdeck)
 
 
@@ -2229,9 +1385,9 @@ standardCards.append(t)
 
 
 # 282: Raze
-def raze_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exc.append(standardException(['TRASH'], 'INPLAYS', 'TRASH', ['Raze']))
+def raze_action(move, i, bL, moves, cS):
+    if str(move.pred) in PLAY_PREDS:
+        exc.append(checkMove(['TRASH'], 'INPLAYS', 'TRASH', ['Raze']))
         exc.append(exc_revealDiscard)
 
 
@@ -2247,16 +1403,16 @@ t = Card('Royal Carriage', 'Royal Carriages', 'a Royal Carriage', 5, 0, 'c5af85'
 standardCards.append(t)
 
 # 285: Save
-def save_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['BUY']:
-        tExc.append(standardException(['PUT INHAND'], 'OTHERS', 'HANDS'))
+def save_action(move, i, bL, moves, cS):
+    if str(move.pred) in ['BUY']:
+        tExc.append(checkMove(['PUT INHAND'], 'OTHERS', 'HANDS'))
 
 t = Card('Save', 'Saves', 'a Save', 1, 2, 'a9a39d', '814d3b', save_action)
 standardCards.append(t)
 
 # 286: Scouting Party
-def scoutingparty_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['BUY']:
+def scoutingparty_action(move, i, bL, moves, cS):
+    if str(move.pred) in ['BUY']:
         exc.append(exc_revealTopdeck)
         exc.append(exc_revealDiscard)
 
@@ -2297,13 +1453,13 @@ t = Card('Training', 'Trainings', 'a Training', 6, 2, 'a9a39d', '533f33', empty)
 standardCards.append(t)
 
 # 295: Transmogrify
-def transmogrify_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exc.append(standardException(['PUT ONTO'], 'INPLAYS', 'OTHERS'))
+def transmogrify_action(move, i, bL, moves, cS):
+    if str(move.pred) in PLAY_PREDS:
+        exc.append(checkMove(['PUT ONTO'], 'INPLAYS', 'OTHERS'))
 
-    if cM[0].predName() in ['CALL']:
-        tExc.append(standardException(['GAIN'], 'SUPPLY', 'HANDS'))
-        tExc.append(Exception(standardCondition(['GAIN']),
+    if str(move.pred) in ['CALL']:
+        tExc.append(checkMove(['GAIN'], 'SUPPLY', 'HANDS'))
+        tExc.append(Exception(check(['GAIN']),
                              standardOnGains('HANDS')))
 
 t = Card('Transmogrify', 'Transmogrifies', 'a Transmogrify', 4, 0, 'c5af85', '6e6258', transmogrify_action)
@@ -2318,10 +1474,10 @@ t = Card('Treasure Hunter', 'Treasure Hunters', 'a Treasure Hunter', 3, 1, 'c2bf
 standardCards.append(t)
 
 # 298: Warrior
-def warrior_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+def warrior_action(move, i, bL, moves, cS):
+    if str(move.pred) in PLAY_PREDS:
         exc.append(exc_revealDiscard)
-        exc.append(standardException(['TRASH'], 'DISCARDS', 'TRASH'))
+        exc.append(checkMove(['TRASH'], 'DISCARDS', 'TRASH'))
         exc.append(exc_standardTrash)
 
 
@@ -2344,8 +1500,8 @@ standardCards.append(t)
 
 
 # 302: Patrician
-def patrician_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+def patrician_action(move, i, bL, moves, cS):
+    if str(move.pred) in PLAY_PREDS:
         exc.append(exc_revealTopdeck)
 
 
@@ -2358,9 +1514,9 @@ standardCards.append(t)
 
 
 # 304: Settlers
-def settlers_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exc.append(standardException(['PUT INHAND'], 'DISCARDS', 'HANDS'))
+def settlers_action(move, i, bL, moves, cS):
+    if str(move.pred) in PLAY_PREDS:
+        exc.append(checkMove(['PUT INHAND'], 'DISCARDS', 'HANDS'))
 
 
 t = Card('Settlers', 'Settlers', 'a Settlers', 2, 0, 'c4c0b4', '784624', settlers_action)
@@ -2368,9 +1524,9 @@ standardCards.append(t)
 
 
 # 305: Bustling Village
-def bustvillage_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exc.append(standardException(['PUT INHAND'], 'DISCARDS', 'HANDS'))
+def bustvillage_action(move, i, bL, moves, cS):
+    if str(move.pred) in PLAY_PREDS:
+        exc.append(checkMove(['PUT INHAND'], 'DISCARDS', 'HANDS'))
 
 
 t = Card('Bustling Village', 'Bustling Villages', 'a Bustling Village', 5, 0, 'c4c0b4', '745E4D', bustvillage_action)
@@ -2382,16 +1538,16 @@ standardCards.append(t)
 
 
 # 307: Rocks
-def rocks_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['BUY AND GAIN', 'GAIN TOPDECK',
+def rocks_action(move, i, bL, moves, cS):
+    if str(move.pred) in ['BUY AND GAIN', 'GAIN TOPDECK',
                             'GAIN TRASH', 'GAIN']:
         if gS[-1].phase == 1:
-            exc.append(standardException(['GAIN'], 'SUPPLY', 'DECKS'))
-            exc.append(Exception(standardCondition(['GAIN']),
+            exc.append(checkMove(['GAIN'], 'SUPPLY', 'DECKS'))
+            exc.append(Exception(check(['GAIN']),
                                  standardOnGains('DECKS')))
         else:
-            exc.append(standardException(['GAIN'], 'SUPPLY', 'HANDS'))
-            exc.append(Exception(standardCondition(['GAIN']),
+            exc.append(checkMove(['GAIN'], 'SUPPLY', 'HANDS'))
+            exc.append(Exception(check(['GAIN']),
                                  standardOnGains('HANDS'))) 
 
 
@@ -2400,9 +1556,9 @@ standardCards.append(t)
 
 
 # 308: Gladiator
-def gladiator_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exc.append(standardException(['TRASH'], 'SUPPLY', 'TRASH',
+def gladiator_action(move, i, bL, moves, cS):
+    if str(move.pred) in PLAY_PREDS:
+        exc.append(checkMove(['TRASH'], 'SUPPLY', 'TRASH',
                                      ['Gladiator']))
 
 
@@ -2425,7 +1581,7 @@ castles = ['Humble Castle', 'Crumbling Castle', 'Small Castle',
 # 311: Humble Castle
 def humbleCastle_worth(gS, player):
     playerDeck = gS.crunch(['DECKS', 'DISCARDS', 'HANDS',
-                            'OTHERS', 'INPLAYS'], [player])
+                            'OTHERS', 'INPLAYS'], (player))
     return sum([playerDeck[item] for item in playerDeck if
                 standardCards[item].simple_name in castles])
 
@@ -2439,9 +1595,9 @@ standardCards.append(t)
 
 
 # 313: Small Castle
-def smallcastle_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exc.append(standardException(['TRASH'], 'INPLAYS', 'TRASH',
+def smallcastle_action(move, i, bL, moves, cS):
+    if str(move.pred) in PLAY_PREDS:
+        exc.append(checkMove(['TRASH'], 'INPLAYS', 'TRASH',
                                      ['Small Castle']))
 
 
@@ -2468,7 +1624,7 @@ standardCards.append(t)
 # 318: King\'s Castle
 def kingsCastle_worth(gS, player):
     playerDeck = gS.crunch(['DECKS', 'DISCARDS', 'HANDS',
-                            'OTHERS', 'INPLAYS'], [player])
+                            'OTHERS', 'INPLAYS'], (player))
     return sum([2 * playerDeck[item] for item in playerDeck if
                 standardCards[item].simple_name in castles])
 
@@ -2486,9 +1642,9 @@ standardCards.append(t)
 
 
 # 321: Archive
-def archive_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exc.append(standardException(['SET ASIDE'], 'DECKS', 'OTHERS'))
+def archive_action(move, i, bL, moves, cS):
+    if str(move.pred) in PLAY_PREDS:
+        exc.append(checkMove(['SET ASIDE'], 'DECKS', 'OTHERS'))
 
 
 t = Card('Archive', 'Archives', 'an Archive', 5, 0, 'dda561', '7b5d47', archive_action)
@@ -2505,7 +1661,7 @@ standardCards.append(t)
 
 # 324: Bandit Fort
 def banditfort_worth(gameState, player):
-    playerDeck = gameState.crunch(['DECKS', 'DISCARDS', 'HANDS', 'OTHERS', 'INPLAYS'], [player])
+    playerDeck = gameState.crunch(PERSONAL_ZONES, (player))
     return sum([-2 * playerDeck[item] for item in playerDeck if
                 standardCards[item].simple_name in ['Silver', 'Gold']])
 
@@ -2538,8 +1694,8 @@ standardCards.append(t)
 
 
 # 331: Chariot Race
-def chariotrace_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+def chariotrace_action(move, i, bL, moves, cS):
+    if str(move.pred) in PLAY_PREDS:
         exc.append(exc_revealTopdeck)
 
 t = Card('Chariot Race', 'Chariot Races', 'a Chariot Race', 3, 0, 'c4c0b4', '7f7569', chariotrace_action)
@@ -2583,18 +1739,18 @@ standardCards.append(t)
 
 
 # 341: Engineer
-def engineer_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+def engineer_action(move, i, bL, moves, cS):
+    if str(move.pred) in PLAY_PREDS:
         def engineerTrashCondition(cM):
             return cM[0].indent == 0 and \
-                   cM[0].predName() == 'TRASH' and \
+                   str(move.pred) == 'TRASH' and \
                    cM[0].items.primary() == 'Engineer'
 
         if cM[0].indent == 0:
             tExc.append(Exception(engineerTrashCondition, moveException('INPLAYS', 'TRASH'), chunkLength(cM) + 2))
-            exc.append(standardException(['TRASH'], 'INPLAYS', 'TRASH', ['Engineer']))
+            exc.append(checkMove(['TRASH'], 'INPLAYS', 'TRASH', ['Engineer']))
         else:
-            exc.append(standardException(['TRASH'], 'INPLAYS', 'TRASH', ['Engineer']))
+            exc.append(checkMove(['TRASH'], 'INPLAYS', 'TRASH', ['Engineer']))
 
 
 t = Card('Engineer', 'Engineers', 'an Engineer', 4, 0, 'c4c0b4', '733719', engineer_action)
@@ -2602,9 +1758,9 @@ standardCards.append(t)
 
 
 # 342: Farmers' Market
-def farmmarket_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exc.append(standardException(['TRASH'], 'INPLAYS', 'TRASH',
+def farmmarket_action(move, i, bL, moves, cS):
+    if str(move.pred) in PLAY_PREDS:
+        exc.append(checkMove(['TRASH'], 'INPLAYS', 'TRASH',
                                      ['Farmers\' Market']))
 
 
@@ -2618,7 +1774,7 @@ standardCards.append(t)
 
 # 344: Fountain
 def fountain_worth(gameState, player):
-    playerDeck = gameState.crunch(['DECKS', 'DISCARDS', 'HANDS', 'OTHERS', 'INPLAYS'], [player])
+    playerDeck = gameState.crunch(PERSONAL_ZONES, (player))
     for card in playerDeck:
         if standardCards[card].simple_name == 'Copper':
             if playerDeck[card] >= 10:
@@ -2636,8 +1792,8 @@ standardCards.append(t)
 
 # 346: Keep
 def keep_worth(gameState, player):
-    playerDeck = gameState.crunch(['DECKS', 'DISCARDS', 'HANDS', 'OTHERS', 'INPLAYS'], [player])
-    otherDeck = gameState.crunch(['DECKS', 'DISCARDS', 'HANDS', 'OTHERS', 'INPLAYS'], [1 - player])
+    playerDeck = gameState.crunch(PERSONAL_ZONES, (player))
+    otherDeck = gameState.crunch(PERSONAL_ZONES, [1 - player])
     total = 0
 
     for card in playerDeck:
@@ -2668,7 +1824,7 @@ standardCards.append(t)
 
 # 350: Museum
 def museum_worth(gameState, player):
-    playerDeck = gameState.crunch(['DECKS', 'DISCARDS', 'HANDS', 'OTHERS', 'INPLAYS'], [player])
+    playerDeck = gameState.crunch(PERSONAL_ZONES, (player))
     return 2 * len(playerDeck.cardList())
 
 t = Card('Museum', 'Museums', 'a Museum', 0, 2, '65ab6f', 'c47a00', empty, museum_worth)
@@ -2677,7 +1833,7 @@ standardCards.append(t)
 
 # 351: Obelisk
 def obelisk_worth(gameState, player):
-    playerDeck = gameState.crunch(['DECKS', 'DISCARDS', 'HANDS', 'OTHERS', 'INPLAYS'], [player])
+    playerDeck = gameState.crunch(PERSONAL_ZONES, (player))
 
     if gameState.obelisk in playerDeck:
         return playerDeck[obelisk]
@@ -2691,7 +1847,7 @@ standardCards.append(t)
 
 # 352: Orchard
 def orchard_worth(gameState, player):
-    playerDeck = gameState.crunch(['DECKS', 'DISCARDS', 'HANDS', 'OTHERS', 'INPLAYS'], [player])
+    playerDeck = gameState.crunch(PERSONAL_ZONES, (player))
     total = 0
 
     for card in playerDeck:
@@ -2711,7 +1867,7 @@ standardCards.append(t)
 
 # 354: Palace
 def palace_worth(gameState, player):
-    playerDeck = gameState.crunch(['DECKS', 'DISCARDS', 'HANDS', 'OTHERS', 'INPLAYS'], [player])
+    playerDeck = gameState.crunch(PERSONAL_ZONES, (player))
     treasures = ['Copper', 'Silver', 'Gold']
     counts = [0, 0, 0]
 
@@ -2738,9 +1894,9 @@ t = Card('Sacrifice', 'Sacrifices', 'a Sacrifice', 4, 0, 'c4c0b4', '9b675f', emp
 standardCards.append(t)
 
 # 358: Salt the Earth
-def salt_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['BUY']:
-        exc.append(Exception(standardCondition(['TRASH']), moveException('SUPPLY', 'TRASH')))
+def salt_action(move, i, bL, moves, cS):
+    if str(move.pred) in ['BUY']:
+        exc.append(Exception(check(['TRASH']), moveException('SUPPLY', 'TRASH')))
 
 t = Card('Salt the Earth', 'Salt the Earths', 'a Salt the Earth', 4, 2, 'a9a39d', '7b8383', salt_action)
 standardCards.append(t)
@@ -2759,7 +1915,7 @@ standardCards.append(t)
 
 # 362: Tower
 def tower_worth(gameState, player):
-    playerDeck = gameState.crunch(['DECKS', 'DISCARDS', 'HANDS', 'OTHERS', 'INPLAYS'], [player])
+    playerDeck = gameState.crunch(PERSONAL_ZONES, (player))
     total = 0
 
     for card in playerDeck:
@@ -2780,7 +1936,7 @@ standardCards.append(t)
 
 # 364: Triumphal Arch
 def arch_worth(gameState, player):
-    playerDeck = gameState.crunch(['DECKS', 'DISCARDS', 'HANDS', 'OTHERS', 'INPLAYS'], [player])
+    playerDeck = gameState.crunch(PERSONAL_ZONES, (player))
     counts = sorted([playerDeck[card] for card in playerDeck if
                      standardCards[card].simple_name in actionList], reverse=True)
     counts = counts + [0, 0]
@@ -2797,8 +1953,8 @@ standardCards.append(t)
 
 # 366: Wall
 def wall_worth(gameState, player):
-    playerDeck = gameState.crunch(['DECKS', 'DISCARDS', 'HANDS', 'OTHERS', 'INPLAYS'], [player])
-    size = gameState.crunch(['DECKS', 'HANDS', 'DISCARDS', 'OTHERS', 'INPLAYS'], [player]).count()
+    playerDeck = gameState.crunch(PERSONAL_ZONES, (player))
+    size = gameState.crunch(['DECKS', 'HANDS', 'DISCARDS', 'OTHERS', 'INPLAYS'], (player)).count()
     return 15 - max(15, size)
 
 t = Card('Wall', 'Walls', 'a Wall', 0, 2, '65ab6f', '5e4a54', empty, wall_worth)
@@ -2806,7 +1962,7 @@ standardCards.append(t)
 
 # 367: Wolf Den
 def den_worth(gameState, player):
-    playerDeck = gameState.crunch(['DECKS', 'DISCARDS', 'HANDS', 'OTHERS', 'INPLAYS'], [player])
+    playerDeck = gameState.crunch(PERSONAL_ZONES, (player))
     return -3 * len([card for card in playerDeck if playerDeck[card] == 1])
 
 t = Card('Wolf Den', 'Wolf Dens', 'a Wolf Den', 0, 2, '65ab6f', 'a1a18f', empty, den_worth)
@@ -2937,16 +2093,16 @@ t = Card('War', 'Wars', 'War', 0, -1, '4137df', 'a12700', empty)
 standardCards.append(t)
 
 # 399: Miserable
-def miserable_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() == ['TAKES']:
+def miserable_action(move, i, bL, moves, cS):
+    if str(move.pred) == ['TAKES']:
         gS[-1].vps[cM[0].player] -= 2
 
 t = Card('Miserable', 'Miserables', 'Miserable', 0, -1, 'ceb0a4', '1c161a', miserable_action)
 standardCards.append(t)
 
 # 400: Twice Miserable
-def twicemiserable_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() == ['TAKES']:
+def twicemiserable_action(move, i, bL, moves, cS):
+    if str(move.pred) == ['TAKES']:
         gS[-1].vps[cM[0].player] -= 2
 
 t = Card('Twice Miserable', 'Twice Miserables', 'Twice Miserable', 0, -1, 'ceb0a4', '1c161a', twicemiserable_action)
@@ -2976,8 +2132,8 @@ t = Card('Blessed Village', 'Blessed Villages', 'a Blessed Village', 4, 0,
 standardCards.append(t)
 
 # 406: Changeling
-def changeling_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+def changeling_action(move, i, bL, moves, cS):
+    if str(move.pred) in PLAY_PREDS:
         exc.append(exc_inplayTrash)
         exc.append(exc_standardTrash)
 
@@ -3017,15 +2173,15 @@ standardCards.append(t)
 
 
 # 414: Druid
-def druid_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+def druid_action(move, i, bL, moves, cS):
+    if str(move.pred) in PLAY_PREDS:
         whichBoon = standardCards[CARD_CARD]
-        exc.append(Exception(standardCondition('RECEIVE BOONHEX'), empty))
+        exc.append(Exception(check('RECEIVE BOONHEX'), empty))
         for subchunk in cM[1:]:
             if subchunk[0].predName() in ['RECEIVE BOONHEX', 'TAKES BOONHEX']:
                 whichBoon = subchunk[0].items.primary()
                 break
-            exc.append(standardException(['TRASH'], 'INPLAYS', 'TRASH'))
+            exc.append(checkMove(['TRASH'], 'INPLAYS', 'TRASH'))
 
         if whichBoon == 'The Sun\'s Gift':
             exc.append(exc_revealTopdeck)
@@ -3044,9 +2200,9 @@ standardCards.append(t)
 
 
 # 416: Faithful Hound
-def hound_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['REACT']:
-        tExc.append(standardException(['SET ASIDE'], 'DISCARDS', 'OTHERS', ['Faithful Hound']))
+def hound_action(move, i, bL, moves, cS):
+    if str(move.pred) in ['REACT']:
+        tExc.append(checkMove(['SET ASIDE'], 'DISCARDS', 'OTHERS', ['Faithful Hound']))
 
 
 t = Card('Faithful Hound', 'Faithful Hounds', 'a Faithful Hound', 2, 0, '8ca2be', '8c7640', hound_action)
@@ -3074,10 +2230,10 @@ standardCards.append(t)
 
 
 # 422: Monastery
-def monastery_action(cM, gS, exc, tExc, pers):
+def monastery_action(move, i, bL, moves, cS):
     #Possible conflicts: Exorcist - hence, trash inplay first.
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        def monastery_trash(cM, gS, exc, tExc, pers):
+    if str(move.pred) in PLAY_PREDS:
+        def monastery_trash(move, i, bL, moves, cS):
             copperID = standardNames.index('Copper')
 
             if copperID in cM[0].items:
@@ -3101,7 +2257,7 @@ def monastery_action(cM, gS, exc, tExc, pers):
             else:
                 standardMove('HANDS', 'TRASH', cM, gS)
 
-        exc.append(Exception(standardCondition(['TRASH'], ['Copper']),
+        exc.append(Exception(check(['TRASH'], ['Copper']),
                              monastery_trash))
         exc.append(exc_standardTrash)
 
@@ -3111,10 +2267,10 @@ standardCards.append(t)
 
 
 # 423: Necromancer
-def necromancer_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exc.append(standardException(['PLAY'], 'TRASH', 'TRASH'))
-        exc.append(Exception(standardCondition(['PLAY']),  standardOnPlay))
+def necromancer_action(move, i, bL, moves, cS):
+    if str(move.pred) in PLAY_PREDS:
+        exc.append(checkMove(['PLAY'], 'TRASH', 'TRASH'))
+        exc.append(Exception(check(['PLAY']),  standardOnPlay))
 
 
 t = Card('Necromancer', 'Necromancers', 'a Necromancer', 4, 0, 'c4c0b4', '525a36', necromancer_action)
@@ -3122,8 +2278,8 @@ standardCards.append(t)
 
 
 # 424: Night Watchman
-def watchman_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+def watchman_action(move, i, bL, moves, cS):
+    if str(move.pred) in PLAY_PREDS:
         exc.append(exc_revealDiscard)
         exc.append(exc_revealTopdeck)
 
@@ -3133,10 +2289,10 @@ standardCards.append(t)
 
 
 # 425: Pixie
-def pixie_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+def pixie_action(move, i, bL, moves, cS):
+    if str(move.pred) in PLAY_PREDS:
         whichBoon = standardCards[CARD_CARD]
-        exc.append(Exception(standardCondition('RECEIVE BOONHEX'), empty))
+        exc.append(Exception(check('RECEIVE BOONHEX'), empty))
         for subchunk in cM[1:]:
             if subchunk[0].predName() in ['RECEIVE BOONHEX', 'TAKES BOONHEX']:
                 whichBoon = subchunk[0].items.primary()
@@ -3147,18 +2303,18 @@ def pixie_action(cM, gS, exc, tExc, pers):
             otherThings = cM[0].items - pixieStack
 
             def pixieTrash(pixieStack, otherThings):
-                def out_function(cM, gS, exc, tExc, pers):
+                def out_function(move, i, bL, moves, cS):
                     gS[-1].move(cM[0].player, 'INPLAYS', 'TRASH',
                                         pixieStack)
                     gS[-1].move(cM[0].player, 'HANDS', 'TRASH',
                                         otherThings)
                 return out_function
 
-            exc.append(Exception(standardCondition(['TRASH'], ['Pixie']),
+            exc.append(Exception(check(['TRASH'], ['Pixie']),
                                  pixieTrash(pixieStack, otherThings)))
-            exc.append(Exception(standardCondition(['TRASH'], ['Pixie']), standardOnTrash))
+            exc.append(Exception(check(['TRASH'], ['Pixie']), standardOnTrash))
         else:
-            exc.append(standardException(['TRASH'], 'INPLAYS', 'TRASH'))
+            exc.append(checkMove(['TRASH'], 'INPLAYS', 'TRASH'))
 
             if whichBoon == 'The Sun\'s Gift':
                 exc.append(exc_revealTopdeck)
@@ -3201,9 +2357,9 @@ standardCards.append(t)
 
 
 # 433: Tragic Hero
-def tragichero_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exc.append(standardException(['TRASH'], 'INPLAYS', 'TRASH',
+def tragichero_action(move, i, bL, moves, cS):
+    if str(move.pred) in PLAY_PREDS:
+        exc.append(checkMove(['TRASH'], 'INPLAYS', 'TRASH',
                                      ['Tragic Hero', 'Overlord']))
 
 
@@ -3216,9 +2372,9 @@ standardCards.append(t)
 
 
 # 435: Vampire
-def vampire_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exc.append(standardException(['RETURN'], 'INPLAYS', 'SUPPLY',
+def vampire_action(move, i, bL, moves, cS):
+    if str(move.pred) in PLAY_PREDS:
+        exc.append(checkMove(['RETURN'], 'INPLAYS', 'SUPPLY',
                                      ['Vampire']))
 
         standard_boonhex(cM, gS, exc, tExc, pers)
@@ -3249,9 +2405,9 @@ standardCards.append(t)
 
 
 # 441: Magic Lamp
-def lamp_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exc.append(standardException(['TRASH'], 'INPLAYS', 'TRASH',
+def lamp_action(move, i, bL, moves, cS):
+    if str(move.pred) in PLAY_PREDS:
+        exc.append(checkMove(['TRASH'], 'INPLAYS', 'TRASH',
                                      ['Magic Lamp']))
 
 
@@ -3262,7 +2418,7 @@ standardCards.append(t)
 # 442: Pasture
 def pasture_worth(gameState, player):
     playerDeck = gameState.crunch(['DECKS', 'DISCARDS', 'HANDS',
-                                   'OTHERS', 'INPLAYS'], [player])
+                                   'OTHERS', 'INPLAYS'], (player))
     for card in playerDeck:
         if standardCards[card].simple_name == 'Estate':
             return playerDeck[card]
@@ -3279,9 +2435,9 @@ standardCards.append(t)
 
 
 # 444: Bat
-def bat_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exc.append(standardException(['RETURN'], 'INPLAYS', 'SUPPLY', ['Bat']))
+def bat_action(move, i, bL, moves, cS):
+    if str(move.pred) in PLAY_PREDS:
+        exc.append(checkMove(['RETURN'], 'INPLAYS', 'SUPPLY', ['Bat']))
 
 
 t = Card('Bat', 'Bats', 'a Bat', 2, 1, '30484e', '475B5D', bat_action)
@@ -3289,10 +2445,10 @@ standardCards.append(t)
 
 
 # 445: Ghost
-def ghost_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+def ghost_action(move, i, bL, moves, cS):
+    if str(move.pred) in PLAY_PREDS:
         exc.append(exc_revealDiscard)
-        exc.append(standardException(['SET ASIDE'], 'DECKS', 'OTHERS'))
+        exc.append(checkMove(['SET ASIDE'], 'DECKS', 'OTHERS'))
 
 
 t = Card('Ghost', 'Ghosts', 'a Ghost', 4, 1, '7a5622', '13b12f', ghost_action)
@@ -3305,8 +2461,8 @@ standardCards.append(t)
 
 
 # 447: Will-o'-wisp
-def wisp_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+def wisp_action(move, i, bL, moves, cS):
+    if str(move.pred) in PLAY_PREDS:
         exc.append(exc_revealTopdeck)
 
 
@@ -3315,10 +2471,10 @@ standardCards.append(t)
 
 
 # 448: Wish
-def wish_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exc.append(standardException(['GAIN'], 'SUPPLY', 'HANDS',))
-        exc.append(Exception(standardCondition(['GAIN']),
+def wish_action(move, i, bL, moves, cS):
+    if str(move.pred) in PLAY_PREDS:
+        exc.append(checkMove(['GAIN'], 'SUPPLY', 'HANDS',))
+        exc.append(Exception(check(['GAIN']),
                              standardOnGains('HANDS')))
 
 
@@ -3330,17 +2486,17 @@ t = Card('Zombie Apprentice', 'Zombie Apprentices', 'a Zombie Apprentice', 3, 1,
 standardCards.append(t)
 
 # 450: Zombie Mason
-def zombiemason_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exc.append(standardException(['TRASH'], 'DECKS', 'TRASH'))
+def zombiemason_action(move, i, bL, moves, cS):
+    if str(move.pred) in PLAY_PREDS:
+        exc.append(checkMove(['TRASH'], 'DECKS', 'TRASH'))
         exc.append(exc_standardTrash)
 
 t = Card('Zombie Mason', 'Zombie Masons', 'a Zombie Mason', 3, 1, 'c4c0b4', '5f513d', zombiemason_action)
 standardCards.append(t)
 
 # 451: Zombie Spy
-def zombiespy_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+def zombiespy_action(move, i, bL, moves, cS):
+    if str(move.pred) in PLAY_PREDS:
         exc.append(exc_revealDiscard)
         exc.append(exc_revealTopdeck)
 
@@ -3356,8 +2512,8 @@ t = Card('Black Market', 'Black Markets', 'a Black Market', 3, 0, 'c4c0b4', 'b5b
 standardCards.append(t)
 
 # 454: Envoy
-def envoy_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
+def envoy_action(move, i, bL, moves, cS):
+    if str(move.pred) in PLAY_PREDS:
         exc.append(exc_revealDiscard)
 
 t = Card('Envoy', 'Envoys', 'an Envoy', 4, 0, 'c4c0b4', '425064', envoy_action)
@@ -3368,9 +2524,9 @@ t = Card('Governor', 'Governors', 'a Governor', 5, 0, 'c4c0b4', '8f9989', empty)
 standardCards.append(t)
 
 # 456: Prince
-def prince_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['PLAY', 'PLAY AGAIN', 'PLAY THIRD']:
-        exc.append(standardException(['SET ASIDE'], 'HANDS', 'OTHERS'))
+def prince_action(move, i, bL, moves, cS):
+    if str(move.pred) in PLAY_PREDS:
+        exc.append(checkMove(['SET ASIDE'], 'HANDS', 'OTHERS'))
 
 t = Card('Prince', 'Princes', 'a Prince', 8, 0, 'c4c0b4', 'a4863c', prince_action)
 standardCards.append(t)
@@ -3384,9 +2540,9 @@ t = Card('Stash', 'Stashes', 'a Stash', 5, 0, 'd8c280', '666666', empty)
 standardCards.append(t)
 
 # 459: Summon
-def summon_action(cM, gS, exc, tExc, pers):
-    if cM[0].predName() in ['BUY']:
-        exc.append(standardException(['SET ASIDE'], 'SUPPLY', 'OTHERS'))
+def summon_action(move, i, bL, moves, cS):
+    if str(move.pred) in ['BUY']:
+        exc.append(checkMove(['SET ASIDE'], 'SUPPLY', 'OTHERS'))
 
 t = Card('Summon', 'Summons', 'a Summon', 5, 0, 'a9a39d', 'c19b59', summon_action)
 standardCards.append(t)
@@ -3418,7 +2574,7 @@ standardPreds.append(t)
 
 
 # 1
-def newTurnAction(cM, gS, exc, tExc, pers):
+def newTurnAction(move, i, bL, moves, cS):
     for i in range(2):
         gS[-1].coins[i] = 0
         gS[-1].coinsLower[i] = 0
@@ -3431,7 +2587,7 @@ standardPreds.append(t)
 
 
 def standardGains(source, destination='DISCARDS'):
-    def out_function(cM, gS, exc, tExc, pers):
+    def out_function(move, i, bL, moves, cS):
         targetStuff = deepcopy(cM[0].items)
 
         for card in targetStuff:
@@ -3460,7 +2616,7 @@ def standardGains(source, destination='DISCARDS'):
 
 
 # 2
-def buyAndGainAction(cM, gS, exc, tExc, pers):
+def buyAndGainAction(move, i, bL, moves, cS):
     standardGains('SUPPLY')(cM, gS, exc, tExc, pers)
     gS[-1].phase = 1
 
@@ -3485,7 +2641,7 @@ t = Pred("^(?P<player>.*) trashes nothing\.$", empty, "TRASH NOTHING")
 standardPreds.append(t)
 
 
-def pred7Action(cM, gS, exc, tExc, pers):
+def pred7Action(move, i, bL, moves, cS):
     # Mining Village Bug
     if cM[0].items.primary() == 'Mining Village' and cM[0].indent == 0:
         gS[-1].move(cM[0].player, 'INPLAYS', 'TRASH', cM[0].items)
@@ -3493,7 +2649,7 @@ def pred7Action(cM, gS, exc, tExc, pers):
         gS[-1].move(cM[0].player, 'HANDS', 'TRASH', cM[0].items)
 
     # Market Square
-    exc.append(standardException(['DISCARD'], 'HANDS', 'DISCARDS',
+    exc.append(checkMove(['DISCARD'], 'HANDS', 'DISCARDS',
                                  ['Market Square']))
 
 
@@ -3502,7 +2658,7 @@ t = Pred("^(?P<player>.*) trashes (?P<cards>.*)\.$", pred7Action, "TRASH")
 standardPreds.append(t)
 
 
-def pred8Action(cM, gS, exc, tExc, pers):
+def pred8Action(move, i, bL, moves, cS):
     if cM[0].items.count() > 0:
         gS[-1].move(cM[0].player, 'HANDS', 'DISCARDS', cM[0].items)
 
@@ -3523,14 +2679,14 @@ standardPreds.append(t)
 
 
 # 11
-def pred11Action(cM, gS, exc, tExc, pers):
+def pred11Action(move, i, bL, moves, cS):
     gS[-1].move(cM[0].player, 'HANDS', 'INPLAYS', cM[0].items)
 
 t = Pred("^(?P<player>.*) plays (?P<cards>.*)\.$", pred11Action, "PLAY")
 standardPreds.append(t)
 
 # 12
-def pred12Action(cM, gS, exc, tExc, pers):
+def pred12Action(move, i, bL, moves, cS):
     if cM[0].indent == 0:
         # Probably Scheme (or walled village / alch / treasury)
         gS[-1].move(cM[0].player, 'INPLAYS', 'DECKS', cM[0].items)
@@ -3542,63 +2698,63 @@ t = Pred("^(?P<player>.*) topdecks (?P<cards>.*)\.$", pred12Action, "TOPDECK")
 standardPreds.append(t)
 
 # 13
-def pred13Action(cM, gS, exc, tExc, pers):
+def pred13Action(move, i, bL, moves, cS):
     gS[-1].move(cM[0].player, 'DECKS', 'HANDS', cM[0].items)
 
 t = Pred("^(?P<player>.*) draws (?P<cards>.*) \(Wharf\)\.$", pred13Action, "WHARF DRAW")
 standardPreds.append(t)
 
 # 14
-def pred14Action(cM, gS, exc, tExc, pers):
+def pred14Action(move, i, bL, moves, cS):
     gS[-1].move(cM[0].player, 'DECKS', 'HANDS', cM[0].items)
 
 t = Pred("^(?P<player>.*) draws (?P<cards>.*) \(Hireling\)\.$", pred14Action, "HIRELING DRAW")
 standardPreds.append(t)
 
 # 15
-def pred15Action(cM, gS, exc, tExc, pers):
+def pred15Action(move, i, bL, moves, cS):
     gS[-1].move(cM[0].player, 'DECKS', 'HANDS', cM[0].items)
 
 t = Pred("^(?P<player>.*) draws (?P<cards>.*) \(Enchantress\)\.$", pred15Action, "WOODS DRAW")
 standardPreds.append(t)
 
 # 16
-def pred16Action(cM, gS, exc, tExc, pers):
+def pred16Action(move, i, bL, moves, cS):
     gS[-1].move(cM[0].player, 'DECKS', 'HANDS', cM[0].items)
 
 t = Pred("^(?P<player>.*) draws (?P<cards>.*) \(Haunted Woods\)\.$", pred16Action, "ENCHANTRESS DRAW")
 standardPreds.append(t)
 
 # 17
-def pred17Action(cM, gS, exc, tExc, pers):
+def pred17Action(move, i, bL, moves, cS):
     gS[-1].move(cM[0].player, 'DECKS', 'HANDS', cM[0].items)
 
 t = Pred("^(?P<player>.*) draws (?P<cards>.*) \(Caravan\)\.$", pred17Action, "CARAVAN DRAW")
 standardPreds.append(t)
 
 # 18
-def pred18Action(cM, gS, exc, tExc, pers):
+def pred18Action(move, i, bL, moves, cS):
     gS[-1].move(cM[0].player, 'DECKS', 'HANDS', cM[0].items)
 
 t = Pred("^(?P<player>.*) gets \+1 Buy, \+1 Action and draws (?P<cards>.*) \(Tactician\)\.$", pred18Action, "TACTICIAN DRAW")
 standardPreds.append(t)
 
 # 19
-def pred19Action(cM, gS, exc, tExc, pers):
+def pred19Action(move, i, bL, moves, cS):
     gS[-1].move(cM[0].player, 'DECKS', 'HANDS', cM[0].items)
 
 t = Pred("^(?P<player>.*) draws (?P<cards>.*) \(from (.*)\)$", pred19Action, "DRAW FROM")
 standardPreds.append(t)
 
 # 20
-def pred20Action(cM, gS, exc, tExc, pers):
+def pred20Action(move, i, bL, moves, cS):
     gS[-1].move(cM[0].player, 'DECKS', 'HANDS', cM[0].items)
 
 t = Pred("^(?P<player>.*) draws (?P<cards>.*) \(Ghost Town\)\.$", pred20Action, "GT DRAW")
 standardPreds.append(t)
 
 # 21
-def pred21Action(cM, gS, exc, tExc, pers):
+def pred21Action(move, i, bL, moves, cS):
     activePlayer = gS[-1].activePlayer
     # Cleanup
     if cM[0].isCleanup:
@@ -3624,7 +2780,7 @@ t = Pred("^(?P<player>.*) looks at (?P<cards>.*)\.$", empty, "LOOK")
 standardPreds.append(t)
 
 # 25
-def pred25Action(cM, gS, exc, tExc, pers):
+def pred25Action(move, i, bL, moves, cS):
     if cM[0].indent == 0 and cM[0].items.primary() == 'Faithful Hound':
         gS[-1].move(cM[0].player, 'OTHERS', 'HANDS', cM[0].items)
     else:
@@ -3636,7 +2792,7 @@ t = Pred("^(?P<player>.*) puts (?P<cards>.*) into their hand\.$", pred25Action, 
 standardPreds.append(t)
 
 # 26
-def pred26Action(cM, gS, exc, tExc, pers):
+def pred26Action(move, i, bL, moves, cS):
     if cM[0].items.primary() not in BOONHEX:
         gS[-1].move(cM[0].player, 'INPLAYS', 'OTHERS', cM[0].items)
 
@@ -3644,21 +2800,21 @@ t = Pred("^(?P<player>.*) sets (?P<cards>.*) aside\.$", pred26Action, "SET ASIDE
 standardPreds.append(t)
 
 # 27
-def pred27Action(cM, gS, exc, tExc, pers):
+def pred27Action(move, i, bL, moves, cS):
     gS[-1].move(cM[0].player, 'HANDS', 'OTHERS', cM[0].items)
 
 t = Pred("^(?P<player>.*) puts (?P<cards>.*) on their (.*)\.$", pred27Action, "PUT ONTO")
 standardPreds.append(t)
 
 # 28
-def pred28Action(cM, gS, exc, tExc, pers):
+def pred28Action(move, i, bL, moves, cS):
     gS[-1].move(cM[0].player, 'OTHERS', 'INPLAYS', cM[0].items)
 
 t = Pred("^(?P<player>.*) calls (?P<cards>.*)\.$", pred28Action, "CALL")
 standardPreds.append(t)
 
 # 29
-def pred29Action(cM, gS, exc, tExc, pers):
+def pred29Action(move, i, bL, moves, cS):
     gS[-1].move(cM[0].player, 'DECKS', 'DISCARDS', gS[-1].DECKS[cM[0].player])
 
 t = Pred("^(?P<player>.*) moves their deck to the discard\.$", pred29Action, "DISCARD DECK")
@@ -3669,7 +2825,7 @@ t = Pred("^(?P<player>.*) puts (?P<cards>.*) back onto their deck\.$", empty, "R
 standardPreds.append(t)
 
 # 31
-def pred31Action(cM, gS, exc, tExc, pers):
+def pred31Action(move, i, bL, moves, cS):
     gS[-1].move(cM[0].player, 'DISCARDS', 'DECKS', cM[0].items)
 
 t = Pred("^(?P<player>.*) shuffles (?P<cards>.*) into their deck\.$", pred31Action, "SHUFFLE INTO")
@@ -3680,7 +2836,7 @@ t = Pred("^(?P<player>.*) inserts (?P<cards>.*) into their deck\.$", empty, "INS
 standardPreds.append(t)
 
 # 33
-def pred33Action(cM, gS, exc, tExc, pers):
+def pred33Action(move, i, bL, moves, cS):
     gS[-1].move(cM[0].player, 'INPLAYS', 'SUPPLY', cM[0].items)
 
 t = Pred("^(?P<player>.*) returns (?P<cards>.*) to (.*)\.$", pred33Action, "RETURN TO")
@@ -3691,14 +2847,14 @@ t = Pred("^(?P<player>.*) returns (?P<cards>.*) set by (.*)\.$", empty, "RETURN 
 standardPreds.append(t)
 
 # 35
-def pred35Action(cM, gS, exc, tExc, pers):
+def pred35Action(move, i, bL, moves, cS):
     gS[-1].move(cM[0].player, 'HANDS', 'SUPPLY', cM[0].items)
 
 t = Pred("^(?P<player>.*) returns (?P<cards>.*)\.$", pred35Action, "RETURN")
 standardPreds.append(t)
 
 # 36
-def pred36Action(cM, gS, exc, tExc, pers):
+def pred36Action(move, i, bL, moves, cS):
     gS[-1].move(cM[0].player, 'SUPPLY', 'DISCARDS', cM[0].items)
 
 t = Pred("^(?P<player>.*) receives (?P<cards>.*)\.$", pred36Action, "RECEIVE.")
@@ -3706,26 +2862,26 @@ standardPreds.append(t)
 
 
 # 37
-def standard_boonhex(cM, gS, exc, tExc, pers):
+def standard_boonhex(move, i, bL, moves, cS):
     whichBoon = cM[0].items.primary()
 
     def removeBoonhex(exceptions):
-        def out_function(cM, gS, exc, tExc, pers):
+        def out_function(move, i, bL, moves, cS):
             for exception in exceptions:
                 if exception in tExc:
                     tExc.remove(exception)
         return out_function
 
     def discardBoonhexCondition(cM):
-        return cM[0].items.primary() == whichBoon and cM[0].predName() == 'DISCARD'
+        return cM[0].items.primary() == whichBoon and str(move.pred) == 'DISCARD'
 
-    elevated_topdeck = Exception(standardCondition(['TOPDECK']),
+    elevated_topdeck = Exception(check(['TOPDECK']),
                                  moveException('DECKS', 'DECKS'),
                                  priority=1)
-    elevated_trash = Exception(standardCondition(['TRASH']),
+    elevated_trash = Exception(check(['TRASH']),
                                moveException('DECKS', 'TRASH'),
                                priority=1)
-    elevated_harbinger = Exception(standardCondition(['TOPDECK']),
+    elevated_harbinger = Exception(check(['TOPDECK']),
                                    moveException('DISCARDS', 'DECKS'),
                                    priority=1)
 
@@ -3752,9 +2908,9 @@ def standard_boonhex(cM, gS, exc, tExc, pers):
                     removeBoonhex([elevated_trash, exc_revealDiscard])))
 
     elif whichBoon == 'Greed':
-        greed_gain = standardException(['GAIN'], 'SUPPLY', 'DECKS', ['Copper'])
+        greed_gain = checkMove(['GAIN'], 'SUPPLY', 'DECKS', ['Copper'])
         copperStack = Cardstack({standardNames.index('Copper'): 1})
-        greed_ongain = Exception(standardCondition(['GAIN'], ['Copper']),
+        greed_ongain = Exception(check(['GAIN'], ['Copper']),
                                  standardOnGains('DECKS'))
         tExc.append(greed_gain)
         tExc.append(greed_ongain)
@@ -3762,9 +2918,9 @@ def standard_boonhex(cM, gS, exc, tExc, pers):
                     removeBoonhex([greed_ongain, greed_gain])))
 
     elif whichBoon == 'Plague':
-        plague_gain = standardException(['GAIN'], 'SUPPLY', 'HANDS', ['Curse'])
+        plague_gain = checkMove(['GAIN'], 'SUPPLY', 'HANDS', ['Curse'])
         curseStack = Cardstack({standardNames.index('Curse'): 1})
-        plague_ongain = Exception(standardCondition(['GAIN'], ['Copper']),
+        plague_ongain = Exception(check(['GAIN'], ['Copper']),
                                   standardOnGains('HANDS'))
         tExc.append(plague_gain)
         tExc.append(plague_ongain)
@@ -3779,7 +2935,7 @@ def standard_boonhex(cM, gS, exc, tExc, pers):
 
     elif whichBoon == 'Famine':
         tExc.append(exc_revealDiscard)
-        famine_discard = standardException(['SHUFFLE INTO'], 'DECKS', 'DECKS')
+        famine_discard = checkMove(['SHUFFLE INTO'], 'DECKS', 'DECKS')
         tExc.append(famine_discard)
         tExc.append(Exception(discardBoonhexCondition,
                     removeBoonhex([exc_revealDiscard, famine_discard])))
@@ -3790,7 +2946,7 @@ standardPreds.append(t)
 
 
 # 38
-def passAction(cM, gS, exc, tExc, pers):
+def passAction(move, i, bL, moves, cS):
     gS[-1].HANDS[cM[0].player] -= cM[0].items
     gS[-1].HANDS[1 - cM[0].player] += cM[0].items
 
@@ -3800,7 +2956,7 @@ standardPreds.append(t)
 
 
 # 39
-def pred39Action(cM, gS, exc, tExc, pers):
+def pred39Action(move, i, bL, moves, cS):
     gS[-1].move(cM[0].player, 'SUPPLY', 'DECKS', cM[0].items)
 
 
@@ -3817,7 +2973,7 @@ standardPreds.append(t)
 
 
 # 42
-def buyAction(cM, gS, exc, tExc, pers):
+def buyAction(move, i, bL, moves, cS):
     gS[-1].phase = 1
 
 
@@ -3837,7 +2993,7 @@ t = Pred("^(?P<player>.*) reacts with (?P<cards>.*)\.$", empty, "REACT")
 standardPreds.append(t)
 
 # 46
-def pred46Action(cM, gS, exc, tExc, pers):
+def pred46Action(move, i, bL, moves, cS):
     activePlayer = cM[0].player
     # Cleanup
     if cM[0].isCleanup:
@@ -3850,7 +3006,7 @@ t = Pred("^(?P<player>.*) shuffles their deck\.$", pred46Action, "SHUFFLE")
 standardPreds.append(t)
 
 # 47
-def pred47Action(cM, gS, exc, tExc, pers):
+def pred47Action(move, i, bL, moves, cS):
     gS[-1].move(cM[0].player, 'DECKS', 'HANDS', Cardstack({cM[0].items.cardList()[0]: 1}))
 
 t = Pred("^(?P<player>.*) wishes for (?P<cards>.*) and finds it\.$", pred47Action, "WISH SUCCESS")
@@ -3914,7 +3070,7 @@ standardPreds.append(t)
 
 
 # 62
-def pred62Action(cM, gS, exc, tExc, pers):
+def pred62Action(move, i, bL, moves, cS):
     gS[-1].move(cM[0].player, 'OTHERS', 'HANDS', cM[0].items)
 
 
@@ -3923,7 +3079,7 @@ standardPreds.append(t)
 
 
 # 63
-def pred63Action(cM, gS, exc, tExc, pers):
+def pred63Action(move, i, bL, moves, cS):
     gS[-1].move(cM[0].player, 'OTHERS', 'HANDS', cM[0].items)
 
 
@@ -3932,7 +3088,7 @@ standardPreds.append(t)
 
 
 # 64
-def pred64Action(cM, gS, exc, tExc, pers):
+def pred64Action(move, i, bL, moves, cS):
     gS[-1].move(cM[0].player, 'OTHERS', 'HANDS', cM[0].items)
 
 
@@ -3970,35 +3126,35 @@ standardPreds.append(t)
 
 
 # 72
-def turn_start_action(cM, gS, exc, tExc, pers):
-    exc.append(standardException(['PLAY'], 'OTHERS', 'INPLAYS'))
-    exc.append(Exception(standardCondition(['PLAY']), standardOnPlay))
-    exc.append(standardException(['PUT INHAND'], 'OTHERS', 'HANDS',
+def turn_start_action(move, i, bL, moves, cS):
+    exc.append(checkMove(['PLAY'], 'OTHERS', 'INPLAYS'))
+    exc.append(Exception(check(['PLAY']), standardOnPlay))
+    exc.append(checkMove(['PUT INHAND'], 'OTHERS', 'HANDS',
                                  ['Horse Traders']))
 
     # Probably Cobbler
     def immediate_gain_condition(cM):
         # Amulet!
         isSilver = cM[0].items.primary() == 'Silver'
-        return cM[0].predName() == 'GAIN' and cM[0].indent == 1 and not isSilver
+        return str(move.pred) == 'GAIN' and cM[0].indent == 1 and not isSilver
 
     whichBoon = cM[0].items.primary()
 
     # Boons and Shit
-    def add_stuff(cM, gS, exc, tExc, pers):
+    def add_stuff(move, i, bL, moves, cS):
         thisBoon = cM[0].items.primary()
-        exc_gainNormally = Exception(standardCondition(['GAIN']),
+        exc_gainNormally = Exception(check(['GAIN']),
                                      moveException('SUPPLY', 'DISCARDS'),
                                      priority=1)
-        exc_onGainNormally = Exception(standardCondition(['GAIN']),
+        exc_onGainNormally = Exception(check(['GAIN']),
                                        standardOnGains('DISCARDS'),
                                        priority=1)
 
         def discardBoonhexCondition(cM):
-            return cM[0].items.primary() == thisBoon and cM[0].predName() == 'DISCARD'
+            return cM[0].items.primary() == thisBoon and str(move.pred) == 'DISCARD'
 
         def remove_stuff(exceptions):
-            def out_function(cM, gS, exc, tExc, pers):
+            def out_function(move, i, bL, moves, cS):
                 for exception in exceptions:
                     if exception in tExc:
                         tExc.remove(exception)
@@ -4009,7 +3165,7 @@ def turn_start_action(cM, gS, exc, tExc, pers):
         tExc.append(Exception(discardBoonhexCondition,
                     remove_stuff([exc_gainNormally, exc_onGainNormally])))
 
-    exc.append(Exception(standardCondition(['TAKES BOONHEX']), add_stuff))
+    exc.append(Exception(check(['TAKES BOONHEX']), add_stuff))
     exc.append(Exception(immediate_gain_condition, moveException('SUPPLY', 'HANDS')))
     exc.append(Exception(immediate_gain_condition, standardOnGains('DECKS')))
 
@@ -4019,7 +3175,7 @@ standardPreds.append(t)
 
 
 # 73
-def generic_vp_action(cM, gS, exc, tExc, pers):
+def generic_vp_action(move, i, bL, moves, cS):
     gS[-1].vps[cM[0].player] += int(cM[0].items[ARGUMENT_CARD].split('/')[0])
 
 
@@ -4032,7 +3188,7 @@ standardPreds.append(t)
 
 
 # 75
-def obelisk_choice(cM, gS, exc, tExc, pers):
+def obelisk_choice(move, i, bL, moves, cS):
     target = cM[0].items
     gS[-1].obelisk = target
     for pair in pairs:
@@ -4178,7 +3334,7 @@ standardPreds.append(t)
 
 
 # 109
-def setAsideWith_action(cM, gS, exc, tExc, pers):
+def setAsideWith_action(move, i, bL, moves, cS):
     standardMove('HANDS', 'OTHERS', cM, gS)
 
 
@@ -4199,7 +3355,7 @@ standardPreds.append(t)
 
 
 # 113
-def pred113Action(cM, gS, exc, tExc, pers):
+def pred113Action(move, i, bL, moves, cS):
     gS[-1].move(cM[0].player, 'SUPPLY', 'OTHERS', cM[0].items)
     gS[-1].INHERITED_CARDS[cM[0].player] = cM[0].items.cardList()[0]
 
@@ -4212,7 +3368,7 @@ t = Pred("^(?P<player>.*) fails to discard for The Sky's Gift$", empty, "SKY GIF
 standardPreds.append(t)
 
 # 115
-def predCryptAction(cM, gS, exc, tExc, pers):
+def predCryptAction(move, i, bL, moves, cS):
     gS[-1].move(cM[0].player, 'OTHERS', 'HANDS', cM[0].items)
 
 t = Pred("^(?P<player>.*) puts (?P<cards>.*) in hand \(Crypt\)\.$", predCryptAction, "CRYPT")
@@ -4248,19 +3404,19 @@ t = Pred("^(?P<cards>.*) is enchanted by (.*)$", empty, "ENCHANTED")
 standardPreds.append(t)
 
 # 123
-def predDonateAction(cM, gS, exc, tExc, pers):
-    def moveEverything(cM, gS, exc, tExc, pers):
+def predDonateAction(move, i, bL, moves, cS):
+    def moveEverything(move, i, bL, moves, cS):
         gS[-1].move(cM[0].player, 'DECKS', 'HANDS',
                             gS[-1].DECKS[cM[0].player])
         gS[-1].move(cM[0].player, 'DISCARDS', 'HANDS',
                             gS[-1].DISCARDS[cM[0].player])
 
-    def shuffleBack(cM, gS, exc, tExc, pers):
+    def shuffleBack(move, i, bL, moves, cS):
         gS[-1].move(cM[0].player, 'HANDS', 'DECKS',
                             gS[-1].HANDS[cM[0].player])
 
-    exc.append(Exception(standardCondition(['PUT INHAND']), moveEverything))
-    exc.append(Exception(standardCondition(['SHUFFLE INTO']), shuffleBack))
+    exc.append(Exception(check(['PUT INHAND']), moveEverything))
+    exc.append(Exception(check(['SHUFFLE INTO']), shuffleBack))
 
 
 t = Pred("^Between Turns$", predDonateAction, "BETWEEN TURNS")
@@ -4274,19 +3430,19 @@ standardPreds.append(t)
 def urchin_trash_condition(cM):
     out = 0
     for index in range(1, len(cM)-1):
-        if standardCondition(['TRASH'], ['Urchin'])(cM[index]) and out == 0:
+        if check(['TRASH'], ['Urchin'])(cM[index]) and out == 0:
             out = 1
 
-        if standardCondition(['GAIN'], ['Mercenary'])(cM[index + 1]) and out == 1:
+        if check(['GAIN'], ['Mercenary'])(cM[index + 1]) and out == 1:
             out = 2
     return out == 2
 
 
-def urchin_trash_exception(cM, gS, exc, tExc, pers):
+def urchin_trash_exception(move, i, bL, moves, cS):
     standardPreds[cM[0].pred].action(cM, gS, exc, tExc, pers)
     standardOnPlay(cM, gS, exc, tExc, pers)
 
-    exc.append(Exception(standardCondition(['TRASH'], ['Urchin']),
+    exc.append(Exception(check(['TRASH'], ['Urchin']),
                          moveException('INPLAYS', 'TRASH'),
                          priority=1))
 
@@ -4294,31 +3450,31 @@ def urchin_trash_exception(cM, gS, exc, tExc, pers):
 def hermit_trash_condition(cM):
     out = 0
     for index in range(1, len(cM)-1):
-        if standardCondition(['TRASH'], ['Hermit'])(cM[index]) and out == 0:
+        if check(['TRASH'], ['Hermit'])(cM[index]) and out == 0:
             out = 1
 
-        if standardCondition(['GAIN'], ['Madman'])(cM[index + 1]) and out == 1:
+        if check(['GAIN'], ['Madman'])(cM[index + 1]) and out == 1:
             out = 2
     return out == 2
 
 
-def hermit_trash_exception(cM, gS, exc, tExc, pers):
+def hermit_trash_exception(move, i, bL, moves, cS):
     standardPreds[cM[0].pred].action(cM, gS, exc, tExc, pers)
     standardOnPlay(cM, gS, exc, tExc, pers)
 
-    exc.append(Exception(standardCondition(['TRASH'], ['Hermit']),
+    exc.append(Exception(check(['TRASH'], ['Hermit']),
                          moveException('INPLAYS', 'TRASH'),
                          priority=1))
 
 
 standardPersistents.append(Exception(urchin_trash_condition, urchin_trash_exception))
 standardPersistents.append(Exception(hermit_trash_condition, hermit_trash_exception))
-standardPersistents.append(standardException(['RETURN TO'], 'OTHERS', 'SUPPLY',
+standardPersistents.append(checkMove(['RETURN TO'], 'OTHERS', 'SUPPLY',
                                              ['Encampment']))
 travellers = ['Page', 'Treasure Hunter', 'Warrior', 'Hero', 'Champion', 'Peasant', 'Soldier', 'Fugitive', 'Disciple', 'Teacher']
-standardPersistents.append(standardException(['RETURN'], 'INPLAYS', 'SUPPLY',
+standardPersistents.append(checkMove(['RETURN'], 'INPLAYS', 'SUPPLY',
                                              travellers))
-standardPersistents.append(Exception(standardCondition(['DISCARD'], ['Wine Merchant']),
+standardPersistents.append(Exception(check(['DISCARD'], ['Wine Merchant']),
                                      moveException('OTHERS', 'DISCARDS')))
 
 standardNames = [x.simple_name for x in standardCards]

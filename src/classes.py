@@ -1,70 +1,22 @@
 from copy import deepcopy
-import os
-from django.conf import settings
-
-# Constants
-ARGUMENT_CARD = 0
-NOTHING_CARD = 1
-CARD_CARD = 2
-GAMESTART_PRED = 0
-NEWTURN_PRED = 1
-PASS_PRED = 38
-SHUFFLE_PRED = 46
-CLEANUP_PREDS = [21, 46]
-ZOMBIES = [450, 451, 452]
-standardCards = []
-standardPreds = []
-standardPersistents = []
-standardNames = []
-
-f = open(os.path.join(settings.STATIC_ROOT, 'woodcutter/card_images/imageurls.txt'))
-cardUrls = {}
-for line in f:
-    raw = line.strip().split(':')
-    raw[1] = 'woodcutter/card_images/{}'.format(raw[1][raw[1].rfind('/')+1:])
-    cardUrls[raw[0]] = raw[1]
-
-
-class Card:
-    def __init__(self, simple_name, multi_name, phrase_name,
-                 cost, supply_type, border_color, card_color,
-                 action, worth=lambda x, y: 0):
-
-        self.simple_name = simple_name
-        self.multi_name = multi_name
-        self.phrase_name = phrase_name
-        self.cost = cost
-        self.supply_type = supply_type
-        self.action = action
-        self.border_color = border_color
-        self.card_color = card_color
-        self.worth = worth
-
-        if self.simple_name in cardUrls:
-            self.cardurl = cardUrls[self.simple_name]
-        else:
-            self.cardurl = cardUrls['card']
-
-    def names(self):
-        return [self.simple_name, self.multi_name, self.phrase_name]
+from .classes import *
 
 
 class Exception:
-    def __init__(self, condition, action, expiry=-1, priority=0):
+    def __init__(self,
+                 condition,
+                 action,
+                 priority=0,
+                 persistent=True):
+
         self.condition = condition
         self.action = action
-        self.expiry = expiry
+        self.name = repr(self)
         self.priority = priority
+        self.persistent = persistent
 
-
-class Pred:
-    def __init__(self, regex, action, name):
-        self.regex = regex
-        self.action = action
-        self.name = name
-
-    def __repr__(self):
-        return self.regex
+    def __hash__(self):
+        return self.name
 
 
 class ParsedLine:
@@ -72,174 +24,201 @@ class ParsedLine:
         self.player = player
         self.indent = indent
         self.pred = pred
+        self.predName = self.pred.name
         self.items = items
         self.isCleanup = isCleanup
 
     def __str__(self):
-        return str(self.player)+str(self.indent)+str(self.pred)+str(self.items)
+        return '{}{}{}{}'.format(self.player,
+                                 self.indent,
+                                 self.pred,
+                                 self.items)
 
     def __repr__(self):
-        return str(self.player)+str(self.indent)+str(self.pred)+str(self.items)
-
-    def predName(self):
-        return standardPreds[self.pred].name
+        return '{}{}{}{}'.format(hex(self.player)[2:],
+                                 hex(self.indent)[2:],
+                                 self.pred,
+                                 self.items)
 
 
 class Cardstack:
+    # Stored as Card, but outside reference is via card name.
+    # Cards are returned via cardList and getCards methods.
     def __init__(self, cards):
-        self.val = cards
-
-    def __add__(self, other):
-        t = deepcopy(self.val)
-        for c in other:
-            if c not in [ARGUMENT_CARD, NOTHING_CARD, CARD_CARD]:
-                if c in t:
-                    t[c] += other.val[c]
-                else:
-                    t[c] = other.val[c]
-        return Cardstack(t)
-
-    def __sub__(self, other):
-        t = deepcopy(self.val)
-        for c in other:
-            if c not in [ARGUMENT_CARD, NOTHING_CARD, CARD_CARD]:
-                if c in t:
-                    t[c] -= other.val[c]
-
-        t = {c: v for c, v in t.items() if c not in [ARGUMENT_CARD, NOTHING_CARD, CARD_CARD] if v > 0}
-        return Cardstack(t)
+        self.cards = {}
+        for c in cards:
+            self.cards[Card[c]] = cards[c]
 
     def __iter__(self):
-        for card in list(self.val):
-            yield card
+        for card in list(self.cards):
+            yield str(card)
 
-    def insert(self, item, number):
-        if item != ARGUMENT_CARD:
-            if item in self.val:
-                self.val[item] += number
-            else:
-                self.val[item] = number
+    def __getitem__(self, item):
+        if Card[item] in self.cards:
+            return self.cards[Card[item]]
         else:
-            if item in self.val:
-                self.val[item] += '/'+str(number)
+            return 0
+
+    def __setitem__(self, item, value):
+        if item != 'ARGUMENT':
+            self[item] = number
+        else:
+            if 'ARGUMENT' in self.cards:
+                self.cards['ARGUMENT'] += '/' + str(number)
             else:
-                self.val[item] = str(number)
+                self.cards['ARGUMENT'] = str(number)
+
+    def __delitem__(self, item):
+        if item in self:
+            del self.cards[Card[item]]
+
+    def __add__(self, other):
+        t = deepcopy(self)
+        for c in other:
+            if c not in ['ARGUMENT', 'NOTHING', 'CARD']:
+                if c in t:
+                    t[c] += other[c]
+                else:
+                    t[c] = other[c]
+        return t
+
+    def __sub__(self, other):
+        t = deepcopy(self)
+        for c in other:
+            if c not in ['ARGUMENT', 'NOTHING', 'CARD']:
+                if c in t:
+                    t[c] -= other[c]
+
+        for c in t:
+            if c in ['ARGUMENT', 'NOTHING', 'CARD'] or t[c] == 0:
+                del t[c]
+        return t
+
+    def __gt__(self, other):
+        return not(len(other - self) > 0)
+
+    def __lt__(self, other):
+        return not(len(self - other) > 0)
 
     def __str__(self):
-        t = ['{}:{}'.format(self.val[i], hex(i)[2:]) for i in self.val]
-        outstr = '|'.join(t)
-        return outstr
+        return '|'.join(['{}:{}'.format(self[i],
+                                        str(Cards[i]))
+                         for i in self.cards])
 
     def __repr__(self):
-        t = ['{}:{}'.format(self.val[i], hex(i)[2:]) for i in self.val]
-        outstr = '|'.join(t)
-        return outstr
+        return '|'.join(['{}:{}'.format(self[i],
+                                        Cards[i])
+                         for i in self.cards])
 
-    def __getitem__(self,item):
-        return self.val[item]
-
-    def debugstr(self):
-        t = ['{}:{}'.format(self.val[i], standardCards[i].simple_name) for i in self.val]
-        outstr = '|'.join(t)
-        return outstr
-
-    def count(self):
-        return sum([self.val[item] for item in self.val if item != ARGUMENT_CARD])
+    def __len__(self):
+        return sum([self[item] for item in self if item != 'ARGUMENT'])
 
     def cardList(self):
-        return list(self.val)
+        return list(self.cards)
 
-    def getval(self):
-        return self.val
+    def getCards(self):
+        return self.cards
 
     def strip(self):
-        newItems = {}
-        for item in self.val:
-            if item not in [ARGUMENT_CARD, NOTHING_CARD, CARD_CARD]:
-                newItems[item] = self.val[item]
+        t = deepcopy(self)
+        for c in ['ARGUMENT', 'NOTHING', 'CARD']:
+            del t[c]
 
-        return Cardstack(newItems)
+        return t
 
     def primary(self):
-        if len(self.cardList()) > 0:
-            return standardCards[self.cardList()[0]].simple_name
+        if len(self) > 0:
+            return self[0]
         else:
-            return 'card'
+            return 'CARD'
 
     def merge(self, target):
-        temp = {}
-        for item in self.val:
-            if item not in [ARGUMENT_CARD, NOTHING_CARD]:
+        t = deepcopy(self)
+        for c in t:
+            if c not in ['ARGUMENT', 'NOTHING']:
                 if item in target:
-                    temp[item] = min(self.val[item], target[item])
-            else:
-                temp[item] = self.val[item]
+                    t[c] = min(self[c], target[c])
+                else:
+                    del t[c]
 
-        return Cardstack(temp)
+        return t
 
 
-class gameState:
+gSZones = ('SUPPLY', 'DECKS', 'HANDS', 'INPLAYS',
+           'DISCARDS', 'OTHERS', 'TRASH')
+PERSONAL_ZONES = ('DECKS', 'HANDS', 'DISCARDS', 'OTHERS', 'INPLAYS')
+gSLengths = (1, 2, 2, 2, 2, 2, 1)
+gSQuantities = ('OBELISK', 'ACTIVE_PLAYER', 'INHERITED_CARDS',
+                'VPS', 'VALID', 'PHASE')
+quantityDefaults = (Card['CARD'],
+                    0,
+                    [Card['NOTHING'], Card['NOTHING']],
+                    [0, 0],
+                    True,
+                    0)
+
+
+class GameState:
     def __init__(self):
-        self.SUPPLY = [Cardstack({})]
-        self.DECKS = [Cardstack({}), Cardstack({})]
-        self.HANDS = [Cardstack({}), Cardstack({})]
-        self.INPLAYS = [Cardstack({}), Cardstack({})]
-        self.DISCARDS = [Cardstack({}), Cardstack({})]
-        self.OTHERS = [Cardstack({}), Cardstack({})]
-        self.TRASH = [Cardstack({})]
-        self.dontdiscard = [Cardstack({}), Cardstack({})]
-        self.neverdiscard = [Cardstack({}), Cardstack({})]
-        self.coins = [0, 0]
-        self.coinsLower = [0, 0]
-        self.vps = [0, 0]
-        self.obelisk = []
-        self.valid = True
-        self.activePlayer = 0
-        self.INHERITED_CARDS = [CARD_CARD, CARD_CARD]
-        self.phase = 0
+        self.boardState = {a: [Cardstack({}) for i in range(b)] for
+                           a, b in zip(gSZones, gSLengths)}
+        self.quantities = {a: b for a, b in
+                           zip(gSQuantities, quantityDefaults)}
+
+    def __getitem__(self, item):
+        if item in self.boardState:
+            (field, player) = item
+            index = min(len(self.boardState[field]) - 1, player)
+            return self.boardState[field][index]
+        elif item in self.quantities:
+            return self.quantities[item]
+        else:
+            raise KeyError
+
+    def __setitem__(self, item, value):
+        if item in self.boardState:
+            (field, player) = item
+            index = min(len(self.boardState[field]) - 1, player)
+            self.boardState[field][index] = value
+        elif item in self.quantities:
+            self.quantities[item] = value
+        else:
+            raise KeyError
 
     def __str__(self):
         outstr = ''
-        for zone in ['SUPPLY', 'DECKS', 'HANDS', 'INPLAYS',
-                     'DISCARDS', 'OTHERS', 'TRASH']:
-            outstr += '\n    '+zone
-            for part in getattr(self, zone):
-                outstr += '\n    ' + part.debugstr()
+        for zone in gSZones:
+            outstr += '\n    ' + zone
+            for part in self.boardState:
+                outstr += '\n    ' + str(part)
 
         outstr += '\n    ------\n'
         return outstr
 
     def move(self, player, src, dest, items):
         itemsNoArgs = items.strip()
-
-        if len((itemsNoArgs - getattr(self, src)[min(len(getattr(self, src))-1, player)]).cardList()) > 0:
+        if itemsNoArgs > self[(src, player)]:
             print('ILLEGAL MOVE {} from {} to {}'.format(items, src, dest))
-            self.valid = False
+            self['VALID'] = False
 
-        getattr(self, src)[min(len(getattr(self, src))-1, player)] -= itemsNoArgs
-        getattr(self, dest)[min(len(getattr(self, dest))-1, player)] += itemsNoArgs
+        self[(src, player)] -= itemsNoArgs
+        self[(dest, player)] += itemsNoArgs
 
     def add(self, player, dest, items):
-        getattr(self, dest)[min(len(getattr(self, dest))-1, player)] += items
+        self[(dest, player)] += items
 
     def crunch(self, zonelist, playerlist):
         outlist = Cardstack({})
         for zone in zonelist:
-            if len(getattr(self, zone)) > 1:
+            if len(self.boardState[zone]) > 1:
                 for player in playerlist:
-                    outlist += getattr(self, zone)[player]
+                    outlist += self[(zone, player)]
             else:
-                outlist += getattr(self, zone)[0]
+                outlist += self[(zone, player)]
 
         return outlist
 
     def export(self):
-        zones = ['SUPPLY', 'DECKS', 'HANDS', 'INPLAYS',
-                 'DISCARDS', 'OTHERS', 'TRASH']
-        zoneStrings = [[str(part) for part in getattr(self, zone)]
-                       for zone in zones]
+        zoneStrings = [[repr(part) for part in self.boardState[zone]]
+                       for zone in gSZones]
         return zoneStrings
-
-
-def chunkLength(chunk):
-    return sum([1 + chunkLength(subchunk) for subchunk in chunk[1:]])

@@ -1,30 +1,30 @@
 from .classes import *
 from .standards import *
 from copy import deepcopy
+from functools import reduce
+from operator import and_
 
 
 def snip(rawLog, snips):
     # snips are tuples of the form (decision, player, indent, pred, items)
     logStrings = rawLog.split('~')
     for snip in snips:
-        outstr = '{}{}{:0>2}{}'.format(hex(snip[1].player + 1)[2:],
-                                       hex(snip[1].indent)[2:],
-                                       hex(snip[1].pred)[2:],
-                                       snip[1].items)
-        print('replacing {} with {}'.format(logStrings[snip[0]], outstr))
-        logStrings[snip[0]] = outstr
+        logStrings[snip[0]] = repr(snip[1])
 
     return '~'.join(logStrings)
 
 
-def fullRepair(inLog, moveTree, gameStates):
-    changed = False
+def fullRepair(inLog, moveTree, gameStates, supply):
     currLog = inLog
-    repairers = [repairRepay, repairSave]
-    allSnips = [repairer(currLog, moveTree, gameStates) for
-                repairer in repairers]
+    repairers = [repairRepay, repairSave, repairHaven]
+    necessaryCards = [['Copper'], ['Save'], ['Haven']]
+
+    allSnips = []
+    for repairer, condition in zip(repairers, necessaryCards):
+        if reduce(and_, [card in supply for card in condition]):
+            allSnips += repairer(currLog, moveTree, gameStates)
+
     totalSnips = sum([len(x) for x in allSnips])
-    print(allSnips)
 
     for snipList in allSnips:
         currLog = snip(currLog, snipList)
@@ -90,3 +90,7 @@ def repairSave(rawLog, moveTree, gameStates):
         scan_chunk(turn, turn)
 
     return snips
+
+
+def repairHaven(rawLog, moveTree, gameStates):
+    return []

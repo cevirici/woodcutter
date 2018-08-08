@@ -32,29 +32,29 @@ def random(request):
     logs = GameLog.objects.all()
     i = randint(0, len(logs) - 1)
     gameIndex = logs[i].game_id
-    return HttpResponseRedirect(reverse('woodcutter:display', args=(gameIndex,)))
+    return HttpResponseRedirect(reverse('woodcutter:display',
+                                        args=(gameIndex,)))
 
 
 @csrf_exempt
 def submit(request):
-    arr = [request.POST['fileone'], request.POST['filetwo']]
-    ret = combined_parse(arr)
-    sup = parse_supply(request.POST['supply'])
+    (condensedLog, gameID) = combined_parse([request.POST['fileone'],
+                                             request.POST['filetwo']])
+    supply = parse_supply(request.POST['supply'])
     players = request.POST['players']
 
-    gameid = ret[1]
     try:
-        existinglog = GameLog.objects.get(game_id=gameid)
+        oldLog = GameLog.objects.get(game_id=gameID)
     except ObjectDoesNotExist:
-        newLog = GameLog.objects.create(game_id=ret[1],
-                                        log=ret[0],
-                                        supply=sup,
-                                        players=players)
+        GameLog.objects.create(game_id=gameID,
+                               log=condensedLog,
+                               supply=supplpy,
+                               players=players)
     else:
-        existinglog.log = ret[0]
-        existinglog.supply = sup
-        existinglog.players = players
-        existinglog.save()
+        oldLog.log = condensedLog
+        oldLog.supply = supply
+        oldLog.players = players
+        oldLog.save()
 
     return HttpResponseRedirect(reverse('woodcutter:display', args=(ret[1],)))
 
@@ -65,16 +65,16 @@ def display(request, game_id):
 
     repairable = True
     while repairable:
-        moveData = unpack(log.log, log.supply)
-        moveTree = parse_game(moveData[0])
+        (parsedLog, supply) = unpack(log.log, log.supply)
+        (gameMoves, blockLengths) = parse_game(parsedLog)
         try:
-            gameStates = get_decision_state(moveTree, moveData[1])
+            gameStates = get_decision_state(gameMoves, gameData[1])
         except BaseException:
             log.valid = False
             log.save()
             raise
 
-        attemptedRepair = fullRepair(log.log, moveTree, gameStates)
+        attemptedRepair = fullRepair(log.log, gameMoves, gameStates, log.supply)
         if attemptedRepair[1]:
             log.log = attemptedRepair[0]
             log.save()
@@ -85,22 +85,22 @@ def display(request, game_id):
     log.valid = gameStates[-1].valid
     log.save()
 
-    turnPoints = get_turn_points(moveTree)
-    turnOwners = get_turn_owners(moveTree)
-    shuffledTurns = get_shuffled_turns(moveTree)
+    turnPoints = get_turn_points(gameMoves)
+    turnOwners = get_turn_owners(gameMoves)
+    shuffledTurns = get_shuffled_turns(gameMoves)
 
     involvedCards = get_involved_cards(gameStates)
 
     allCards = find_turn_decks(turnPoints, gameStates)
     gainedCards = find_gained_cards(turnPoints, gameStates)
 
-    cleanupPoints = [x+y for x, y in zip(get_cleanup_points(moveTree),
+    cleanupPoints = [x+y for x, y in zip(get_cleanup_points(gameMoves),
                      [-1] + turnPoints)]
     cleanupPoints[0] = turnPoints[0] + 1
     progressCards = find_shuffle_progress(turnPoints, cleanupPoints,
                                           gameStates)
 
-    vpCards = find_vp(turnPoints, gameStates, moveData[1])
+    vpCards = find_vp(turnPoints, gameStates, gameData[1])
 
     graph_all_top = render_graph_row(allCards, [''], 0)
     graph_all_bot = render_graph_row(allCards, [''], 1)
@@ -119,16 +119,16 @@ def display(request, game_id):
     bgData_bot = render_graph_background(turnOwners, shuffledTurns, 1)
     legendBoxes = render_legend_boxes(involvedCards)
     sidebarLabels = render_story_sidebar_labels(turnOwners, turnPoints)
-    storyRaw = elaborate_story(players, moveTree)
+    storyRaw = elaborate_story(players, gameMoves)
     story = storyRaw[0]
     storyPlain = storyRaw[1]
 
-    full_printout(moveTree, gameStates)
+    full_printout(gameMoves, gameStates)
 
-    kingdom = render_kingdom(moveData[1])
+    kingdom = render_kingdom(gameData[1])
 
     titleString = 'Game #{}: {} - {}'.format(game_id, players[0], players[1])
-    kingdomColors = relevantColors(moveData[1])
+    kingdomColors = relevantColors(gameData[1])
 
     cards = [x.simple_name for x in standardCards]
 
@@ -179,7 +179,7 @@ def quickUpdate(request):
                 log.save()
                 raise
 
-            attemptedRepair = fullRepair(log.log, moveTree, gameStates)
+            attemptedRepair = fullRepair(log.log, moveTree, gameStates, moveData[1])
             if attemptedRepair[1]:
                 log.log = attemptedRepair[0]
                 log.save()
