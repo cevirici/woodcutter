@@ -364,8 +364,7 @@ TREASURES = ['COPPER',
              'PASTURE',
              'POUCH',
              'STASH']
-BOONHEX = [
-           'THE EARTH\'S GIFT',
+BOONHEX = ['THE EARTH\'S GIFT',
            'THE FIELD\'S GIFT',
            'THE FLAME\'S GIFT',
            'THE FOREST\'S GIFT',
@@ -395,18 +394,17 @@ BOONHEX = [
            'TWICE MISERABLE',
            'ENVIOUS',
            'DELUDED']
+KNIGHTS = ['DAME ANNA', 'DAME JOSEPHINE', 'DAME MOLLY', 'DAME NATALIE',
+           'DAME SYLVIA', 'SIR BAILEY', 'SIR DESTRY', 'SIR MARTIN',
+           'SIR MICHAEL', 'SIR VANDER']
 PAIRS = [['ENCAMPMENT', 'PLUNDER'],
          ['PATRICIAN', 'EMPORIUM'],
          ['SETTLERS', 'BUSTLING VILLAGE'],
          ['CATAPULT', 'ROCKS'],
          ['GLADIATOR', 'FORTUNE'],
-         ['DAME ANNA', 'DAME JOSEPHINE', 'DAME MOLLY', 'DAME NATALIE', 'DAME SYLVIA'
-          , 'SIR BAILEY', 'SIR DESTRY', 'SIR MARTIN', 'SIR MICHAEL', 'SIR VANDER'],
+         KNIGHTS,
          ['RUINED LIBRARY', 'RUINED VILLAGE', 'ABANDONED MINE', 'RUINED MARKET', 'SURVIVORS'],
          ['SAUNA', 'AVANTO']]
-KNIGHTS = ['DAME ANNA', 'DAME JOSEPHINE', 'DAME MOLLY', 'DAME NATALIE',
-           'DAME SYLVIA', 'SIR BAILEY', 'SIR DESTRY', 'SIR MARTIN',
-           'SIR MICHAEL', 'SIR VANDER']
 LANDMARKS = ['AQUEDUCT', 'ARENA', 'BANDIT FORT', 'BASILICA', 'BATHS', 'BATTLEFIELD',
              'COLONNADE', 'DEFILED SHRINE', 'FOUNTAIN', 'KEEP', 'LABYRINTH',
              'MUSEUM', 'OBELISK',
@@ -423,16 +421,7 @@ LANDSCAPES = LANDMARKS + \
              'CONQUEST', 'LOST ARTS', 'TRAINING',
              'INHERITANCE', 'PATHFINDING', 'DOMINATE']
 
-DONT_LOAD = BOONHEX + LANDMARKS + \
-            ['TRIUMPH', 'ANNEX', 'DONATE', 'ADVANCE',
-             'ALMS', 'BORROW', 'QUEST', 'SAVE', 'DELVE',
-             'SCOUTING PARTY', 'TAX', 'TRAVELLING FAIR',
-             'BANQUET', 'BONFIRE', 'EXPEDITION', 'FERRY',
-             'PLAN', 'MISSION', 'PILGRIMAGE', 'RITUAL',
-             'SALT THE EARTH', 'WEDDING', 'BALL', 'RAID',
-             'SEAWAY', 'SUMMON', 'TRADE', 'WINDFALL',
-             'CONQUEST', 'LOST ARTS', 'TRAINING',
-             'INHERITANCE', 'PATHFINDING', 'DOMINATE']
+DONT_LOAD = BOONHEX + LANDSCAPES
 
 CARD_ORDER = ['ARGUMENT',
               'NOTHING',
@@ -805,17 +794,21 @@ CARD_ORDER = ['ARGUMENT',
               'HIRELING',
               'RAIDER',
               'EXPAND',
-              'FORGE', "KING'S COURT",
+              'FORGE',
+              "KING'S COURT",
               'PEDDLER',
               'PRINCE',
               'DEBT',
               'DEBT',
               "THE EARTH'S GIFT"]
 
-BUNCHCARDS = [[range(312, 320), 311],
-              [[218, 219, 220, 221, 222, 185, 186, 187, 188, 189], 174],
-              [[175, 213, 214, 215, 226], 173]]
-
-LISTCARDS = [[[301, 302], 301],
-             [[303, 304], 303],
-             [[305, 306], 305]]
+TRAVELLERS = ['PAGE',
+              'TREASURE HUNTER',
+              'WARRIOR',
+              'HERO',
+              'CHAMPION',
+              'PEASANT',
+              'SOLDIER',
+              'FUGITIVE',
+              'DISCIPLE',
+              'TEACHER']

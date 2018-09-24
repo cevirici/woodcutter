@@ -1,5 +1,5 @@
 from copy import deepcopy
-from .classes import *
+from .standards import *
 
 
 class Exception:
@@ -150,9 +150,9 @@ PERSONAL_ZONES = ('DECKS', 'HANDS', 'DISCARDS', 'OTHERS', 'INPLAYS')
 gSLengths = (1, 2, 2, 2, 2, 2, 1)
 gSQuantities = ('OBELISK', 'ACTIVE_PLAYER', 'INHERITED_CARDS',
                 'VPS', 'VALID', 'PHASE')
-quantityDefaults = (Card['CARD'],
+quantityDefaults = ([],
                     0,
-                    [Card['NOTHING'], Card['NOTHING']],
+                    [Cards['NOTHING'], Cards['NOTHING']],
                     [0, 0],
                     True,
                     0)
@@ -166,20 +166,26 @@ class GameState:
                            zip(gSQuantities, quantityDefaults)}
 
     def __getitem__(self, item):
-        if item in self.boardState:
+        if type(item) == tuple:
             (field, player) = item
-            index = min(len(self.boardState[field]) - 1, player)
-            return self.boardState[field][index]
+            if field in self.boardState:
+                index = min(len(self.boardState[field]) - 1, player)
+                return self.boardState[field][index]
+            else:
+                raise KeyError
         elif item in self.quantities:
             return self.quantities[item]
         else:
             raise KeyError
 
     def __setitem__(self, item, value):
-        if item in self.boardState:
+        if type(item) == tuple:
             (field, player) = item
-            index = min(len(self.boardState[field]) - 1, player)
-            self.boardState[field][index] = value
+            if field in self.boardState:
+                index = min(len(self.boardState[field]) - 1, player)
+                self.boardState[field][index] = value
+            else:
+                raise KeyError
         elif item in self.quantities:
             self.quantities[item] = value
         else:

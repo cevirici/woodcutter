@@ -311,12 +311,12 @@ ff,Dungeon,Dungeons,a Dungeon,3,0,dda561,4f472d
 136,Fortune,Fortunes,a Fortune,16,0,d8c280,94794F
 137,Castles,Castles,a Castles,3,0,9cbe8a,2d7bbb
 138,Humble Castle,Humble Castles,a Humble Castle,3,-1,a9c35d,63af7f
-139,Crumbling Castle,Crumbling Castles,a Crumbling Castle,4,-1,9cbe8a,ceb22c
-13a,Small Castle,Small Castles,a Small Castle,5,-1,aac298,96a692
-13b,Haunted Castle,Haunted Castles,a Haunted Castle,6,-1,9cbe8a,4a6064
-13c,Opulent Castle,Opulent Castles,an Opulent Castle,7,-1,aac298,4f9391
-13d,Sprawling Castle,Sprawling Castles,a Sprawling Castle,8,-1,9cbe8a,ffb300
-13e,Grand Castle,Grand Castles,a Grand Castle,9,-1,9cbe8a,9e7e5a
+139,Crumbling Castle,Crumbling Castles,a Crumbling Castle,4,-1,9cbe8a,ceb22c,1
+13a,Small Castle,Small Castles,a Small Castle,5,-1,aac298,96a692,2
+13b,Haunted Castle,Haunted Castles,a Haunted Castle,6,-1,9cbe8a,4a6064,2
+13c,Opulent Castle,Opulent Castles,an Opulent Castle,7,-1,aac298,4f9391,3
+13d,Sprawling Castle,Sprawling Castles,a Sprawling Castle,8,-1,9cbe8a,ffb300,4
+13e,Grand Castle,Grand Castles,a Grand Castle,9,-1,9cbe8a,9e7e5a,5
 13f,King's Castle,King's Castles,a King's Castle,10,-1,9cbe8a,cd8959
 140,Advance,Advances,an Advance,0,2,a9a39d,714d41
 141,Annex,Annexes,an Annex,8,2,a9a39d,7a5a36
@@ -406,7 +406,7 @@ ff,Dungeon,Dungeons,a Dungeon,3,0,dda561,4f472d
 195,Bard,Bards,a Bard,4,0,c4c0b4,57932f
 196,Blessed Village,Blessed Villages,a Blessed Village,4,0,c4c0b4,8f7737
 197,Changeling,Changelings,a Changeling,3,0,30484e,183442
-198,Cemetery,Cemeteries,a Cemetery,4,0,9cbe8a,53735b
+198,Cemetery,Cemeteries,a Cemetery,4,0,9cbe8a,53735b,2
 199,Cobbler,Cobblers,a Cobbler,5,0,7a5622,5a501c
 19a,Conclave,Conclaves,a Conclave,4,0,c4c0b4,9c6a14
 19b,Crypt,Crypts,a Crypt,5,0,7a5622,0d494f

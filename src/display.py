@@ -3,7 +3,6 @@ from .classes import *
 from .standards import *
 
 from functools import reduce
-from itertools import product
 from django.contrib.staticfiles.templatetags.staticfiles import static
 
 

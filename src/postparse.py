@@ -33,7 +33,7 @@ def unpack(logString, supplyString):
     return (gL, supply)
 
 
-def parse_game(parsedLog):
+def parse_gameLog(parsedLog):
     gameMoves = []
     blockLengths = []
     pointers = {}
@@ -63,7 +63,7 @@ def parse_game(parsedLog):
     return (gameMoves, blockLengths)
 
 
-def get_decision_state(gM, blockLengths, supply):
+def parse_single_line(gM, i, bL, cS, activeExceptions):
     def updateExceptions(object, move, i, bL, gM, cS, t):
         a = object.action(move, i, bL, gM, cS)
         for exc in a:
@@ -71,11 +71,45 @@ def get_decision_state(gM, blockLengths, supply):
                 exc.priority = move.indent
             t[exc] = a[exc]
 
+    move = gM[i]
+    priorities = [exception.priority for exception in activeExceptions]
+    pSorted = [[exc for exc in activeExceptions if exc.priority == p]
+               for p in priorities]
+    t = {}
+
+    for layer in pSorted:
+        triggered = False
+        for exc in layer:
+            if exc.condition(move):
+                triggered = True
+                updateExceptions(exc, move, i, bL, gM, currentState, t)
+                if not exc.persistent:
+                    del activeExceptions[exc]
+
+        if triggered:
+            break
+
+    for exc in activeExceptions:
+        activeExceptions[exc] -= 1
+        if activeExceptions[exc] == 0:
+            del activeExceptions[exc]
+
+    if not triggered:
+        updateExceptions(move.pred, move, i, bL, gM, currentState, t)
+    for card in move.items.cardList():
+        updateExceptions(card, move, i, bL, gM, currentState, t)
+
+    activeExceptions.update(t)
+    return (currentState, activeExceptions)
+
+
+def parse_everything(gM, blockLengths, supply):
+    # Setup starting state
     startState = GameState()
     for card in supply:
         if card not in DONT_LOAD:
             startState.add(0, 'SUPPLY', Cardstack({card: supply[card]}))
-    # Zombies
+
     if 'ZOMBIE APPRENTICE' in supply:
         zombieStack = Cardstack({z: 1 for z in ('ZOMBIE APPRENTICE',
                                                 'ZOMBIE MASON',
@@ -83,104 +117,53 @@ def get_decision_state(gM, blockLengths, supply):
         startState.move(0, 'SUPPLY', 'TRASH', zombieStack)
 
     gameStates = [startState]
-    activeExceptions = INTRINSIC_EXCEPTIONS  # Exceptions, and time left
-    for i, move, bL in enumerate(zip(gM, blockLengths)):
-        currentState = deepcopy(gameStates[-1])
+    aE = INTRINSIC_EXCEPTIONS
+    for i, bL in enumerate(blockLengths):
+        cS = deepcopy(gameStates[-1])
 
-        priorities = [exception.priority for exception in activeExceptions]
-        pSorted = [[exc for exc in activeExceptions if exc.priority == p]
-                   for p in priorities]
-        t = {}
-
-        for layer in pSorted:
-            triggered = False
-            for exc in layer:
-                if exc.condition(move):
-                    triggered = True
-                    updateExceptions(exc, move, i, bL, gM, currentState, t)
-                    if not exc.persistent:
-                        del activeExceptions[exc]
-
-            if triggered:
-                break
-
-        for exc in activeExceptions:
-            activeExceptions[exc] -= 1
-            if activeExceptions[exc] == 0:
-                del activeExceptions[exc]
-
-        if not triggered:
-            updateExceptions(move.pred, move, i, bL, gM, currentState, t)
-        for card in move.items.cardList():
-            updateExceptions(card, move, i, bL, gM, currentState, t)
-
-        activeExceptions.update(t)
-        gameStates.append(currentState)
+        (cS, aE) = parse_single_line(gM, i, bL, cS, copy(aE))
+        gameStates.append(cS)
 
     return gameStates
 
 
-def get_turn_points(moveTree):
+def get_turn_points(blockLengths):
     # Position of last decision in each turn, including the pregame turn
-    def get_chunk_length(chunk):
-        return sum([get_chunk_length(x) for x in chunk[1:]]) + 1
-    lens = [get_chunk_length(chunk) for chunk in moveTree]
-    return [sum(lens[:i+1])-1 for i in range(len(lens))]
+    points = []
+    pointer = 0
+    while pointer < len(blockLengths):
+        points.append(pointer)
+        pointer += blockLengths[pointer]
+    return points
 
 
-def get_cleanup_points(moveTree):
-    # Look for the first nonindented shuffle/draw
-    def find_cleanup_chunk(chunk):
-        if chunk[0].indent == 0 and chunk[0].pred in CLEANUP_PREDS:
-            return 1
-        else:
-            t = -1
-            for subchunk in chunk[1:]:
-                if find_cleanup_chunk(subchunk) < 0:
-                    t += find_cleanup_chunk(subchunk)
-                else:
-                    t = -t + find_cleanup_chunk(subchunk)
-                    return t
-            return t
-
-    return [abs(find_cleanup_chunk(chunk)) for chunk in moveTree]
+def get_cleanup_points(gameMoves):
+    return [i for i in range(1, len(gameMoves)) if
+            gameMoves[i].isCleanup and not gameMoves[i - 1].isCleanup]
 
 
-def get_turn_owners(moveTree):
-    return [chunk[0].player for chunk in moveTree]
+def get_turn_owners(gameMoves, turnPoints):
+    return [gameMoves[i].player for i in turnPoints]
 
 
-def get_shuffled_turns(moveTree):
-    def had_shuffled(player, chunk):
-        if chunk[0].pred == SHUFFLE_PRED and chunk[0].player == player:
-            return True
-        else:
-            if [x for x in chunk[1:] if had_shuffled(player, x)]:
-                return True
-            else:
-                return False
-
-    return [[had_shuffled(p, x) for x in moveTree] for p in range(2)]
+def get_shuffled_turns(gameMoves, turnPoints):
+    outList = []
+    for i in range(len(turnPoints) - 1):
+        for scan in gameMoves[turnPoints[i]: turnPoints[i+1]]:
+            if str(scan.pred) == 'SHUFFLE':
+                outList.append(True)
+                break
+        outList.apend(False)
+    return outList
 
 
 def get_involved_cards(gameStates):
     involvedCards = set()
 
     for state in gameStates:
-        involvedCards.update(state.crunch(['DECKS','HANDS','INPLAYS','DISCARDS','OTHERS','TRASH'],[0,1]))
+        involvedCards.update(state.crunch(PERSONAL_ZONES, (0, 1)))
 
-    involvedCards = list(involvedCards)
-    involvedCards.sort()
-    return involvedCards
-
-
-def find_turn_decks(turnPoints, gameStates):
-    turnDecks = [[] for i in range(2)]
-    for point in turnPoints:
-        for p in range(2):
-            turnDecks[p].append(gameStates[point+1].crunch(['DECKS','HANDS','INPLAYS','DISCARDS','OTHERS'],[p]))
-
-    return [turnDecks]
+    return list(involvedCards)
 
 
 def find_gained_cards(turnPoints, gameStates):

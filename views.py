@@ -63,29 +63,19 @@ def display(request, game_id):
     log = get_object_or_404(GameLog, game_id=game_id)
     players = log.players.split('~')
 
-    repairable = True
-    while repairable:
-        (parsedLog, supply) = unpack(log.log, log.supply)
-        (gameMoves, blockLengths) = parse_game(parsedLog)
-        try:
-            gameStates = get_decision_state(gameMoves, gameData[1])
-        except BaseException:
-            log.valid = False
-            log.save()
-            raise
-
-        attemptedRepair = fullRepair(log.log, gameMoves, gameStates, log.supply)
-        if attemptedRepair[1]:
-            log.log = attemptedRepair[0]
-            log.save()
-        else:
-            repairable = False
-
+    (parsedLog, supply) = unpack(log.log, log.supply)
+    (gameMoves, blockLengths) = parse_gameLog(parsedLog)
+    try:
+        gameStates = parse_everything(gameMoves, blockLengths, supply)
+    except BaseException:
+        log.valid = False
+        log.save()
+        raise
 
     log.valid = gameStates[-1].valid
     log.save()
 
-    turnPoints = get_turn_points(gameMoves)
+    turnPoints = get_turn_points(blockLengths)
     turnOwners = get_turn_owners(gameMoves)
     shuffledTurns = get_shuffled_turns(gameMoves)
 

@@ -3,6 +3,50 @@ from .standards import *
 from copy import deepcopy
 from functools import reduce
 from operator import and_
+from .postparse import parse_single_line
+
+
+def diagnose(gM):
+    errorLines = {}
+    # - Debt Repay
+
+    # - Save
+    # - Haven
+    # - Gear
+    # - Archive
+    # - Moon's Gift
+    # - Emulation
+    # - Ongain Topdecks
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 def snip(rawLog, snips):
@@ -12,7 +56,6 @@ def snip(rawLog, snips):
         logStrings[snip[0]] = repr(snip[1])
 
     return '~'.join(logStrings)
-
 
 def fullRepair(inLog, moveTree, gameStates, supply):
     currLog = inLog
