@@ -37,26 +37,27 @@ def random(request):
 
 @csrf_exempt
 def submit(request):
-    arr = [request.POST['fileone'], request.POST['filetwo']]
-    ret = combined_parse(arr)
-    sup = parse_supply(request.POST['supply'])
-    players = request.POST['players']
+    # arr = [request.POST['fileone'], request.POST['filetwo']]
+    # ret = combined_parse(arr)
+    # sup = parse_supply(request.POST['supply'])
+    # players = request.POST['players']
 
-    gameid = ret[1]
-    try:
-        existinglog = GameLog.objects.get(game_id=gameid)
-    except ObjectDoesNotExist:
-        newLog = GameLog.objects.create(game_id=ret[1],
-                                        log=ret[0],
-                                        supply=sup,
-                                        players=players)
-    else:
-        existinglog.log = ret[0]
-        existinglog.supply = sup
-        existinglog.players = players
-        existinglog.save()
+    # gameid = ret[1]
+    # try:
+    #     existinglog = GameLog.objects.get(game_id=gameid)
+    # except ObjectDoesNotExist:
+    #     newLog = GameLog.objects.create(game_id=ret[1],
+    #                                     log=ret[0],
+    #                                     supply=sup,
+    #                                     players=players)
+    # else:
+    #     existinglog.log = ret[0]
+    #     existinglog.supply = sup
+    #     existinglog.players = players
+    #     existinglog.save()
 
-    return HttpResponseRedirect(reverse('woodcutter:display', args=(ret[1],)))
+    # return HttpResponseRedirect(reverse('woodcutter:display', args=(ret[1],)))
+    pass
 
 
 def display(request, game_id):
