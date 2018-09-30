@@ -9,12 +9,12 @@ def unpack(logString, supplyString):
     for line in lines:
         stack = Cardstack({})
 
-        if len(itemString) > 0:
-            items = [x.split(':') for x in itemString.split('|')]
+        if len(line) > 4:
+            items = [x.split(':') for x in line[4:].split('|')]
             for item in items:
                 cardName = str(CardList[int(item[1], 16)])
                 quantity = item[0]
-                if card != Card['ARGUMENT']:
+                if cardName != 'ARGUMENT':
                     quantity = int(quantity)
                 stack[cardName] += quantity
 
@@ -27,8 +27,8 @@ def unpack(logString, supplyString):
     supply = Cardstack({})
     for item in supplyItems:
         cardName = str(CardList[int(item[0:3], 16)])
-        quantity = int(quantity[3:5])
-        s[card] += quantity
+        quantity = int(item[3:5])
+        supply[cardName] += quantity
 
     return (gL, supply)
 
@@ -37,9 +37,9 @@ def parse_gameLog(parsedLog):
     gameMoves = []
     blockLengths = []
     pointers = {}
-
+    print(Preds)
     for line in parsedLog:
-        if line.pred == Pred('GAME START') or line.pred == Pred('NEW TURN'):
+        if line.pred == Preds['GAME START'] or line.pred == Preds['NEW TURN']:
             pointers[0] = len(gameMoves)
         else:
             pointers[line.indent + 1] = len(gameMoves)

@@ -101,14 +101,16 @@ cardFile.close()
 
 predFile = open(os.path.join(settings.STATIC_ROOT,
                              'woodcutter/data/preddata.txt'), 'r')
-for i, line in enumerate(predFile):
+for line in predFile:
     t = line.strip().split('~')
-    p = Pred(i, t[1], empty, t[2])
+    p = Pred(int(t[0], 16), t[1], empty, t[2])
     Preds[t[2]] = p
     PredList.append(p)
 
+predParseOrder = deepcopy(PredList)
+PredList.sort(key=lambda p: p.index)
+
 predFile.close()
-predParseOrder = PredList[:26] + PredList[119:119] + PredList[26:]
 
 PLAY_PREDS = ('PLAY', 'PLAY AGAIN', 'PLAY THIRD')
 GAIN_PREDS = ('GAIN', 'BUY AND GAIN', 'GAIN TOPDECK', 'GAIN TRASH')

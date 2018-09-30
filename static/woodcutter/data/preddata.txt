@@ -24,6 +24,7 @@ f~^(?P<player>.*) draws (?P<cards>.*) \(Enchantress\)\.$~WOODS DRAW
 17~^(?P<player>.*) reveals (?P<cards>.*)\.$~REVEAL
 18~^(?P<player>.*) looks at (?P<cards>.*)\.$~LOOK
 19~^(?P<player>.*) puts (?P<cards>.*) into their hand\.$~PUT INHAND
+77~^Druid sets (?P<cards>.*) aside\.$~DRUID BOONS
 1a~^(?P<player>.*) sets (?P<cards>.*) aside\.$~SET ASIDE
 1b~^(?P<player>.*) puts (?P<cards>.*) on their (?P<argument>.*)\.$~PUT ONTO
 1c~^(?P<player>.*) calls (?P<cards>.*)\.$~CALL
@@ -41,8 +42,6 @@ f~^(?P<player>.*) draws (?P<cards>.*) \(Enchantress\)\.$~WOODS DRAW
 28~^(?P<player>.*) buys Alms but has (?P<cards>.*) in play\.$~ALMS FAIL
 29~^(?P<player>.*) buys Borrow but already had (?P<cards>.*)$~BORROW FAIL
 2a~^(?P<player>.*) buys (?P<cards>.*)\.$~BUY
-2b~^COUNTER_ADD$~COUNTER ADD
-2c~^COUNTER_RESET$~COUNTER RESET
 2d~^(?P<player>.*) reacts with (?P<cards>.*)\.$~REACT
 2e~^(?P<player>.*) shuffles their deck\.$~SHUFFLE
 2f~^(?P<player>.*) wishes for (?P<cards>.*) and finds it\.$~WISH SUCCESS
@@ -117,9 +116,44 @@ f~^(?P<player>.*) draws (?P<cards>.*) \(Enchantress\)\.$~WOODS DRAW
 74~^(?P<player>.*) gets \+1 Coin \(Guardian\)\.$~DURATION GUARDIAN
 75~^(?P<player>.*) takes (?P<cards>.*)\.$~TAKES BOONHEX
 76~^The Sun's Gift has nothing to discard\.$~SUN GIFT FAIL
-77~^Druid sets (?P<cards>.*) aside\.$~DRUID BOONS
 78~^(?P<player>.*) gets \+3 Coins \(Raider\)\.$~DURATION RAIDER
 79~^(?P<player>.*) gets \+3 Coins \(Secret Cave\)\.$~DURATION CAVE
 7a~^(?P<cards>.*) is enchanted by (?P<argument>.*)$~ENCHANTED
 7b~^Between Turns$~BETWEEN TURNS
+7d~^(?P<player>.*) plays (?P<cards>.*) again\. \(Citadel\)$~PLAY CITADEL
+7e~^(?P<player>.*) trashes (?P<cards>.*)\. \((?P<argument>.*)\)$
+7f~^(?P<player>.*) puts (?P<cards>.*) on the bottom of their deck\.$
+80~^(?P<player>.*) loses (?P<cards>.*) Coins\.$
+81~^(?P<player>.*) loses (?P<cards>.*) Coin\.$
+82~^(?P<player>.*) draws (?P<cards>.*) (Silos)\.$
+83~^(?P<player>.*) draws (?P<cards>.*) \((?P<argument>.*)\)\.$
+84~^(?P<player>.*) gets +(?P<cards>.*) Coins\. \((?P<argument>.*)\)$
+85~^(?P<player>.*) gets +(?P<cards>.*) Coin\. \((?P<argument>.*)\)$
+86~^(?P<player>.*) gets +(?P<cards>.*) Coins\.$
+87~^(?P<player>.*) gets +(?P<cards>.*) Coin\.$
+88~^(?P<player>.*) gets +(?P<cards>.*) Buys\. \((?P<argument>.*)\)$
+89~^(?P<player>.*) gets +(?P<cards>.*) Buy\. \((?P<argument>.*)\)$
+8a~^(?P<player>.*) gets +(?P<cards>.*) Buys\.$
+8b~^(?P<player>.*) gets +(?P<cards>.*) Buy\.$
+8c~^(?P<player>.*) gets +(?P<cards>.*) Actions. \((?P<argument>.*)\)$
+8d~^(?P<player>.*) gets +(?P<cards>.*) Action. \((?P<argument>.*)\)$
+8e~^(?P<player>.*) gets +(?P<cards>.*) Actions\.$
+8f~^(?P<player>.*) gets +(?P<cards>.*) Action\.$
+90~^(?P<player>.*) ends their buy phase\.$
+91~^(?P<player>.*) uses (?P<cards>.*) Villagers\.$
+92~^(?P<player>.*) uses (?P<cards>.*) Villager\.$
+93~^(?P<player>.*) gets +(?P<cards>.*) Villagers\.$
+94~^(?P<player>.*) gets +(?P<cards>.*) Villager\.$
+95~^(?P<player>.*) gets +(?P<cards>.*) Villagers\. \((?P<argument>.*)\)$
+96~^(?P<player>.*) gets +(?P<cards>.*) Villager\. \((?P<argument>.*)\)$
+97~^(?P<player>.*) uses (?P<cards>.*) Coffers\.$
+98~^(?P<player>.*) uses (?P<cards>.*) Coffers\.$
+99~^(?P<player>.*) gets +(?P<cards>.*) Coffers\. \((?P<argument>.*)\)$
+9a~^(?P<player>.*) gets +(?P<cards>.*) Coffers\. \((?P<argument>.*)\)$
+9b~^(?P<player>.*) gets +(?P<cards>.*) Coffers\.$
+9c~^(?P<player>.*) gets +(?P<cards>.*) Coffers\.$
+9d~^(?P<player>.*) gets (?P<cards>.*) coins from Priest\.$
+9e~^(?P<player>.*) gets a Coffers from (?P<argument>.*)\.$
+9f~^(?P<player>.*) gains another Experiment$
+a0~^(?P<player>.*) puts (?P<cards>.*) in hand \((?P<argument>.*)\)\.$
 7c~^(?P<argument>.*)$~OTHERS

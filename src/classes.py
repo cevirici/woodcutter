@@ -54,19 +54,19 @@ class Cardstack:
             yield str(card)
 
     def __getitem__(self, item):
-        if Card[item] in self.cards:
+        if Cards[item] in self.cards:
             return self.cards[Card[item]]
         else:
-            return 0
+            return '' if item == 'ARGUMENT' else 0
 
     def __setitem__(self, item, value):
         if item != 'ARGUMENT':
-            self[item] = number
+            self.cards[item] = value
         else:
             if 'ARGUMENT' in self.cards:
-                self.cards['ARGUMENT'] += '/' + str(number)
+                self.cards['ARGUMENT'] += '/' + str(value)
             else:
-                self.cards['ARGUMENT'] = str(number)
+                self.cards['ARGUMENT'] = str(value)
 
     def __delitem__(self, item):
         if item in self:

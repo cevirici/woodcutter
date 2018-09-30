@@ -38,8 +38,8 @@ def random(request):
 
 @csrf_exempt
 def submit(request):
-    (condensedLog, gameID) = combined_parse([request.POST['fileone'],
-                                             request.POST['filetwo']])
+    condensedLog, gameID = combined_parse([request.POST['fileone'],
+                                           request.POST['filetwo']])
     supply = parse_supply(request.POST['supply'])
     players = request.POST['players']
 
@@ -48,7 +48,7 @@ def submit(request):
     except ObjectDoesNotExist:
         GameLog.objects.create(game_id=gameID,
                                log=condensedLog,
-                               supply=supplpy,
+                               supply=supply,
                                players=players)
     else:
         oldLog.log = condensedLog

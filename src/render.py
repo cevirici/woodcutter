@@ -1,5 +1,6 @@
 from .classes import *
 
+
 def makeDiv(classes, styles={}, otherAttrs={}, innerHTML=''):
     styleString = ' '.join(['{}: {};'.format(x, styles[x]) for x in styles])
     if styleString:
@@ -46,7 +47,7 @@ class Tablesource:
     def __str__(self):
         layerStrings = {card: '' for card in self.involvedCards}
         for side in range(2):
-
+            return 'lel'
 
 
     def insert(self, player, column, cardstack):
