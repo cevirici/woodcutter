@@ -1,4 +1,4 @@
-0~^Game #(?P<argument>.*)~ (?P<argumentb>.*)\.$~GAME START
+0~^Game #(?P<argument>.*), (?P<argumentb>.*)\.$~GAME START
 1~^Turn (?P<cards>.*) - (?P<player>.*)$~NEW TURN
 2~^(?P<player>.*) buys and gains (?P<cards>.*)\.$~BUY AND GAIN
 3~^(?P<player>.*) gains (?P<cards>.*) onto their drawpile\.$~GAIN TOPDECK
@@ -121,39 +121,39 @@ f~^(?P<player>.*) draws (?P<cards>.*) \(Enchantress\)\.$~WOODS DRAW
 7a~^(?P<cards>.*) is enchanted by (?P<argument>.*)$~ENCHANTED
 7b~^Between Turns$~BETWEEN TURNS
 7d~^(?P<player>.*) plays (?P<cards>.*) again\. \(Citadel\)$~PLAY CITADEL
-7e~^(?P<player>.*) trashes (?P<cards>.*)\. \((?P<argument>.*)\)$
-7f~^(?P<player>.*) puts (?P<cards>.*) on the bottom of their deck\.$
-80~^(?P<player>.*) loses (?P<cards>.*) Coins\.$
-81~^(?P<player>.*) loses (?P<cards>.*) Coin\.$
-82~^(?P<player>.*) draws (?P<cards>.*) (Silos)\.$
-83~^(?P<player>.*) draws (?P<cards>.*) \((?P<argument>.*)\)\.$
-84~^(?P<player>.*) gets +(?P<cards>.*) Coins\. \((?P<argument>.*)\)$
-85~^(?P<player>.*) gets +(?P<cards>.*) Coin\. \((?P<argument>.*)\)$
-86~^(?P<player>.*) gets +(?P<cards>.*) Coins\.$
-87~^(?P<player>.*) gets +(?P<cards>.*) Coin\.$
-88~^(?P<player>.*) gets +(?P<cards>.*) Buys\. \((?P<argument>.*)\)$
-89~^(?P<player>.*) gets +(?P<cards>.*) Buy\. \((?P<argument>.*)\)$
-8a~^(?P<player>.*) gets +(?P<cards>.*) Buys\.$
-8b~^(?P<player>.*) gets +(?P<cards>.*) Buy\.$
-8c~^(?P<player>.*) gets +(?P<cards>.*) Actions. \((?P<argument>.*)\)$
-8d~^(?P<player>.*) gets +(?P<cards>.*) Action. \((?P<argument>.*)\)$
-8e~^(?P<player>.*) gets +(?P<cards>.*) Actions\.$
-8f~^(?P<player>.*) gets +(?P<cards>.*) Action\.$
-90~^(?P<player>.*) ends their buy phase\.$
-91~^(?P<player>.*) uses (?P<cards>.*) Villagers\.$
-92~^(?P<player>.*) uses (?P<cards>.*) Villager\.$
-93~^(?P<player>.*) gets +(?P<cards>.*) Villagers\.$
-94~^(?P<player>.*) gets +(?P<cards>.*) Villager\.$
-95~^(?P<player>.*) gets +(?P<cards>.*) Villagers\. \((?P<argument>.*)\)$
-96~^(?P<player>.*) gets +(?P<cards>.*) Villager\. \((?P<argument>.*)\)$
-97~^(?P<player>.*) uses (?P<cards>.*) Coffers\.$
-98~^(?P<player>.*) uses (?P<cards>.*) Coffers\.$
-99~^(?P<player>.*) gets +(?P<cards>.*) Coffers\. \((?P<argument>.*)\)$
-9a~^(?P<player>.*) gets +(?P<cards>.*) Coffers\. \((?P<argument>.*)\)$
-9b~^(?P<player>.*) gets +(?P<cards>.*) Coffers\.$
-9c~^(?P<player>.*) gets +(?P<cards>.*) Coffers\.$
-9d~^(?P<player>.*) gets (?P<cards>.*) coins from Priest\.$
-9e~^(?P<player>.*) gets a Coffers from (?P<argument>.*)\.$
-9f~^(?P<player>.*) gains another Experiment$
-a0~^(?P<player>.*) puts (?P<cards>.*) in hand \((?P<argument>.*)\)\.$
+7e~^(?P<player>.*) trashes (?P<cards>.*)\. \((?P<argument>.*)\)$~TRASH GENERIC
+7f~^(?P<player>.*) puts (?P<cards>.*) on the bottom of their deck\.$~BOTTOMDECK
+80~^(?P<player>.*) loses (?P<cards>.*) Coins\.$~LOSE COINS
+81~^(?P<player>.*) loses (?P<cards>.*) Coin\.$~LOSE COIN
+82~^(?P<player>.*) draws (?P<cards>.*) (Silos)\.$~DRAW SILOS
+83~^(?P<player>.*) draws (?P<cards>.*) \((?P<argument>.*)\)\.$~DRAW GENERIC
+84~^(?P<player>.*) gets +(?P<cards>.*) Coins\. \((?P<argument>.*)\)$~COINS GENERIC
+85~^(?P<player>.*) gets +(?P<cards>.*) Coin\. \((?P<argument>.*)\)$~COIN GENERIC
+86~^(?P<player>.*) gets +(?P<cards>.*) Coins\.$~GAIN COINS
+87~^(?P<player>.*) gets +(?P<cards>.*) Coin\.$~GAIN COIN
+88~^(?P<player>.*) gets +(?P<cards>.*) Buys\. \((?P<argument>.*)\)$~BUYS GENERIC
+89~^(?P<player>.*) gets +(?P<cards>.*) Buy\. \((?P<argument>.*)\)$~BUY GENERIC
+8a~^(?P<player>.*) gets +(?P<cards>.*) Buys\.$~BUYS
+8b~^(?P<player>.*) gets +(?P<cards>.*) Buy\.$~BUY
+8c~^(?P<player>.*) gets +(?P<cards>.*) Actions. \((?P<argument>.*)\)$~ACTIONS GENERIC
+8d~^(?P<player>.*) gets +(?P<cards>.*) Action. \((?P<argument>.*)\)$~ACTION GENERIC
+8e~^(?P<player>.*) gets +(?P<cards>.*) Actions\.$~ACTIONS
+8f~^(?P<player>.*) gets +(?P<cards>.*) Action\.$~ACTION
+90~^(?P<player>.*) ends their buy phase\.$~END BUYPHASE
+91~^(?P<player>.*) uses (?P<cards>.*) Villagers\.$~USE VILLAGERS
+92~^(?P<player>.*) uses (?P<cards>.*) Villager\.$~USE VILLAGER
+93~^(?P<player>.*) gets +(?P<cards>.*) Villagers\.$~GAIN VILLAGERS
+94~^(?P<player>.*) gets +(?P<cards>.*) Villager\.$~GAIN VILLAGER
+95~^(?P<player>.*) gets +(?P<cards>.*) Villagers\. \((?P<argument>.*)\)$~VILLAGERS GENERIC
+96~^(?P<player>.*) gets +(?P<cards>.*) Villager\. \((?P<argument>.*)\)$~VILLAGER GENERIC
+97~^(?P<player>.*) uses (?P<cards>.*) Coffers\.$~USE COFFERS
+98~^(?P<player>.*) uses (?P<cards>.*) Coffers\.$~USE COFFER
+99~^(?P<player>.*) gets +(?P<cards>.*) Coffers\. \((?P<argument>.*)\)$~COFFERS GENERIC
+9a~^(?P<player>.*) gets +(?P<cards>.*) Coffers\. \((?P<argument>.*)\)$~COFFER GENERIC
+9b~^(?P<player>.*) gets +(?P<cards>.*) Coffers\.$~GAIN COFFERS
+9c~^(?P<player>.*) gets +(?P<cards>.*) Coffers\.$~GAIN COFFER
+9d~^(?P<player>.*) gets (?P<cards>.*) coins from Priest\.$~PRIEST COINS
+9e~^(?P<player>.*) gets a Coffers from (?P<argument>.*)\.$~COFFERS FROM
+9f~^(?P<player>.*) gains another Experiment$~GAIN EXPERIMENT
+a0~^(?P<player>.*) puts (?P<cards>.*) in hand \((?P<argument>.*)\)\.$~INHAND GENERIC
 7c~^(?P<argument>.*)$~OTHERS

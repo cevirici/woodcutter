@@ -1,6 +1,5 @@
 from .classes import *
-from .standards import *
-from copy import deepcopy
+from copy import copy, deepcopy
 
 
 def unpack(logString, supplyString):
@@ -18,7 +17,7 @@ def unpack(logString, supplyString):
                     quantity = int(quantity)
                 stack[cardName] += quantity
 
-        gL.append(ParsedLine(int(line[0:1], 16),  # Player
+        gL.append(ParsedLine(int(line[0:1], 16) - 1,  # Player
                              int(line[1:2], 16),  # Indent
                              PredList[int(line[2:4], 16)],  # Pred
                              stack))  # Items
@@ -37,7 +36,6 @@ def parse_gameLog(parsedLog):
     gameMoves = []
     blockLengths = []
     pointers = {}
-    print(Preds)
     for line in parsedLog:
         if line.pred == Preds['GAME START'] or line.pred == Preds['NEW TURN']:
             pointers[0] = len(gameMoves)
@@ -64,8 +62,8 @@ def parse_gameLog(parsedLog):
 
 
 def parse_single_line(gM, i, bL, cS, activeExceptions):
-    def updateExceptions(object, move, i, bL, gM, cS, t):
-        a = object.action(move, i, bL, gM, cS)
+    def updateExceptions(target, move, i, bL, gM, cS, t):
+        a = target.action(move, i, bL, gM, cS)
         for exc in a:
             if exc.priority == 0:
                 exc.priority = move.indent
@@ -82,7 +80,7 @@ def parse_single_line(gM, i, bL, cS, activeExceptions):
         for exc in layer:
             if exc.condition(move):
                 triggered = True
-                updateExceptions(exc, move, i, bL, gM, currentState, t)
+                updateExceptions(exc, move, i, bL, gM, cS, t)
                 if not exc.persistent:
                     del activeExceptions[exc]
 
@@ -91,16 +89,17 @@ def parse_single_line(gM, i, bL, cS, activeExceptions):
 
     for exc in activeExceptions:
         activeExceptions[exc] -= 1
-        if activeExceptions[exc] == 0:
-            del activeExceptions[exc]
+
+    activeExceptions = {exc: activeExceptions[exc] for exc in activeExceptions
+                        if activeExceptions[exc] != 0}
 
     if not triggered:
-        updateExceptions(move.pred, move, i, bL, gM, currentState, t)
+        updateExceptions(move.pred, move, i, bL, gM, cS, t)
     for card in move.items.cardList():
-        updateExceptions(card, move, i, bL, gM, currentState, t)
+        updateExceptions(card, move, i, bL, gM, cS, t)
 
     activeExceptions.update(t)
-    return (currentState, activeExceptions)
+    return (cS, activeExceptions)
 
 
 def parse_everything(gM, blockLengths, supply):
@@ -149,7 +148,7 @@ def get_turn_owners(gameMoves, turnPoints):
 def get_shuffled_turns(gameMoves, turnPoints):
     outList = []
     for i in range(len(turnPoints) - 1):
-        for scan in gameMoves[turnPoints[i]: turnPoints[i+1]]:
+        for scan in gameMoves[turnPoints[i]: turnPoints[i + 1]]:
             if str(scan.pred) == 'SHUFFLE':
                 outList.append(True)
                 break

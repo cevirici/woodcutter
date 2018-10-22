@@ -72,7 +72,7 @@ def display(request, game_id):
         log.save()
         raise
 
-    log.valid = gameStates[-1].valid
+    log.valid = gameStates[-1]['VALID']
     log.save()
 
     turnPoints = get_turn_points(blockLengths)

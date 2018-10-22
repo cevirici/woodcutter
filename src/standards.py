@@ -13,6 +13,18 @@ for line in f:
     cardUrls[raw[0]] = raw[1]
 
 
+class Exception:
+    def __init__(self,
+                 condition,
+                 action,
+                 priority=0,
+                 persistent=True):
+        self.condition = condition
+        self.action = action
+        self.priority = priority
+        self.persistent = persistent
+
+
 class Card:
     def __init__(self, index, simple_name, multi_name, phrase_name,
                  cost, supply_type, border_color, card_color,
@@ -85,6 +97,108 @@ CardList = []
 Preds = {}
 PredList = []
 
+
+class Cardstack:
+    # Stored as Card, but outside reference is via card name.
+    # Cards are returned via cardList and getCards methods.
+    def __init__(self, cards):
+        self.cards = {}
+        for c in cards:
+            self.cards[Cards[c]] = cards[c]
+
+    def __iter__(self):
+        for card in list(self.cards):
+            yield str(card)
+
+    def __getitem__(self, item):
+        if Cards[item] in self.cards:
+            return self.cards[Cards[item]]
+        else:
+            return '' if item == 'ARGUMENT' else 0
+
+    def __setitem__(self, item, value):
+        if item != 'ARGUMENT':
+            self.cards[Cards[item]] = value
+        else:
+            if 'ARGUMENT' in self.cards:
+                self.cards[Cards['ARGUMENT']] += '/' + str(value)
+            else:
+                self.cards[Cards['ARGUMENT']] = str(value)
+
+    def __delitem__(self, item):
+        if item in self:
+            del self.cards[Cards[item]]
+
+    def __add__(self, other):
+        t = deepcopy(self)
+        for c in other:
+            if c not in ['ARGUMENT', 'NOTHING', 'CARD']:
+                if c in t:
+                    t[c] += other[c]
+                else:
+                    t[c] = other[c]
+        return t
+
+    def __sub__(self, other):
+        t = deepcopy(self)
+        for c in other:
+            if c not in ['ARGUMENT', 'NOTHING', 'CARD']:
+                if c in t:
+                    t[c] -= other[c]
+
+        for c in t:
+            if c in ['ARGUMENT', 'NOTHING', 'CARD'] or t[c] == 0:
+                del t[c]
+        return t
+
+    def __gt__(self, other):
+        return not(len(other - self) > 0)
+
+    def __lt__(self, other):
+        return not(len(self - other) > 0)
+
+    def __str__(self):
+        return '|'.join(['{}:{}'.format(self[i], str(Cards[i]))
+                         for i in self])
+
+    def __repr__(self):
+        return '|'.join(['{}:{}'.format(self[i], Cards[i])
+                         for i in self])
+
+    def __len__(self):
+        return sum([self[item] for item in self if item != 'ARGUMENT'])
+
+    def cardList(self):
+        return list(self.cards)
+
+    def getCards(self):
+        return self.cards
+
+    def strip(self):
+        t = deepcopy(self)
+        for c in ['ARGUMENT', 'NOTHING', 'CARD']:
+            del t[c]
+
+        return t
+
+    def primary(self):
+        if len(self) > 0:
+            return self[0]
+        else:
+            return 'CARD'
+
+    def merge(self, target):
+        t = deepcopy(self)
+        for c in t:
+            if c not in ['ARGUMENT', 'NOTHING']:
+                if item in target:
+                    t[c] = min(self[c], target[c])
+                else:
+                    del t[c]
+
+        return t
+
+
 cardFile = open(os.path.join(settings.STATIC_ROOT,
                              'woodcutter/data/carddata.txt'), 'r')
 for i, line in enumerate(cardFile):
@@ -140,7 +254,7 @@ def check(predList, targetList=[]):
 
 
 def transfer(src, dest, move, cS):
-    if move.items.count() > 0:
+    if len(move.items) > 0:
         cS.move(move.player, src, dest, move.items)
     return {}
 
@@ -148,6 +262,7 @@ def transfer(src, dest, move, cS):
 def moveFunct(src, dest):
     def out_function(move, i, bL, moves, cS):
         transfer(src, dest, move, cS)
+        return {}
     return out_function
 
 
@@ -175,9 +290,10 @@ def onGains(src):
     def villaExcAction(move, i, bL, moves, cS):
         transfer(src, 'HANDS', moves, cS)
         cS['PHASE'] = 0
+        return {}
 
     villaException = Exception(check(['PUT INHAND'], ['VILLA']),
-                               villExcAction)
+                               villaExcAction)
 
     def out_function(move, i, bL, moves, cS):
         newExcs = {}
@@ -206,13 +322,13 @@ def onGains(src):
 def onPlay(move, i, bL, moves, cS):
     for card in move.items.strip():
         for i in range(move.items[card]):
-            Cards[card].action(move, i, bL, moves, cS)
+            return Cards[card].action(move, i, bL, moves, cS)
 
 
 def onTrash(move, i, bL, moves, cS):
     for card in move.items.strip():
         for i in range(move.items[card]):
-            Cards[card].action(move, i, bL, moves, cS)
+            return Cards[card].action(move, i, bL, moves, cS)
 
 
 exc_revealTrash = checkMove(['TRASH'], 'DECKS', 'TRASH')
@@ -530,7 +646,7 @@ def pearldiver_action(move, i, bL, moves, cS):
 
 Cards['PEARL DIVER'].action = pearldiver_action
 
-Cards['PIRATE SHIP'] = banditlike
+Cards['PIRATE SHIP'].action = banditlike
 
 
 def seahag_action(move, i, bL, moves, cS):
@@ -1487,8 +1603,9 @@ Cards['SUMMON'].action = summon_action
 
 
 def newTurnAction(move, i, bL, moves, cS):
-    cS['ACTIVEPLAYER'] = move.player
+    cS['ACTIVE_PLAYER'] = move.player
     cS['PHASE'] = 0
+    return {}
 
 
 Preds['NEW TURN'].action = newTurnAction
@@ -1529,6 +1646,7 @@ def standardGains(source, destination='DISCARDS'):
 def buyAndGainAction(move, i, bL, moves, cS):
     standardGains('SUPPLY')(move, i, bL, moves, cS)
     cS['PHASE'] = 1
+    return {}
 
 
 Preds['BUY AND GAIN'].action = buyAndGainAction
@@ -1571,7 +1689,7 @@ for p in ['WHARF DRAW', 'HIRELING DRAW', 'WOODS DRAW', 'ENCHANTRESS DRAW',
 
 
 def drawAction(move, i, bL, moves, cS):
-    activePlayer = cS.activePlayer
+    activePlayer = cS['ACTIVE_PLAYER']
     # Cleanup
     if move.isCleanup:
         if move.player == activePlayer:
@@ -1581,6 +1699,7 @@ def drawAction(move, i, bL, moves, cS):
                     cS[('HANDS', move.player)])
 
     cS.move(move.player, 'DECKS', 'HANDS', move.items)
+    return {}
 
 
 Preds['DRAW'].action = drawAction
@@ -1593,6 +1712,7 @@ def inhandAction(move, i, bL, moves, cS):
         # Villa's handled somewhere else
         if move.items.primary() != 'VILLA':
             cS.move(move.player, 'DECKS', 'HANDS', move.items)
+    return {}
 
 
 Preds['PUT INHAND'].action = inhandAction
@@ -1601,6 +1721,7 @@ Preds['PUT INHAND'].action = inhandAction
 def setAsideAction(move, i, bL, moves, cS):
     if move.items.primary() not in BOONHEX:
         cS.move(move.player, 'INPLAYS', 'OTHERS', move.items)
+    return {}
 
 
 Preds['SET ASIDE'].action = setAsideAction
@@ -1612,6 +1733,7 @@ Preds['CALL'].action = moveFunct('OTHERS', 'INPLAYS')
 
 def deckDiscardAction(move, i, bL, moves, cS):
     cS.move(move.player, 'DECKS', 'DISCARDS', cS[('DECKS', move.player)])
+    return {}
 
 
 Preds['DISCARD DECK'].action = deckDiscardAction
@@ -1694,6 +1816,7 @@ def shuffleAction(move, i, bL, moves, cS):
         cS.move(activePlayer, 'HANDS', 'DISCARDS', cS[('HANDS', activePlayer)])
 
     cS.move(activePlayer, 'DISCARDS', 'DECKS', cS[('DISCARDS', activePlayer)])
+    return {}
 
 
 Preds['SHUFFLE'].action = shuffleAction
@@ -1753,6 +1876,7 @@ Preds['TURN START'].action = turnStartAction
 
 def genericVP(move, i, bL, moves, cS):
     cS['VPS'][move.player] += int(move.items['ARGUMENT'].split('/')[0])
+    return {}
 
 
 for p in ['SHIELD GAIN', 'SHIELD GET', 'SHIELD GROUNDSKEEPER', 'SHIELD GOONS',
@@ -1766,7 +1890,7 @@ def obelisk_choice(move, i, bL, moves, cS):
     for pair in PAIRS:
         if target in pair:
             cS['OBELISK'] = pair
-            break
+            return {}
 
 
 Preds['OBELISK CHOICE'].action = obelisk_choice
@@ -1777,6 +1901,7 @@ Preds['SET ASIDE WITH'].action = moveFunct('HANDS', 'OTHERS')
 def inheritAction(move, i, bL, moves, cS):
     cS.move(move.player, 'SUPPLY', 'OTHERS', move.items)
     cS['INHERITED_CARDS'][move.player] = move.items.cardList()[0]
+    return {}
 
 
 Preds['INHERIT'].action = inheritAction
@@ -1814,6 +1939,7 @@ def urchinTrash(move, i, bL, moves, cS):
                 return {}
 
     cS.move(move.player, 'HANDS', 'TRASH', move.items)
+    return {}
 
 
 def hermitTrash(move, i, bL, moves, cS):
@@ -1829,6 +1955,7 @@ def hermitTrash(move, i, bL, moves, cS):
                 return {}
 
     cS.move(move.player, 'HANDS', 'TRASH', move.items)
+    return {}
 
 
 urchinPers = Exception(check(['TRASH'], ['HERMIT']), urchinTrash)
