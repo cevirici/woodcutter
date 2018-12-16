@@ -209,8 +209,7 @@ cardFile = open(os.path.join(settings.STATIC_ROOT,
                              'woodcutter/data/carddata.txt'), 'r')
 for i, line in enumerate(cardFile):
     t = line.strip().split(',')
-    c = Card(i, t[1], t[2], t[3], t[4],
-             t[5], t[6], t[7], empty)
+    c = Card(i, *t[1:8], empty)
     if len(t) > 8:
         c.worth = staticWorth(int(t[8]))
 

@@ -130,10 +130,15 @@ def parse_supply(inString):
     f = inString.split('~')
     cards = []
 
+    baseStr = '{:0>3}{:0>2}'
+
     for line in f:
         entry = line.strip().rsplit("-", 1)
-        cards.append('{:0>3}{:0>2}'.format(Cards[entry[0]],
-                                           entry[1]
-                                           ))
+        for card in Cards:
+            if entry[0] == card.simple_name:
+                cards.append(baseStr.format(card.simple_name,
+                                            entry[1]
+                                            ))
+                break
 
     return '~'.join(cards)
