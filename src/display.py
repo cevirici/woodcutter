@@ -272,8 +272,8 @@ def render_story_sidebar_labels(turnOwners, turnPoints):
 def elaborate_cards(cardlist, fancy):
     phrases = []
     for item in cardlist:
-        if item != ARGUMENT_CARD:
-            thisCard = standardCards[item]
+        if item != 'ARGUMENT':
+            thisCard = Cards[item]
             thisPhrase = ''
 
             if cardlist[item] == 1:
@@ -292,7 +292,7 @@ def elaborate_cards(cardlist, fancy):
 
     if len(phrases) > 1:
         phrases[-1] = ' and ' + phrases[-1]
-        for i in range(1, len(phrases)-1):
+        for i in range(1, len(phrases) - 1):
             phrases[i] = ', ' + phrases[i]
 
     return ''.join(phrases)
@@ -301,14 +301,14 @@ def elaborate_cards(cardlist, fancy):
 def elaborate_line(players, entry):
     argumentsSplit = []
 
-    if ARGUMENT_CARD in entry.items:
-        argumentsSplit = entry.items[ARGUMENT_CARD].split('/')
+    if 'ARGUMENT' in entry.items:
+        argumentsSplit = entry.items['ARGUMENT'].split('/')
 
     # Masq Story Exception
-    if entry.pred == PASS_PRED:
-        argumentsSplit[0] = players[int(argumentsSplit[0])-1]
+    if entry.pred == 'PASS':
+        argumentsSplit[0] = players[int(argumentsSplit[0]) - 1]
 
-    entryString = standardPreds[entry.pred].regex
+    entryString = entry.pred.regex
 
     PLAYER_COLORS = ['#FF4545', '#4277FE']
     PLAYER_OUTLINES = ['#CECECE', '#CECECE']
@@ -344,23 +344,19 @@ def elaborate_line(players, entry):
     return [entryString, plainString]
 
 
-def elaborate_story(players, moveTree):
+def elaborate_story(players, gameMoves, turnPoints):
     # Indents | Line | Owner | Turn Number
     lines = []
     rawlines = []
 
-    def parseChunk(chunk, owner, turn):
-        parsedChunk = elaborate_line(players, chunk[0])
-        lines.append([(chunk[0].indent + 2) * 2, parsedChunk[0], owner, turn])
-        rawlines.append(parsedChunk[1])
-
-        for subchunk in chunk[1:]:
-            parseChunk(subchunk, owner, turn)
-
     turn = 0
-    for chunk in moveTree:
-        parseChunk(chunk, chunk[0].player, turn)
-        turn += 1
+    for i, move in enumerate(gameMoves):
+        if turn < len(turnPoints):
+            if i > turnPoints[turn]:
+                turn += 1
+        data = elaborate_line(players, move)
+        lines.append([(move.indent + 2) * 2, data[0], turn])
+        rawlines.append(data[1])
 
     return [lines, rawlines]
 

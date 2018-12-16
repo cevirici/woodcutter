@@ -47,7 +47,7 @@ def parse_line(line):
     indent = get_indent(line)
     line = re.sub('<.*?>|&bull;|&sdot;', '', line).strip()
 
-    pred = Pred['OTHERS']
+    pred = Preds['OTHERS']
     for p in predParseOrder:
         if re.match(p.regex, line) is not None:
             pred = p

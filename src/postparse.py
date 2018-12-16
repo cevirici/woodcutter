@@ -63,11 +63,12 @@ def parse_gameLog(parsedLog):
 
 def parse_single_line(gM, i, bL, cS, activeExceptions):
     def updateExceptions(target, move, i, bL, gM, cS, t):
-        a = target.action(move, i, bL, gM, cS)
-        for exc in a:
-            if exc.priority == 0:
-                exc.priority = move.indent
-            t[exc] = a[exc]
+        newExceptions = target.action(move, i, bL, gM, cS)
+        if newExceptions:
+            for exc in newExceptions:
+                if exc.priority == 0:
+                    exc.priority = move.indent
+                t[exc] = newExceptions[exc]
 
     move = gM[i]
     priorities = [exception.priority for exception in activeExceptions]
@@ -152,7 +153,7 @@ def get_shuffled_turns(gameMoves, turnPoints):
             if str(scan.pred) == 'SHUFFLE':
                 outList.append(True)
                 break
-        outList.apend(False)
+        outList.append(False)
     return outList
 
 
@@ -163,6 +164,10 @@ def get_involved_cards(gameStates):
         involvedCards.update(state.crunch(PERSONAL_ZONES, (0, 1)))
 
     return list(involvedCards)
+
+
+def find_turn_decks(turnPoints, gameStates):
+    pass
 
 
 def find_gained_cards(turnPoints, gameStates):
@@ -269,10 +274,10 @@ def full_printout(moveTree, gameStates):
         global index
         outfile.write('TURN {} \n'.format(turnIndex))
         outfile.write(str(index))
-        outfile.write('{}>'.format('-'*chunk[0].indent))
+        outfile.write('{}>'.format('-' * chunk[0].indent))
         outfile.write(standardPreds[chunk[0].pred].name)
         outfile.write(chunk[0].items.debugstr())
-        if not gameStates[index+1].valid:
+        if not gameStates[index + 1].valid:
             outfile.write("\n###INVALID MOVE")
         outfile.write(str(gameStates[index]))
         index += 1

@@ -14,4 +14,5 @@ urlpatterns = [
     path('logsearch', views.logSearch, name='searchPage'),
     path('findlogs', views.find_logs, name='findlogs'),
     path('<int:game_id>/display/', views.display, name='display'),
+    path('<int:game_id>/plain/', views.plaintext, name='plain'),
 ]

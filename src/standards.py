@@ -56,7 +56,10 @@ class Card:
         return self.index
 
     def __eq__(self, other):
-        return self.index == other.index
+        if type(other) == str:
+            return self.name == other
+        else:
+            return self.index == other.index
 
     def names(self):
         return [self.simple_name, self.multi_name, self.phrase_name]
@@ -79,7 +82,10 @@ class Pred:
         return self.index
 
     def __eq__(self, other):
-        return self.index == other.index
+        if type(other) == str:
+            return self.name == other
+        else:
+            return self.index == other.index
 
 
 def empty(move, i, bL, moves, cS):
@@ -147,7 +153,7 @@ class Cardstack:
                     t[c] -= other[c]
 
         for c in t:
-            if c in ['ARGUMENT', 'NOTHING', 'CARD'] or t[c] == 0:
+            if c in ['ARGUMENT', 'NOTHING', 'CARD'] or t[c] <= 0:
                 del t[c]
         return t
 
@@ -183,7 +189,7 @@ class Cardstack:
 
     def primary(self):
         if len(self) > 0:
-            return self[0]
+            return list(self.cards.keys())[0]
         else:
             return 'CARD'
 

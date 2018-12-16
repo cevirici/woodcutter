@@ -59,6 +59,27 @@ def submit(request):
     return HttpResponseRedirect(reverse('woodcutter:display', args=(ret[1],)))
 
 
+def plaintext(request, game_id):
+    log = get_object_or_404(GameLog, game_id=game_id)
+    players = log.players.split('~')
+
+    parsedLog, supply = unpack(log.log, log.supply)
+    gameMoves, blockLengths = parse_gameLog(parsedLog)
+    try:
+        gameStates = parse_everything(gameMoves, blockLengths, supply)
+    except BaseException:
+        log.valid = False
+        log.save()
+        raise
+
+    log.valid = gameStates[-1]['VALID']
+    log.save()
+
+    turnPoints = get_turn_points(blockLengths)
+    story, storyPlain = elaborate_story(players, gameMoves, turnPoints)
+    return HttpResponse('<br>'.join(storyPlain))
+
+
 def display(request, game_id):
     log = get_object_or_404(GameLog, game_id=game_id)
     players = log.players.split('~')
@@ -76,8 +97,8 @@ def display(request, game_id):
     log.save()
 
     turnPoints = get_turn_points(blockLengths)
-    turnOwners = get_turn_owners(gameMoves)
-    shuffledTurns = get_shuffled_turns(gameMoves)
+    turnOwners = get_turn_owners(gameMoves, turnPoints)
+    shuffledTurns = get_shuffled_turns(gameMoves, turnPoints)
 
     involvedCards = get_involved_cards(gameStates)
 
