@@ -136,7 +136,7 @@ def parse_supply(inString):
         entry = line.strip().rsplit("-", 1)
         for card in CardList:
             if entry[0] == card.simple_name:
-                cards.append(baseStr.format(card,
+                cards.append(baseStr.format(repr(card),
                                             entry[1]
                                             ))
                 break
