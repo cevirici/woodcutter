@@ -56,7 +56,7 @@ def submit(request):
         oldLog.players = players
         oldLog.save()
 
-    return HttpResponseRedirect(reverse('woodcutter:display', args=(ret[1],)))
+    return HttpResponseRedirect(reverse('woodcutter:display', args=(gameID,)))
 
 
 def plaintext(request, game_id):
