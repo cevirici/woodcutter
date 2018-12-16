@@ -166,7 +166,7 @@ class Cardstack:
                          for i in self])
 
     def __repr__(self):
-        return '|'.join(['{}:{}'.format(self[i], Cards[i])
+        return '|'.join(['{}:{}'.format(self[i], repr(Cards[i]))
                          for i in self])
 
     def __len__(self):
