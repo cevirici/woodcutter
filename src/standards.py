@@ -58,7 +58,7 @@ class Card:
 
     def __eq__(self, other):
         if type(other) == str:
-            return self.name == other
+            return self.simple_name == other
         else:
             return self.index == other.index
 
