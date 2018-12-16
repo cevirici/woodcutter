@@ -34,6 +34,7 @@ class Card:
         self.simple_name = simple_name
         self.multi_name = multi_name
         self.phrase_name = phrase_name
+        self.names = [self.simple_name, self.multi_name, self.phrase_name]
         self.cost = cost
         self.supply_type = supply_type
         self.action = action
@@ -60,9 +61,6 @@ class Card:
             return self.name == other
         else:
             return self.index == other.index
-
-    def names(self):
-        return [self.simple_name, self.multi_name, self.phrase_name]
 
 
 class Pred:

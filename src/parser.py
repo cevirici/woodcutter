@@ -10,12 +10,11 @@ def get_indent(line):
 
 
 def get_card(name):
-    res = [str(card) for card in Cards.values() if name in card.names()]
-
-    if res:
-        return res[0]
+    for card in CardList:
+        if name in card.names:
+            return card
     else:
-        return 'ARGUMENT'
+        return Cards['ARGUMENT']
 
 
 def parse_card_phrase(cardlist):
