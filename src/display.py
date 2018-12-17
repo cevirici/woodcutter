@@ -303,6 +303,8 @@ def elaborate_line(players, entry):
     PLAYER_OUTLINES = ['#CECECE', '#CECECE']
 
     regexCard = r'\(\?P<cards>(\.\*)\)'
+    regexArg = r'\(\?P<argument>(\.\*)\)'
+    regexArgB = r'\(\?P<argumentb>(\.\*)\)'
 
     entryString = entry.pred.regex
     argumentsSplit = []
