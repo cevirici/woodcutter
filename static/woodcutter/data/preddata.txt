@@ -11,7 +11,7 @@
 a8~^(?P<player>.*) plays (?P<cards>.*) again\. \(\+\$(?P<argument>.*)\)$~THRONE COIN
 a5~^(?P<player>.*) plays (?P<cards>.*) again\.$~PLAY AGAIN
 a~^(?P<player>.*) plays (?P<cards>.*) a third time\.$~PLAY THIRD
-a7~^(?P<player>.*) plays (?P<cards>.*)\. \(\+\$(?P<argument>.*)\)$~PLAY COIN
+2b~^(?P<player>.*) plays (?P<cards>.*)\. \(\+\$(?P<argument>.*)\)$~PLAY COIN
 b~^(?P<player>.*) plays (?P<cards>.*)\.$~PLAY
 c~^(?P<player>.*) topdecks (?P<cards>.*)\.$~TOPDECK
 d~^(?P<player>.*) draws (?P<cards>.*) \(Wharf\)\.$~WHARF DRAW
@@ -26,7 +26,7 @@ a1~^(?P<player>.*) draws (?P<cards>.*) \(Horse Traders\)\.$~HT DRAW
 a2~^(?P<player>.*) draws (?P<cards>.*) \(Den of Sin\)\.$~DEN DRAW
 a4~^(?P<player>.*) draws (?P<cards>.*) \(Road Network\)\.$~ROAD DRAW
 82~^(?P<player>.*) draws (?P<cards>.*) \(Silos\)\.$~DRAW SILOS
-a6~^(?P<player>.*) draws (?P<cards>.*) \(Sinister Plot\)\.$~DRAW Plot
+2c~^(?P<player>.*) draws (?P<cards>.*) \(Sinister Plot\)\.$~DRAW Plot
 83~^(?P<player>.*) draws (?P<cards>.*) \((?P<argument>.*)\)\.$~DRAW GENERIC
 15~^(?P<player>.*) draws (?P<cards>.*)\.$~DRAW
 16~^(?P<player>.*) wishes for (?P<cards>.*) but reveals (?P<argument>.*)\.$~WISH FAIL
