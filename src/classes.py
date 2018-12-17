@@ -20,7 +20,7 @@ class ParsedLine:
         return '{}{}{}{}'.format(hex(self.player)[2:],
                                  hex(self.indent)[2:],
                                  self.pred,
-                                 self.items)
+                                 repr(self.items))
 
 
 gSZones = ('SUPPLY', 'DECKS', 'HANDS', 'INPLAYS',
