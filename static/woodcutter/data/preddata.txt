@@ -139,8 +139,8 @@ a3~^(?P<player>.*) puts (?P<cards>.*) in hand \(Cargo Ship\)\.$~DRAW CARGO
 85~^(?P<player>.*) gets \+\$(?P<argument>.*)\. \((?P<argumentb>.*)\)$~COIN GENERIC
 86~^(?P<player>.*) gets \+\$(?P<argument>.*)\.$~GAIN COINS
 87~^(?P<player>.*) gets \+\$(?P<argument>.*)\.$~GAIN COIN
-88~^(?P<player>.*) gets \+(?P<argument>.*) Buys\. \((?P<argument>.*)\)$~BUYS GENERIC
-89~^(?P<player>.*) gets \+(?P<argument>.*) Buy\. \((?P<argument>.*)\)$~BUY GENERIC
+88~^(?P<player>.*) gets \+(?P<argument>.*) Buys\. \((?P<argumentb>.*)\)$~BUYS GENERIC
+89~^(?P<player>.*) gets \+(?P<argument>.*) Buy\. \((?P<argumentb>.*)\)$~BUY GENERIC
 8a~^(?P<player>.*) gets \+(?P<argument>.*) Buys\.$~BUYS
 8b~^(?P<player>.*) gets \+(?P<argument>.*) Buy\.$~BUY
 8c~^(?P<player>.*) gets \+(?P<argument>.*) Actions. \((?P<argumentb>.*)\)$~ACTIONS GENERIC
@@ -152,8 +152,8 @@ a3~^(?P<player>.*) puts (?P<cards>.*) in hand \(Cargo Ship\)\.$~DRAW CARGO
 92~^(?P<player>.*) uses (?P<argument>.*) Villager\.$~USE VILLAGER
 93~^(?P<player>.*) gets \+(?P<argument>.*) Villagers\.$~GAIN VILLAGERS
 94~^(?P<player>.*) gets \+(?P<argument>.*) Villager\.$~GAIN VILLAGER
-95~^(?P<player>.*) gets \+(?P<argument>.*) Villagers\. \((?P<argument>.*)\)$~VILLAGERS GENERIC
-96~^(?P<player>.*) gets \+(?P<argument>.*) Villager\. \((?P<argument>.*)\)$~VILLAGER GENERIC
+95~^(?P<player>.*) gets \+(?P<argument>.*) Villagers\. \((?P<argumentb>.*)\)$~VILLAGERS GENERIC
+96~^(?P<player>.*) gets \+(?P<argument>.*) Villager\. \((?P<argumentb>.*)\)$~VILLAGER GENERIC
 97~^(?P<player>.*) uses (?P<argument>.*) Coffers\. \(\+\$(?P<argumentb>.*)\)$~USE COFFERS
 98~^(?P<player>.*) uses (?P<argument>.*) Coffers\. \(\+\$(?P<argumentb>.*)\)$~USE COFFER
 99~^(?P<player>.*) gets \+(?P<argument>.*) Coffers\. \((?P<argumentb>.*)\)$~COFFERS GENERIC
