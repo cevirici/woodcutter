@@ -94,7 +94,7 @@ def translate_file(inString):
 
         parsedLog.append(t)
 
-    parsedLog[0].items['ARGUMENT'] = '|'.join(aliases)
+    parsedLog[0].items['NOTHING'] = '|'.join(aliases)
     return parsedLog
 
 
