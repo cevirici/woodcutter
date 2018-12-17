@@ -347,7 +347,6 @@ def elaborate_line(players, entry):
     plainString = re.sub(r'\\([\.\(\)\+\$])', r'\1', plainString)
     plainString = ">" * entry.indent + plainString
 
-    plainString = '{: <60}'.format(plainString)
     plainString += '|' + entry.pred.name + '|' + str(entry.items)
 
     return [entryString, plainString]
