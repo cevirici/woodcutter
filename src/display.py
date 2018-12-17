@@ -327,11 +327,15 @@ def elaborate_line(players, entry):
 
     elab = elaborate_cards(entry.items, True)
     plainElab = elaborate_cards(entry.items, False)
+    arguments = [regexArg, regexArgB]
     if elab:
         entryString = re.sub(regexCard, elab, entryString)
         plainString = re.sub(regexCard, plainElab, plainString)
-    elif argumentsSplit:
-        for regex in [regexCard, regexArg, regexArgB]:
+    else:
+        arguments.insert(0, regexCard)
+
+    if argumentsSplit:
+        for regex in arguments:
             if re.search(regex, entryString) is not None:
                 arg = argumentsSplit.pop(0)
                 entryString = re.sub(regex, arg, entryString)
