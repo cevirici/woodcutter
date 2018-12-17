@@ -13,8 +13,7 @@ def get_card(name):
     for card in Cards:
         if name in Cards[card].names:
             return card
-    else:
-        return 'ARGUMENT'
+    return 'ARGUMENT'
 
 
 def parse_card_phrase(cardlist):

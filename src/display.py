@@ -358,9 +358,6 @@ def elaborate_story(players, gameMoves, turnPoints):
         data = move.pred.name + "|" + move.pred.regex + "|" + str(move.items)
         rawlines.append(data)
 
-    for card in Cards:
-        rawlines.append('|'.join(Cards[card].names))
-
     return [lines, rawlines]
 
 
