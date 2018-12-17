@@ -229,7 +229,8 @@ PredList.sort(key=lambda p: p.index)
 
 predFile.close()
 
-PLAY_PREDS = ('PLAY', 'PLAY AGAIN', 'PLAY THIRD')
+PLAY_PREDS = ('PLAY', 'PLAY AGAIN', 'PLAY THIRD', 'PLAY CITADEL',
+              'PLAY COIN', 'THRONE COIN')
 GAIN_PREDS = ('GAIN', 'BUY AND GAIN', 'GAIN TOPDECK', 'GAIN TRASH')
 
 
