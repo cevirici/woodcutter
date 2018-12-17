@@ -28,8 +28,6 @@ def parse_card_phrase(cardlist):
         if prefix is None:
             card = get_card(suffix)
             if card == 'ARGUMENT':
-                if re.match('^\d+$', suffix) is not None:
-                    suffix = int(suffix)
                 a[card] = suffix
             else:
                 a[card] = 0
