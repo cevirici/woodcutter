@@ -57,7 +57,7 @@ def parse_line(line):
     player = gd['player'] if 'player' in gd else None
     cards = parse_card_phrase(gd['cards']) if 'cards' in gd else Cardstack({})
     if 'argument' in gd:
-        arg = '/'.join([gd[x] for x in ['argument', 'argument2'] if x in gd])
+        arg = '/'.join([gd[x] for x in ['argument', 'argumentb'] if x in gd])
         cards['ARGUMENT'] = arg
 
     parsedLine = ParsedLine(player, indent, pred, cards)
