@@ -24,14 +24,12 @@ def parse_card_phrase(cardlist):
         m = re.match('^((?:\d+|a|(?:an)) )?(.*)$', item)
         prefix = m.group(1)
         suffix = m.group(2)
-        print(prefix)
-        print(suffix)
 
         if prefix is None:
             card = get_card(suffix)
             if card == 'ARGUMENT':
                 if re.match('^\d+$', suffix) is not None:
-                    item[0] = int(suffix)
+                    suffix = int(suffix)
                 a[card] = suffix
             else:
                 a[card] = 0
