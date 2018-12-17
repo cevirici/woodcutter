@@ -21,7 +21,7 @@ def parse_card_phrase(cardlist):
     a = Cardstack({})
 
     for item in r:
-        m = re.match('^((?:\d+|a|(?:an)) )?(.*)$', item)
+        m = re.match('^(?:(\d+|a|(?:an)) )?(.*)$', item)
         prefix = m.group(1)
         suffix = m.group(2)
 
