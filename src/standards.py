@@ -195,7 +195,7 @@ class Cardstack:
         t = deepcopy(self)
         for c in t:
             if c not in ['ARGUMENT', 'NOTHING']:
-                if item in target:
+                if c in target:
                     t[c] = min(self[c], target[c])
                 else:
                     del t[c]
