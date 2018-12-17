@@ -65,16 +65,6 @@ def plaintext(request, game_id):
 
     parsedLog, supply = unpack(log.log, log.supply)
     gameMoves, blockLengths = parse_gameLog(parsedLog)
-    try:
-        gameStates = parse_everything(gameMoves, blockLengths, supply)
-    except BaseException:
-        log.valid = False
-        log.save()
-        raise
-
-    log.valid = gameStates[-1]['VALID']
-    log.save()
-
     turnPoints = get_turn_points(blockLengths)
     story, storyPlain = elaborate_story(players, gameMoves, turnPoints)
     return HttpResponse('<br>'.join(storyPlain))
