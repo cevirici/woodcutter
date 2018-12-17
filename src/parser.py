@@ -88,7 +88,7 @@ def translate_file(inString):
                 if t.pred == Preds['PASS']:
                     t.items['ARGUMENT'] = players[t.items['ARGUMENT']]
 
-            # t.player = aliases.index(t.player) + 1
+            t.player = aliases.index(t.player) + 1
         else:
             t.player = 0
 
