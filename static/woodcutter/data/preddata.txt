@@ -139,26 +139,26 @@ a3~^(?P<player>.*) puts (?P<cards>.*) in hand \(Cargo Ship\)\.$~DRAW CARGO
 85~^(?P<player>.*) gets \+\$(?P<cards>.*)\. \((?P<argument>.*)\)$~COIN GENERIC
 86~^(?P<player>.*) gets \+\$(?P<cards>.*)\.$~GAIN COINS
 87~^(?P<player>.*) gets \+\$(?P<cards>.*)\.$~GAIN COIN
-88~^(?P<player>.*) gets +(?P<cards>.*) Buys\. \((?P<argument>.*)\)$~BUYS GENERIC
-89~^(?P<player>.*) gets +(?P<cards>.*) Buy\. \((?P<argument>.*)\)$~BUY GENERIC
-8a~^(?P<player>.*) gets +(?P<cards>.*) Buys\.$~BUYS
-8b~^(?P<player>.*) gets +(?P<cards>.*) Buy\.$~BUY
-8c~^(?P<player>.*) gets +(?P<cards>.*) Actions. \((?P<argument>.*)\)$~ACTIONS GENERIC
-8d~^(?P<player>.*) gets +(?P<cards>.*) Action. \((?P<argument>.*)\)$~ACTION GENERIC
-8e~^(?P<player>.*) gets +(?P<cards>.*) Actions\.$~ACTIONS
-8f~^(?P<player>.*) gets +(?P<cards>.*) Action\.$~ACTION
+88~^(?P<player>.*) gets \+(?P<cards>.*) Buys\. \((?P<argument>.*)\)$~BUYS GENERIC
+89~^(?P<player>.*) gets \+(?P<cards>.*) Buy\. \((?P<argument>.*)\)$~BUY GENERIC
+8a~^(?P<player>.*) gets \+(?P<cards>.*) Buys\.$~BUYS
+8b~^(?P<player>.*) gets \+(?P<cards>.*) Buy\.$~BUY
+8c~^(?P<player>.*) gets \+(?P<cards>.*) Actions. \((?P<argument>.*)\)$~ACTIONS GENERIC
+8d~^(?P<player>.*) gets \+(?P<cards>.*) Action. \((?P<argument>.*)\)$~ACTION GENERIC
+8e~^(?P<player>.*) gets \+(?P<cards>.*) Actions\.$~ACTIONS
+8f~^(?P<player>.*) gets \+(?P<cards>.*) Action\.$~ACTION
 90~^(?P<player>.*) ends their buy phase\.$~END BUYPHASE
 91~^(?P<player>.*) uses (?P<cards>.*) Villagers\.$~USE VILLAGERS
 92~^(?P<player>.*) uses (?P<cards>.*) Villager\.$~USE VILLAGER
-93~^(?P<player>.*) gets +(?P<cards>.*) Villagers\.$~GAIN VILLAGERS
-94~^(?P<player>.*) gets +(?P<cards>.*) Villager\.$~GAIN VILLAGER
-95~^(?P<player>.*) gets +(?P<cards>.*) Villagers\. \((?P<argument>.*)\)$~VILLAGERS GENERIC
-96~^(?P<player>.*) gets +(?P<cards>.*) Villager\. \((?P<argument>.*)\)$~VILLAGER GENERIC
+93~^(?P<player>.*) gets \+(?P<cards>.*) Villagers\.$~GAIN VILLAGERS
+94~^(?P<player>.*) gets \+(?P<cards>.*) Villager\.$~GAIN VILLAGER
+95~^(?P<player>.*) gets \+(?P<cards>.*) Villagers\. \((?P<argument>.*)\)$~VILLAGERS GENERIC
+96~^(?P<player>.*) gets \+(?P<cards>.*) Villager\. \((?P<argument>.*)\)$~VILLAGER GENERIC
 97~^(?P<player>.*) uses (?P<cards>.*) Coffers\.$~USE COFFERS
 98~^(?P<player>.*) uses (?P<cards>.*) Coffers\.$~USE COFFER
-99~^(?P<player>.*) gets +(?P<cards>.*) Coffers\. \((?P<argument>.*)\)$~COFFERS GENERIC
-9a~^(?P<player>.*) gets +(?P<cards>.*) Coffers\. \((?P<argument>.*)\)$~COFFER GENERIC
-9b~^(?P<player>.*) gets +(?P<cards>.*) Coffers\.$~GAIN COFFERS
+99~^(?P<player>.*) gets \+(?P<cards>.*) Coffers\. \((?P<argument>.*)\)$~COFFERS GENERIC
+9a~^(?P<player>.*) gets \+(?P<cards>.*) Coffers\. \((?P<argument>.*)\)$~COFFER GENERIC
+9b~^(?P<player>.*) gets \+(?P<cards>.*) Coffers\.$~GAIN COFFERS
 9c~^(?P<player>.*) gets a Coffers from Patron\.$~COFFERS PATRON
 9d~^(?P<player>.*) gets (?P<cards>.*) coins from Priest\.$~PRIEST COINS
 9e~^(?P<player>.*) gets a Coffers from (?P<argument>.*)\.$~COFFERS FROM
