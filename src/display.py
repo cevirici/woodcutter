@@ -342,9 +342,9 @@ def elaborate_line(players, entry):
                 plainString = re.sub(regex, arg, plainString)
 
     entryString = re.sub(r'\\([\.\(\)\+\$])', r'\1', entryString)
-    entryString = re.sub('\^|\$|\*|\+', '', entryString)
+    entryString = re.sub('\^|\*', '', entryString)
     plainString = re.sub(r'\\([\.\(\)\+\$])', r'\1', plainString)
-    plainString = re.sub('\^|\$|\*|\+', '', plainString)
+    plainString = re.sub('\^|\*', '', plainString)
     plainString = ">" * entry.indent + plainString
 
     return [entryString, plainString]
