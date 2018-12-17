@@ -82,17 +82,13 @@ def translate_file(inString):
                 players[matchedAliases[0]] = t.player
                 t.player = matchedAliases[0]
             else:
-                if t.player not in players:
+                if t.player not in aliases:
                     aliases.append(t.player)
 
                 if t.pred == Preds['PASS']:
                     t.items['ARGUMENT'] = players[t.items['ARGUMENT']]
 
             t.player = aliases.index(t.player) + 1
-            if t.items['ARGUMENT']:
-                t.items['ARGUMENT'] += '/' + ','.join(aliases)
-            else:
-                t.items['ARGUMENT'] = ','.join(aliases)
 
         else:
             t.player = 0
