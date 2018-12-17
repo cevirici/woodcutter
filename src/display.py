@@ -354,9 +354,9 @@ def elaborate_story(players, gameMoves, turnPoints):
         if turn < len(turnPoints):
             if i > turnPoints[turn]:
                 turn += 1
-        # data = elaborate_line(players, move)
-        data = move.pred.name + "|" + move.pred.regex + "|" + str(move.items)
-        rawlines.append(data)
+        data = elaborate_line(players, move)
+        lines.append([(move.indent + 2) * 2, data[0], turn])
+        rawlines.append(data[1])
 
     return [lines, rawlines]
 
