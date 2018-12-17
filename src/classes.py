@@ -19,7 +19,7 @@ class ParsedLine:
     def __repr__(self):
         return '{}{}{}{}'.format(hex(self.player)[2:],
                                  hex(self.indent)[2:],
-                                 self.pred,
+                                 repr(self.pred),
                                  repr(self.items))
 
 
