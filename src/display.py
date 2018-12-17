@@ -299,6 +299,12 @@ def elaborate_cards(cardlist, fancy):
 
 
 def elaborate_line(players, entry):
+    PLAYER_COLORS = ['#FF4545', '#4277FE']
+    PLAYER_OUTLINES = ['#CECECE', '#CECECE']
+
+    regexCard = r'\(\?P<cards>(\.\*)\)'
+
+    entryString = entry.pred.regex
     argumentsSplit = []
 
     if 'ARGUMENT' in entry.items:
@@ -308,10 +314,6 @@ def elaborate_line(players, entry):
     if entry.pred == 'PASS':
         argumentsSplit[0] = players[int(argumentsSplit[0]) - 1]
 
-    entryString = entry.pred.regex
-
-    PLAYER_COLORS = ['#FF4545', '#4277FE']
-    PLAYER_OUTLINES = ['#CECECE', '#CECECE']
     playerDiv = makeDiv('story-color',
                         {'background': PLAYER_COLORS[entry.player],
                          'outline-color': PLAYER_OUTLINES[entry.player]
@@ -324,22 +326,20 @@ def elaborate_line(players, entry):
     elab = elaborate_cards(entry.items, True)
     plainElab = elaborate_cards(entry.items, False)
     if elab:
-        entryString = re.sub(r'\(\?P<cards>(\.\*)\)', elab, entryString)
-        plainString = re.sub(r'\(\?P<cards>(\.\*)\)', plainElab, plainString)
+        entryString = re.sub(regexCard, elab, entryString)
+        plainString = re.sub(regexCard, plainElab, plainString)
     elif argumentsSplit:
-        if re.search(r'\(\?P<cards>(\.\*)\)', entryString) is not None:
-            rightArgs = argumentsSplit.pop(0)
-            entryString = re.sub(r'\(\?P<cards>(\.\*)\)', rightArgs, entryString)
-            plainString = re.sub(r'\(\?P<cards>(\.\*)\)', rightArgs, plainString)
+        for regex in [regexCard, regexArg, regexArgB]:
+            if re.search(regex, entryString) is not None:
+                arg = argumentsSplit.pop(0)
+                entryString = re.sub(regex, arg, entryString)
+                plainString = re.sub(regex, arg, plainString)
 
-    entryString = reduce(lambda x, y: re.sub(r'\(\.\*\)', y, x, 1), argumentsSplit, entryString)
     entryString = re.sub(r'\\([\.\(\)\+])', r'\1', entryString)
     entryString = re.sub('\^|\$|\*', '', entryString)
-
-    plainString = reduce(lambda x, y: re.sub(r'\(\.\*\)', y, x, 1), argumentsSplit, plainString)
     plainString = re.sub(r'\\([\.\(\)\+])', r'\1', plainString)
     plainString = re.sub('\^|\$|\*', '', plainString)
-    plainString = ">"*entry.indent + plainString
+    plainString = ">" * entry.indent + plainString
 
     return [entryString, plainString]
 
