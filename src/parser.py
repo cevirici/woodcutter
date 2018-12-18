@@ -72,17 +72,17 @@ def translate_file(inString):
     for line in f:
         t = parse_line(line)
         if t.player:
-            if t.pred == Preds['NEW TURN']:
+            if t.pred == 'NEW TURN':
                 matchedAliases = [alias for alias in aliases if
                                   re.match('^' + alias, t.player) is not None]
                 matchedAliases.sort(key=lambda x: -len(x))
-                players[matchedAliases[0]] = t.player
+                players[t.player] = matchedAliases[0]
                 t.player = matchedAliases[0]
             else:
                 if t.player not in aliases:
                     aliases.append(t.player)
 
-                if t.pred == Preds['PASS']:
+                if t.pred == 'PASS':
                     t.items['ARGUMENT'] = players[t.items['ARGUMENT']]
 
             t.player = aliases.index(t.player) + 1
