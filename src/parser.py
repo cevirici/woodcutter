@@ -83,7 +83,7 @@ def translate_file(inString):
                     aliases.append(t.player)
 
                 if t.pred == 'PASS':
-                    t.items['ARGUMENT'] = players[t.items['ARGUMENT']]
+                    t.items['ARGUMENT'] = 'boobs'
 
             t.player = aliases.index(t.player) + 1
 
