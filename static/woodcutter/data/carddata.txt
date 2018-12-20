@@ -411,7 +411,7 @@ ff,Dungeon,Dungeons,a Dungeon,3,0,dda561,4f472d
 19a,Conclave,Conclaves,a Conclave,4,0,c4c0b4,9c6a14
 19b,Crypt,Crypts,a Crypt,5,0,7a5622,0d494f
 19c,Cursed Village,Cursed Villages,a Cursed Village,5,0,c4c0b4,265ea6
-19d,Den Of Sin,Dens Of Sin,a Den Of Sin,5,0,7a5622,2c2226
+19d,Den of Sin,Dens of Sin,a Den of Sin,5,0,7a5622,2c2226
 19e,Devil's Workshop,Devil's Workshops,a Devil's Workshop,4,0,30484e,7d5b83
 19f,Druid,Druids,a Druid,2,0,c4c0b4,49b921
 1a0,Exorcist,Exorcists,an Exorcist,4,0,30484e,3763b5
