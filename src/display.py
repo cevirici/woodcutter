@@ -1,6 +1,7 @@
 import re
 from .classes import *
 from .standards import *
+from .Storymaker import *
 
 from functools import reduce
 from django.contrib.staticfiles.templatetags.staticfiles import static
@@ -267,106 +268,6 @@ def render_story_sidebar_labels(turnOwners, turnPoints):
                               ])
 
     return sidebarLabels
-
-
-def elaborate_cards(cardlist, fancy):
-    phrases = []
-    for item in cardlist:
-        if item != 'ARGUMENT':
-            thisCard = Cards[item]
-            thisPhrase = ''
-
-            if cardlist[item] == 1:
-                thisPhrase = thisCard.phrase_name
-            elif cardlist[item] == 0:
-                thisPhrase = thisCard.simple_name
-            else:
-                thisPhrase = '{} {}'.format(cardlist[item], thisCard.multi_name)
-
-            if fancy:
-                thisPhrase = "<div class='story-color' style='background: #{}; \
-                               outline-color: #{};' card = {}>{}</div>".format(
-                               thisCard.card_color, thisCard.border_color, item, thisPhrase)
-
-            phrases.append(thisPhrase)
-
-    if len(phrases) > 1:
-        phrases[-1] = ' and ' + phrases[-1]
-        for i in range(1, len(phrases) - 1):
-            phrases[i] = ', ' + phrases[i]
-
-    return ''.join(phrases)
-
-
-def elaborate_line(players, entry):
-    PLAYER_COLORS = ['#FF4545', '#4277FE']
-    PLAYER_OUTLINES = ['#CECECE', '#CECECE']
-
-    regexCard = r'\(\?P<cards>(\.\*)\)'
-    regexArg = r'\(\?P<argument>(\.\*)\)'
-    regexArgB = r'\(\?P<argumentb>(\.\*)\)'
-
-    entryString = entry.pred.regex
-    argumentsSplit = []
-
-    if 'ARGUMENT' in entry.items:
-        argumentsSplit = entry.items['ARGUMENT'].split('/')
-
-    # Masq Story Exception
-    if entry.pred == 'PASS':
-        argumentsSplit[0] = players[int(argumentsSplit[0]) - 1]
-
-    playerDiv = makeDiv('story-color',
-                        {'background': PLAYER_COLORS[entry.player],
-                         'outline-color': PLAYER_OUTLINES[entry.player]
-                         },
-                        innerHTML=players[entry.player])
-
-    plainString = re.sub(r'\^?\(\?P<player>\.\*\)', players[entry.player], entryString)
-    entryString = re.sub(r'\^?\(\?P<player>\.\*\)', playerDiv, entryString)
-
-    elab = elaborate_cards(entry.items, True)
-    plainElab = elaborate_cards(entry.items, False)
-    arguments = [regexArg, regexArgB]
-    if elab:
-        entryString = re.sub(regexCard, elab, entryString)
-        plainString = re.sub(regexCard, plainElab, plainString)
-    else:
-        arguments.insert(0, regexCard)
-
-    if argumentsSplit:
-        for regex in arguments:
-            if re.search(regex, entryString) is not None:
-                arg = argumentsSplit.pop(0)
-                entryString = re.sub(regex, arg, entryString)
-                plainString = re.sub(regex, arg, plainString)
-
-    entryString = re.sub(r'([^\\])[\.\(\)\+\$]', r'\1', entryString)
-    entryString = re.sub(r'\\([\.\(\)\+\$])', r'\1', entryString)
-    plainString = re.sub(r'([^\\])[\.\(\)\+\$]', r'\1', plainString)
-    plainString = re.sub(r'\\([\.\(\)\+\$])', r'\1', plainString)
-    plainString = ">" * entry.indent + plainString
-
-    plainString += '|' + entry.pred.name + '|' + str(entry.items)
-
-    return [entryString, plainString]
-
-
-def elaborate_story(players, gameMoves, turnPoints):
-    # Indents | Line | Owner | Turn Number
-    lines = []
-    rawlines = []
-
-    turn = 0
-    for i, move in enumerate(gameMoves):
-        if turn < len(turnPoints):
-            if i > turnPoints[turn]:
-                turn += 1
-        data = elaborate_line(players, move)
-        lines.append([(move.indent + 2) * 2, data[0], turn])
-        rawlines.append(data[1])
-
-    return [lines, rawlines]
 
 
 def render_kingdom(supply):

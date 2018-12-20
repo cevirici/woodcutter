@@ -2,25 +2,26 @@ from .standards import *
 
 
 class ParsedLine:
-    def __init__(self, player, indent, pred, items, isCleanup=False):
-        self.player = player
+    def __init__(self, indent, pred, players,
+                 items, arguments, isCleanup=False):
         self.indent = indent
         self.pred = pred
         self.predName = self.pred.name
         self.items = items
+        self.players = players
+        self.arguments = arguments
         self.isCleanup = isCleanup
 
-    def __str__(self):
-        return '{}{}{}{}'.format(self.player,
-                                 self.indent,
-                                 self.pred,
-                                 self.items)
-
     def __repr__(self):
-        return '{}{}{}{}'.format(hex(self.player)[2:],
-                                 hex(self.indent)[2:],
-                                 repr(self.pred),
-                                 repr(self.items))
+        return '{}|{}|{}|{}|{}'.format(self.indent,
+                                       repr(self.pred),
+                                       '/'.join([str(x) for x in self.players]),
+                                       '/'.join([repr(x) for x in self.items]),
+                                       '/'.join(self.arguments))
+
+    @property
+    def player(self):
+        return self.players[0]
 
 
 gSZones = ('SUPPLY', 'DECKS', 'HANDS', 'INPLAYS',

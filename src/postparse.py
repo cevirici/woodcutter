@@ -2,25 +2,28 @@ from .classes import *
 from copy import copy, deepcopy
 
 
+def unpackCardstack(cardString):
+    stack = Cardstack({})
+    for chunk in cardString.split('+'):
+        quantity, index = chunk.split(':')
+        stack[str(CardList[int(index, 16)])] += int(quantity)
+    return stack
+
+
 def unpack(logString, supplyString):
     lines = logString.split('~')
-    gL = []
+    parsedLines = []
+
     for line in lines:
-        stack = Cardstack({})
+        indent, pred, rawPlayers, rawItems, rawArguments = line.split('|')
+        indent = int(indent)
+        pred = PredList[int(pred, 16)]
+        players = [int(x) for x in rawPlayers.split('/')] if rawPlayers else []
+        items = [unpackCardstack(x) for x in rawItems.split('/')] \
+            if rawItems else []
+        arguments = rawArguments.split('/') if rawArguments else []
 
-        if len(line) > 4:
-            items = [x.split(':') for x in line[4:].split('|')]
-            for item in items:
-                cardName = str(CardList[int(item[1], 16)])
-                quantity = item[0]
-                if cardName != 'ARGUMENT':
-                    quantity = int(quantity)
-                stack[cardName] += quantity
-
-        gL.append(ParsedLine(int(line[0:1], 16) - 1,  # Player
-                             int(line[1:2], 16),  # Indent
-                             PredList[int(line[2:4], 16)],  # Pred
-                             stack))  # Items
+        parsedLines.append(ParsedLine(indent, pred, players, items, arguments))
 
     supplyItems = supplyString.split('~')
     supply = Cardstack({})
@@ -29,36 +32,34 @@ def unpack(logString, supplyString):
         quantity = int(item[3:5])
         supply[cardName] += quantity
 
-    return (gL, supply)
+    return (parsedLines, supply)
 
 
 def parse_gameLog(parsedLog):
-    gameMoves = []
     blockLengths = []
     pointers = {}
-    for line in parsedLog:
-        if line.pred == Preds['GAME START'] or line.pred == Preds['NEW TURN']:
-            pointers[0] = len(gameMoves)
+    for i, line in enumerate(parsedLog):
+        if line.pred in ['GAME START', 'NEW TURN']:
+            pointers[0] = i
         else:
-            pointers[line.indent + 1] = len(gameMoves)
-            for i in range(line.indent + 1):
-                blockLengths[pointers[i]] += 1
+            pointers[line.indent + 1] = i
+            for j in range(line.indent + 1):
+                blockLengths[pointers[j]] += 1
 
-        gameMoves.append(line)
         blockLengths.append(1)
 
     tail = blockLengths[0]
-    limit = len(gameMoves)
+    limit = len(parsedLog)
     while tail < limit:
         tail += blockLengths[tail]
         head = tail - 1
-        indentCap = gameMoves[head].indent
-        while gameMoves[head].indent <= indentCap and blockLengths[head] == 1:
-            indentCap = min(gameMoves[head].indent, indentCap)
-            gameMoves[head].isCleanup = True
+        indentCap = parsedLog[head].indent
+        while parsedLog[head].indent <= indentCap and blockLengths[head] == 1:
+            indentCap = min(parsedLog[head].indent, indentCap)
+            parsedLog[head].isCleanup = True
             head -= 1
 
-    return (gameMoves, blockLengths)
+    return blockLengths
 
 
 def parse_single_line(gM, i, bL, cS, activeExceptions):

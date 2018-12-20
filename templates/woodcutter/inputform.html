@@ -34,6 +34,7 @@
 				</div>
 				<div class = 'submitbutton'></div>
 			</div>
+			<input form='submitform' name='players' type='text'>
 			<form action="{% url 'woodcutter:submit' %}" method="post" id='submitform'>
 				{% csrf_token %}
 				<input type="submit" value="Submit" />

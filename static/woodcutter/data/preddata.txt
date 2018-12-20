@@ -1,167 +1,123 @@
 0~^Game #(?P<argument>.*), (?P<argumentb>.*)\.$~GAME START
-1~^Turn (?P<cards>.*) - (?P<player>.*)$~NEW TURN
-2~^(?P<player>.*) buys and gains (?P<cards>.*)\.$~BUY AND GAIN
-3~^(?P<player>.*) gains (?P<cards>.*) onto their drawpile\.$~GAIN TOPDECK
-4~^(?P<player>.*) gains (?P<cards>.*) from trash\.$~GAIN TRASH
-5~^(?P<player>.*) gains (?P<cards>.*)\.$~GAIN
-6~^(?P<player>.*) trashes nothing\.$~TRASH NOTHING
-7~^(?P<player>.*) trashes (?P<cards>.*)\.$~TRASH
-8~^(?P<player>.*) discards (?P<cards>.*)\.$~DISCARD
-9~^(?P<player>.*) plays (?P<cards>.*) again\. \(Citadel\)$~PLAY CITADEL
-a8~^(?P<player>.*) plays (?P<cards>.*) again\. \(\+\$(?P<argument>.*)\)$~THRONE COIN
-a5~^(?P<player>.*) plays (?P<cards>.*) again\.$~PLAY AGAIN
-a~^(?P<player>.*) plays (?P<cards>.*) a third time\.$~PLAY THIRD
-2b~^(?P<player>.*) plays (?P<cards>.*)\. \(\+\$(?P<argument>.*)\)$~PLAY COIN
-b~^(?P<player>.*) plays (?P<cards>.*)\.$~PLAY
-c~^(?P<player>.*) topdecks (?P<cards>.*)\.$~TOPDECK
-d~^(?P<player>.*) draws (?P<cards>.*) \(Wharf\)\.$~WHARF DRAW
-e~^(?P<player>.*) draws (?P<cards>.*) \(Hireling\)\.$~HIRELING DRAW
-f~^(?P<player>.*) draws (?P<cards>.*) \(Enchantress\)\.$~WOODS DRAW
-10~^(?P<player>.*) draws (?P<cards>.*) \(Haunted Woods\)\.$~ENCHANTRESS DRAW
-11~^(?P<player>.*) draws (?P<cards>.*) \(Caravan\)\.$~CARAVAN DRAW
-12~^(?P<player>.*) gets \+1 Buy, \+1 Action and draws (?P<cards>.*) \(Tactician\)\.$~TACTICIAN DRAW
-13~^(?P<player>.*) draws (?P<cards>.*) \(from (?P<argument>.*)\)$~DRAW FROM
-14~^(?P<player>.*) draws (?P<cards>.*) \(Ghost Town\)\.$~GT DRAW
-a1~^(?P<player>.*) draws (?P<cards>.*) \(Horse Traders\)\.$~HT DRAW
-a2~^(?P<player>.*) draws (?P<cards>.*) \(Den of Sin\)\.$~DEN DRAW
-a4~^(?P<player>.*) draws (?P<cards>.*) \(Road Network\)\.$~ROAD DRAW
-82~^(?P<player>.*) draws (?P<cards>.*) \(Silos\)\.$~DRAW SILOS
-2c~^(?P<player>.*) draws (?P<cards>.*) \(Sinister Plot\)\.$~DRAW Plot
-83~^(?P<player>.*) draws (?P<cards>.*) \((?P<argument>.*)\)\.$~DRAW GENERIC
-15~^(?P<player>.*) draws (?P<cards>.*)\.$~DRAW
-16~^(?P<player>.*) wishes for (?P<cards>.*) but reveals (?P<argument>.*)\.$~WISH FAIL
-17~^(?P<player>.*) reveals (?P<cards>.*)\.$~REVEAL
-18~^(?P<player>.*) looks at (?P<cards>.*)\.$~LOOK
-19~^(?P<player>.*) puts (?P<cards>.*) into their hand\.$~PUT INHAND
-77~^Druid sets (?P<cards>.*) aside\.$~DRUID BOONS
-1a~^(?P<player>.*) sets (?P<cards>.*) aside\.$~SET ASIDE
-1b~^(?P<player>.*) puts (?P<cards>.*) on their (?P<argument>.*)\.$~PUT ONTO
-1c~^(?P<player>.*) calls (?P<cards>.*)\.$~CALL
-1d~^(?P<player>.*) moves their deck to the discard\.$~DISCARD DECK
-1e~^(?P<player>.*) puts (?P<cards>.*) back onto their deck\.$~RETURN TOPDECK
-1f~^(?P<player>.*) shuffles (?P<cards>.*) into their deck\.$~SHUFFLE INTO
-20~^(?P<player>.*) inserts (?P<cards>.*) into their deck\.$~INSERT INTO
-21~^(?P<player>.*) returns (?P<cards>.*) to (?P<argument>.*)\.$~RETURN TO
-22~^(?P<player>.*) returns (?P<cards>.*) set by (?P<argument>.*)\.$~RETURN SETBY
-23~^(?P<player>.*) returns (?P<cards>.*)\.$~RETURN
-24~^(?P<player>.*) receives (?P<cards>.*)\.$~RECEIVE.
-25~^(?P<player>.*) receives (?P<cards>.*)$~RECEIVE BOONHEX
-26~^(?P<player>.*) passes (?P<cards>.*) to (?P<argument>.*)\.$~PASS
-27~^(?P<player>.*) starts with (?P<cards>.*)\.$~STARTS
-28~^(?P<player>.*) buys Alms but has (?P<cards>.*) in play\.$~ALMS FAIL
-29~^(?P<player>.*) buys Borrow but already had (?P<cards>.*)$~BORROW FAIL
-2a~^(?P<player>.*) buys (?P<cards>.*)\.$~BUY
-2d~^(?P<player>.*) reacts with (?P<cards>.*)\.$~REACT
-2e~^(?P<player>.*) shuffles their deck\.$~SHUFFLE
-2f~^(?P<player>.*) wishes for (?P<cards>.*) and finds it\.$~WISH SUCCESS
-30~^Reshuffling the Black Market deck\.$~SHUFFLE BM
-31~^(?P<player>.*) puts (?P<cards>.*) on the bottom of (?P<argument>.*)\.$~BOTTOMDECK
-32~^(?P<cards>.*) loses track of (?P<argument>.*) \(it moved\)\.$~LOSETRACK MOVE
-33~^(?P<cards>.*) loses track of (?P<argument>.*) \(it was covered up\)\.$~LOSETRACK COVER
-34~^(?P<cards>.*) loses track of (?P<argument>.*) \(it was shuffled\)\.$~LOSETRACK SHUFFLE
-35~^(?P<cards>.*) is lost track of\.$~LOSETRACK
-36~^No differently named Action cards\.$~MUSEUM FAIL
-37~^exactly one of (?P<player>.*)\.$~WOLFDEN
-38~^(?P<player>.*) cards from the (?P<cards>.*)-pile\.$~OBELISK
-39~^(?P<player>.*) differently named cards\.$~MUSEUM
-3a~^(?P<player>.*) Castles\.$~CASTLES
-3b~^(?P<player>.*) Action cards\.$~VINEYARDS
-3c~^(?P<player>.*) Victory cards\.$~SILK ROAD
-3d~^VP tokens\.$~SHIELDS
-3e~^(?P<player>.*) puts (?P<cards>.*) in hand \(Gear\)\.$~DRAW GEAR
-3f~^(?P<player>.*) puts (?P<cards>.*) in hand \(Haven\)\.$~DRAW HAVEN
-40~^(?P<player>.*) puts (?P<cards>.*) in hand \(Archive\)\.$~DRAW ARCHIVE
-a3~^(?P<player>.*) puts (?P<cards>.*) in hand \(Cargo Ship\)\.$~DRAW CARGO
-41~^(?P<player>.*) gets \+1 Action and \+1 Coin \(Fishing Village\)\.$~DURATION FV
-42~^(?P<player>.*) gets \+2 Coins \(Merchant Ship\)\.$~DURATION MS
-43~^(?P<player>.*) gets \+1 Coin \(Lighthouse\)\.$~DURATION LIGHTHOUSE
-44~^(?P<player>.*) gets \+1 Coin \(Caravan Guard\)\.$~DURATION CGUARD
-45~^(?P<player>.*) gets \+3 Coins \(Swamp Hag\)\.$~DURATION SHAG
-46~^(?P<player>.*) summons (?P<cards>.*)\.$~SUMMON
-47~^(?P<player>.*) gets \+1 Buy \(Bridge Troll\)\.$~DURATION TROLL
-48~^(?P<player>.*) starts their turn\.$~TURN START
-49~^(?P<player>.*) takes (?P<cards>.*) VP from (?P<argument>.*)\.$~SHIELD GAIN
-4a~^(?P<player>.*) moves (?P<cards>.*) VP from (?P<argument>.*) to (?P<argumentb>.*)\.$~SHIELD MOVE
-4b~^Obelisk chooses (?P<cards>.*)\.$~OBELISK CHOICE
-4c~^(?P<player>.*) moves (?P<argument>.*) to (?P<argumentb>.*)\.$~MOVE
-4d~^(?P<player>.*) gets (?P<cards>.*) VP\.$~SHIELD GET
-4e~^(?P<player>.*) gets (?P<cards>.*) VP from Groundskeeper\.$~SHIELD GROUNDSKEEPER
-4f~^(?P<player>.*) gets (?P<cards>.*) VP from Goons\.$~SHIELD GOONS
-50~^(?P<player>.*) gets (?P<cards>.*) VP from (?P<argument>.*)\.$~SHIELD OTHER
-51~^(?P<player>.*) adds (?P<cards>.*) VP to (?P<argument>.*)\.$~SHIELD ADD
-52~^Waiting for (?P<player>.*)\.$~WAITING
-53~^(?P<player>.*) failed to discard an Attack\.$~QUEST ATTACKFAIL
-54~^(?P<player>.*) failed to discard 6 cards\.$~QUEST CARDFAIL
-55~^(?P<player>.*) failed to discard (?P<cards>.*)\.$~DISCARD FAIL
-56~^(?P<player>.*) had no cards to set aside\.$~SET FAIL
-57~^(?P<player>.*) had no cards to discard or topdeck\.$~TOPDECK FAIL
-58~^Mission fails because (?P<player>.*) already owned the previous turn\.$~MISSION FAIL
-59~^(?P<player>.*) takes an extra turn after this one\.$~EXTRATURN
-5a~^(?P<player>.*) flips (?P<argument>.*) face down\.$~FLIP DOWN
-5b~^(?P<player>.*) flips (?P<argument>.*) face up\.$~FLIP UP
-5c~^(?P<player>.*) failed to gain (?P<cards>.*)\.$~GAIN FAIL
-5d~^(?P<player>.*) didn't trash an Action card\.$~ACTIONTRASH FAIL
-5e~^(?P<player>.*) adds (?P<cards>.*) to (?P<argument>.*)\.$~ADD TO
-5f~^(?P<player>.*) takes (?P<cards>.*) from (?P<argument>.*)\.$~TAKE FROM
-60~^(?P<player>.*) isn't empty\.$~NOT EMPTY
-61~^(?P<player>.*) gets \+1 Action \(from (?P<cards>.*)\)$~ACTION TOKEN
-62~^(?P<player>.*) gets \+1 Buy \(from (?P<cards>.*)\)$~BUY TOKEN
-63~^(?P<player>.*) gets \+1 Coin \(from (?P<cards>.*)\)$~COIN TOKEN
-64~^(?P<player>.*) skips a draw \(because of (?P<cards>.*)\)$~PENALTY CARD
-65~^(?P<player>.*) takes the coin tokens instead\.$~TAKE CHIPS
-66~^(?P<player>.*) takes the Debt instead\.$~TAKE DEBT INSTEAD
-67~^(?P<player>.*) takes the VP tokens instead\.$~TAKE SHIELD
-68~^Outpost fails because (?P<player>.*) already owned the previous turn\.$~OUTPOST FAIL
-69~^Outpost fails because (?P<player>.*) has already played it\.$~OUTPOST FAIL2
-6a~^(?P<player>.*) takes (?P<cards>.*) debt\.$~TAKE DEBT
-6b~^(?P<player>.*) repays (?P<cards>.*)\.$~REPAY DEBT
-6c~^(?P<player>.*) repays (?P<cards>.*) \((?P<argument>.*) remaining\)\.$~REPAY DEBT PARTIAL
-6d~^(?P<player>.*) sets (?P<cards>.*) aside with (?P<argument>.*)\.$~SET ASIDE WITH
-6e~^(?P<player>.*) blocks with (?P<cards>.*)\.$~BLOCK
-6f~^(?P<player>.*) names (?P<cards>.*)\.$~NAME
-70~^Obelisk failed to select an Action Supply pile\.$~OBELISK FAIL
-71~^(?P<player>.*) inherits (?P<cards>.*)\.$~INHERIT
-72~^(?P<player>.*) fails to discard for The Sky's Gift$~SKY GIFT FAIL
-73~^(?P<player>.*) puts (?P<cards>.*) in hand \(Crypt\)\.$~CRYPT
-74~^(?P<player>.*) gets \+1 Coin \(Guardian\)\.$~DURATION GUARDIAN
-75~^(?P<player>.*) takes (?P<cards>.*)\.$~TAKES BOONHEX
-76~^The Sun's Gift has nothing to discard\.$~SUN GIFT FAIL
-78~^(?P<player>.*) gets \+3 Coins \(Raider\)\.$~DURATION RAIDER
-79~^(?P<player>.*) gets \+3 Coins \(Secret Cave\)\.$~DURATION CAVE
-7a~^(?P<cards>.*) is enchanted by (?P<argument>.*)$~ENCHANTED
-7b~^Between Turns$~BETWEEN TURNS
-7d~^(?P<player>.*) plays (?P<cards>.*) again\. \(Citadel\)$~PLAY CITADEL
-7e~^(?P<player>.*) trashes (?P<cards>.*)\. \((?P<argument>.*)\)$~TRASH GENERIC
-7f~^(?P<player>.*) puts (?P<cards>.*) on the bottom of their deck\.$~BOTTOMDECK
-80~^(?P<player>.*) loses (?P<cards>.*) Coins\.$~LOSE COINS
-81~^(?P<player>.*) loses (?P<cards>.*) Coin\.$~LOSE COIN
-84~^(?P<player>.*) gets \+\$(?P<argument>.*)\. \((?P<argumentb>.*)\)$~COINS GENERIC
-85~^(?P<player>.*) gets \+\$(?P<argument>.*)\. \((?P<argumentb>.*)\)$~COIN GENERIC
-86~^(?P<player>.*) gets \+\$(?P<argument>.*)\.$~GAIN COINS
-87~^(?P<player>.*) gets \+\$(?P<argument>.*)\.$~GAIN COIN
-88~^(?P<player>.*) gets \+(?P<argument>.*) Buys\. \((?P<argumentb>.*)\)$~BUYS GENERIC
-89~^(?P<player>.*) gets \+(?P<argument>.*) Buy\. \((?P<argumentb>.*)\)$~BUY GENERIC
-8a~^(?P<player>.*) gets \+(?P<argument>.*) Buys\.$~BUYS
-8b~^(?P<player>.*) gets \+(?P<argument>.*) Buy\.$~BUY
-8c~^(?P<player>.*) gets \+(?P<argument>.*) Actions. \((?P<argumentb>.*)\)$~ACTIONS GENERIC
-8d~^(?P<player>.*) gets \+(?P<argument>.*) Action. \((?P<argumentb>.*)\)$~ACTION GENERIC
-8e~^(?P<player>.*) gets \+(?P<argument>.*) Actions\.$~ACTIONS
-8f~^(?P<player>.*) gets \+(?P<argument>.*) Action\.$~ACTION
-90~^(?P<player>.*) ends their buy phase\.$~END BUYPHASE
-91~^(?P<player>.*) uses (?P<argument>.*) Villagers\.$~USE VILLAGERS
-92~^(?P<player>.*) uses (?P<argument>.*) Villager\.$~USE VILLAGER
-93~^(?P<player>.*) gets \+(?P<argument>.*) Villagers\.$~GAIN VILLAGERS
-94~^(?P<player>.*) gets \+(?P<argument>.*) Villager\.$~GAIN VILLAGER
-95~^(?P<player>.*) gets \+(?P<argument>.*) Villagers\. \((?P<argumentb>.*)\)$~VILLAGERS GENERIC
-96~^(?P<player>.*) gets \+(?P<argument>.*) Villager\. \((?P<argumentb>.*)\)$~VILLAGER GENERIC
-97~^(?P<player>.*) uses (?P<argument>.*) Coffers\. \(\+\$(?P<argumentb>.*)\)$~USE COFFERS
-98~^(?P<player>.*) uses (?P<argument>.*) Coffers\. \(\+\$(?P<argumentb>.*)\)$~USE COFFER
-99~^(?P<player>.*) gets \+(?P<argument>.*) Coffers\. \((?P<argumentb>.*)\)$~COFFERS GENERIC
-9a~^(?P<player>.*) gets \+(?P<argument>.*) Coffers\. \((?P<argumentb>.*)\)$~COFFER GENERIC
-9b~^(?P<player>.*) gets \+(?P<argument>.*) Coffers\.$~GAIN COFFERS
-9c~^(?P<player>.*) gets a Coffers from Patron\.$~COFFERS PATRON
-9d~^(?P<player>.*) gets (?P<argument>.*) coins from Priest\.$~PRIEST COINS
-9e~^(?P<player>.*) gets a Coffers from (?P<argument>.*)\.$~COFFERS FROM
-9f~^(?P<player>.*) gains another Experiment$~GAIN EXPERIMENT
-a0~^(?P<player>.*) puts (?P<cards>.*) in hand \((?P<argument>.*)\)\.$~INHAND GENERIC
-7c~^(?P<argument>.*)$~OTHERS
+1~^Turn (?P<argument>.*) - (?P<player>.*)$~NEW TURN
+2~^(?P<player>.*) starts their turn\.$~TURN START
+3~^(?P<player>.*) ends their buy phase\.$~END BUYPHASE
+4~^Between Turns$~BETWEEN TURNS
+5~^(?P<player>.*) starts with (?P<cards>.*)\.$~STARTS
+6~^(?P<player>.*) buys and gains (?P<cards>.*)\.$~BUY AND GAIN
+7~^(?P<player>.*) gains (?P<cards>.*) onto their drawpile\.$~GAIN TOPDECK
+8~^(?P<player>.*) gains (?P<cards>.*) from trash\.$~GAIN TRASH
+9~^(?P<player>.*) gains another Experiment$~GAIN EXPERIMENT
+a~^(?P<player>.*) gains (?P<cards>.*)\.$~GAIN
+b~^(?P<player>.*) buys Alms but has (?P<cards>.*) in play\.$~ALMS FAIL
+c~^(?P<player>.*) buys Borrow but already had (?P<argument>.*)$~BORROW FAIL
+d~^(?P<player>.*) buys (?P<cards>.*)\.$~BUY
+e~^(?P<player>.*) trashes nothing\.$~TRASH NOTHING
+f~^(?P<player>.*) trashes (?P<cards>.*)\. \((?P<cardsb>.*)\)$~TRASH GENERIC
+10~^(?P<player>.*) trashes (?P<cards>.*)\.$~TRASH
+11~^(?P<player>.*) discards (?P<cards>.*)\.$~DISCARD
+12~^(?P<player>.*) plays (?P<cards>.*) again\. \((?P<cardsb>.*)\)$~THRONE GENERIC
+13~^(?P<player>.*) plays (?P<cards>.*) again\. \(\+\$(?P<argument>.*)\)$~THRONE COIN
+14~^(?P<player>.*) plays (?P<cards>.*) again\.$~THRONE
+15~^(?P<player>.*) plays (?P<cards>.*) a third time\.$~KINGS
+16~^(?P<player>.*) plays (?P<cards>.*)\. \(\+\$(?P<argument>.*)\)$~PLAY COIN
+17~^(?P<player>.*) plays (?P<cards>.*)\.$~PLAY
+18~^(?P<player>.*) topdecks (?P<cards>.*)\.$~TOPDECK
+19~^(?P<player>.*) draws (?P<cards>.*) \(from (?P<cardsb>.*)\)$~DRAW FROM
+1a~^(?P<player>.*) draws (?P<cards>.*) \((?P<cardsb>.*)\)\.$~DRAW GENERIC
+1b~^(?P<player>.*) draws (?P<cards>.*)\.$~DRAW
+1c~^(?P<player>.*) skips a draw \(because of (?P<cards>.*)\)$~PENALTY CARD
+1d~^(?P<player>.*) wishes for (?P<cards>.*) but reveals (?P<cardsb>.*)\.$~WISH FAIL
+1e~^(?P<player>.*) wishes for (?P<cards>.*) and finds it\.$~WISH SUCCESS
+1f~^(?P<player>.*) reveals (?P<cards>.*)\.$~REVEAL
+20~^(?P<player>.*) looks at (?P<cards>.*)\.$~LOOK
+21~^(?P<player>.*) puts (?P<cards>.*) in hand \((?P<cardsb>.*)\)\.$~INHAND GENERIC
+22~^(?P<player>.*) puts (?P<cards>.*) into their hand\.$~PUT INHAND
+23~^(?P<player>.*) puts (?P<cards>.*) back onto their deck\.$~RETURN TOPDECK
+24~^(?P<player>.*) puts (?P<cards>.*) on the bottom of (?P<argument>.*)\.$~BOTTOMDECK
+25~^(?P<player>.*) puts (?P<cards>.*) on their (?P<argument>.*)\.$~PUT ONTO
+26~^Druid sets (?P<cards>.*) aside\.$~DRUID BOONS
+27~^(?P<player>.*) sets (?P<cards>.*) aside with (?P<argument>.*)\.$~SET ASIDE WITH
+28~^(?P<player>.*) sets (?P<cards>.*) aside\.$~SET ASIDE
+29~^(?P<player>.*) calls (?P<cards>.*)\.$~CALL
+2a~^(?P<player>.*) moves their deck to the discard\.$~DISCARD DECK
+2b~^(?P<player>.*) shuffles (?P<cards>.*) into their deck\.$~SHUFFLE INTO
+2c~^(?P<player>.*) shuffles their deck\.$~SHUFFLE
+2d~^Reshuffling the Black Market deck\.$~SHUFFLE BM
+2e~^(?P<player>.*) inserts (?P<cards>.*) into their deck\.$~INSERT INTO
+2f~^(?P<player>.*) returns (?P<cards>.*) to (?P<argument>.*)\.$~RETURN TO
+30~^(?P<player>.*) returns (?P<cards>.*) set by (?P<argument>.*)\.$~RETURN SETBY
+31~^(?P<player>.*) returns (?P<cards>.*)\.$~RETURN
+32~^(?P<player>.*) receives (?P<cards>.*)\.$~RECEIVE.
+33~^(?P<player>.*) receives (?P<cards>.*)$~RECEIVE BOONHEX
+34~^(?P<player>.*) passes (?P<cards>.*) to (?P<playerb>.*)\.$~PASS
+35~^(?P<player>.*) reacts with (?P<cards>.*)\.$~REACT
+36~^(?P<cards>.*) loses track of (?P<cardsb>.*) \((?P<argument>.*)\)\.$~LOSETRACK GENERIC
+37~^(?P<cards>.*) is lost track of\.$~LOSETRACK
+38~^(?P<player>.*) summons (?P<cards>.*)\.$~SUMMON
+39~^(?P<player>.*) takes (?P<argument>.*) VP from (?P<argumentb>.*)\.$~SHIELD GAIN
+3a~^(?P<player>.*) moves (?P<argument>.*) VP from (?P<argumentb>.*) to (?P<argumentc>.*)\.$~SHIELD MOVE
+3b~^(?P<player>.*) gets (?P<argument>.*) VP from (?P<cards>.*)\.$~SHIELD GENERIC
+3c~^(?P<player>.*) gets (?P<argument>.*) VP\.$~SHIELD GET
+3d~^(?P<player>.*) adds (?P<argument>.*) VP to (?P<argumentb>.*)\.$~SHIELD ADD
+3e~^(?P<player>.*) moves (?P<argument>.*) to (?P<argumentb>.*)\.$~MOVE
+3f~^(?P<player>.*) adds (?P<cards>.*) to (?P<argument>.*)\.$~ADD TO
+40~^(?P<player>.*) flips (?P<argument>.*) face down\.$~FLIP DOWN
+41~^(?P<player>.*) flips (?P<argument>.*) face up\.$~FLIP UP
+42~^(?P<player>.*) takes an extra turn after this one\.$~EXTRATURN
+43~^(?P<player>.*) takes (?P<cards>.*) from (?P<argument>.*)\.$~TAKE FROM
+44~^(?P<player>.*) takes the coin tokens instead\.$~POSSESSION COFFERS
+45~^(?P<player>.*) takes the Debt instead\.$~POSSESSION DEBT
+46~^(?P<player>.*) takes the VP tokens instead\.$~POSSESSION VP
+47~^(?P<player>.*) takes (?P<argument>.*) debt\.$~TAKE DEBT
+48~^(?P<player>.*) takes (?P<cards>.*)\.$~TAKES BOONHEX
+49~^(?P<player>.*) repays (?P<argument>.*) debt \((?P<argumentb>.*) remaining\)\.$~REPAY DEBT PARTIAL
+4a~^(?P<player>.*) repays (?P<argument>.*)\.$~REPAY DEBT
+4b~^(?P<player>.*) blocks with (?P<cards>.*)\.$~BLOCK
+4c~^(?P<player>.*) names (?P<cards>.*)\.$~NAME
+4d~^(?P<player>.*) inherits (?P<cards>.*)\.$~INHERIT
+4e~^(?P<cards>.*) is enchanted by (?P<argument>.*)$~ENCHANTED
+4f~^(?P<player>.*) gets \+1 Buy, \+1 Action and draws (?P<cards>.*) \(Tactician\)\.$~TACTICIAN DRAW
+50~^(?P<player>.*) loses (?P<cards>.*) Coins\.$~LOSE COINS
+51~^(?P<player>.*) loses (?P<cards>.*) Coin\.$~LOSE COIN
+52~^(?P<player>.*) gets \+1 Action \(from (?P<cards>.*)\)$~ACTION TOKEN
+53~^(?P<player>.*) gets \+1 Buy \(from (?P<cards>.*)\)$~BUY TOKEN
+54~^(?P<player>.*) gets \+1 Coin \(from (?P<cards>.*)\)$~COIN TOKEN
+55~^(?P<player>.*) gets \+\$(?P<argument>.*)\. \((?P<cards>.*)\)$~COINS GENERIC
+56~^(?P<player>.*) gets \+\$(?P<argument>.*)\.$~GAIN COINS
+57~^(?P<player>.*) gets \+(?P<argument>.*) Buys\. \((?P<cards>.*)\)$~BUYS GENERIC
+58~^(?P<player>.*) gets \+(?P<argument>.*) Buy\. \((?P<cards>.*)\)$~BUY GENERIC
+59~^(?P<player>.*) gets \+(?P<argument>.*) Buys\.$~BUYS
+5a~^(?P<player>.*) gets \+(?P<argument>.*) Buy\.$~BUY
+5b~^(?P<player>.*) gets \+(?P<argument>.*) Actions. \((?P<argumentb>.*)\)$~ACTIONS GENERIC
+5c~^(?P<player>.*) gets \+(?P<argument>.*) Action. \((?P<argumentb>.*)\)$~ACTION GENERIC
+5d~^(?P<player>.*) gets \+(?P<argument>.*) Actions\.$~ACTIONS
+5e~^(?P<player>.*) gets \+(?P<argument>.*) Action\.$~ACTION
+5f~^(?P<player>.*) uses (?P<argument>.*) Villagers\.$~USE VILLAGERS
+60~^(?P<player>.*) uses (?P<argument>.*) Villager\.$~USE VILLAGER
+61~^(?P<player>.*) gets \+(?P<argument>.*) Villagers\.$~GAIN VILLAGERS
+62~^(?P<player>.*) gets \+(?P<argument>.*) Villager\.$~GAIN VILLAGER
+63~^(?P<player>.*) gets \+(?P<argument>.*) Villagers\. \((?P<cards>.*)\)$~VILLAGERS GENERIC
+64~^(?P<player>.*) gets \+(?P<argument>.*) Villager\. \((?P<cards>.*)\)$~VILLAGER GENERIC
+65~^(?P<player>.*) uses (?P<argument>.*) Coffers\. \(\+\$(?P<argumentb>.*)\)$~USE COFFERS
+66~^(?P<player>.*) uses (?P<argument>.*) Coffers\. \(\+\$(?P<argumentb>.*)\)$~USE COFFER
+67~^(?P<player>.*) gets \+(?P<argument>.*) Coffers\. \((?P<cards>.*)\)$~COFFERS GENERIC
+68~^(?P<player>.*) gets \+(?P<argument>.*) Coffers\. \((?P<cards>.*)\)$~COFFER GENERIC
+69~^(?P<player>.*) gets a Coffers from (?P<cards>.*)\.$~COFFERS FROM
+6a~^(?P<player>.*) gets \+(?P<argument>.*) Coffers\.$~GAIN COFFERS
+6b~^Obelisk chooses (?P<cards>.*)\.$~OBELISK CHOICE
+6c~^Obelisk failed to select an Action Supply pile\.$~OBELISK FAIL
+6d~^(?P<player>.*) had no cards to set aside\.$~SET FAIL
+6e~^(?P<player>.*) had no cards to discard or topdeck\.$~TOPDECK FAIL
+6f~^Mission fails because (?P<player>.*) already owned the previous turn\.$~MISSION FAIL
+70~^(?P<player>.*) failed to discard an Attack\.$~QUEST ATTACKFAIL
+71~^(?P<player>.*) failed to discard 6 cards\.$~QUEST CARDFAIL
+72~^(?P<player>.*) failed to discard (?P<cards>.*)\.$~DISCARD FAIL
+73~^(?P<player>.*) failed to gain (?P<cards>.*)\.$~GAIN FAIL
+74~^(?P<player>.*) didn't trash an Action card\.$~ACTIONTRASH FAIL
+75~^(?P<argument>.*) isn't empty\.$~NOT EMPTY
+76~^Outpost fails because (?P<player>.*) already owned the previous turn\.$~OUTPOST FAIL
+77~^Outpost fails because (?P<player>.*) has already played it\.$~OUTPOST FAIL2
+78~^(?P<player>.*) fails to discard for The Sky's Gift$~SKY GIFT FAIL
+79~^The Sun's Gift has nothing to discard\.$~SUN GIFT FAIL
+7a~^(?P<argument>.*)$~OTHERS

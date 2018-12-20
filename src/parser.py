@@ -2,6 +2,7 @@ import re
 from .classes import *
 from .standards import *
 from functools import reduce
+from copy import deepcopy
 
 
 def get_indent(line):
@@ -13,7 +14,6 @@ def get_card(name):
     for card in Cards:
         if name in Cards[card].names:
             return card
-    return 'ARGUMENT'
 
 
 def parse_card_phrase(cardlist):
@@ -22,19 +22,14 @@ def parse_card_phrase(cardlist):
 
     for item in r:
         m = re.match('^(?:(\d+|a|(?:an)) )?(.*)$', item)
-        prefix = m.group(1)
-        suffix = m.group(2)
+        prefix, suffix = m.group(1), m.group(2)
 
-        if prefix is None:
-            card = get_card(suffix)
-            if card == 'ARGUMENT':
-                a[card] = suffix
-            else:
-                a[card] = 0
-        else:
+        if prefix:
             if prefix in ['a', 'an']:
                 prefix = 1
             a[get_card(suffix)] = int(prefix)
+        else:
+            a[get_card(suffix)] = 255
 
     return a
 
@@ -43,52 +38,47 @@ def parse_line(line):
     indent = get_indent(line)
     line = re.sub('<.*?>|&bull;|&sdot;', '', line).strip()
 
-    pred = Preds['OTHERS']
     for p in predParseOrder:
-        if re.match(p.regex, line) is not None:
+        if re.match(p.regex, line):
             pred = p
             break
 
     m = re.match(pred.regex, line)
     gd = m.groupdict()
 
-    player = gd['player'] if 'player' in gd else None
-    cards = parse_card_phrase(gd['cards']) if 'cards' in gd else Cardstack({})
-    if 'argument' in gd:
-        arg = '/'.join([gd[x] for x in ['argument', 'argumentb'] if x in gd])
-        cards['ARGUMENT'] = arg
+    playerFields = ('player', 'playerb')
+    players = [gd[group] for group in playerFields if group in gd]
 
-    parsedLine = ParsedLine(player, indent, pred, cards)
+    cardFields = ('cards', 'cardsb')
+    cards = [parse_card_phrase(gd[group]) for group in cardFields
+             if group in gd]
 
-    return parsedLine
+    argumentFields = ('argument', 'argumentb', 'argumentc')
+    arguments = [gd[group] for group in argumentFields if group in gd]
+
+    return ParsedLine(indent, pred, players, cards, arguments)
 
 
 def translate_file(inString):
-    f = inString.split('~')
+    lines = inString.split('~')
     parsedLog = []
-    aliases = []
+    names = []
 
-    for line in f:
-        t = parse_line(line)
-        if t.player:
-            if t.pred == 'NEW TURN':
-                matchedAliases = [alias for alias in aliases if
-                                  re.match('^' + alias, t.player) is not None]
+    for line in lines:
+        parsed = parse_line(line)
+        for i, player in enumerate(parsed.players):
+            if parsed.pred == 'NEW TURN':
+                matchedAliases = [name for name in names if
+                                  re.match('^' + name, player)]
                 matchedAliases.sort(key=lambda x: -len(x))
-                t.player = matchedAliases[0]
+                parsed.players[i] = names.index(matchedAliases[0]) + 1
             else:
-                if t.player not in aliases:
-                    aliases.append(t.player)
+                if player not in names:
+                    names.append(player)
 
-                if t.pred == 'PASS':
-                    t.items['ARGUMENT'] = aliases.index(t.items['ARGUMENT']) + 1
+                parsed.players[i] = names.index(player) + 1
 
-            t.player = aliases.index(t.player) + 1
-
-        else:
-            t.player = 0
-
-        parsedLog.append(t)
+        parsedLog.append(parsed)
 
     return parsedLog
 
@@ -96,27 +86,19 @@ def translate_file(inString):
 def combined_parse(inStrings):
     logs = [translate_file(x) for x in inStrings]
     parsedLog = []
-    gameNum = int(logs[0][0].items['ARGUMENT'].split('/')[0])
+    gameNum = int(logs[0][0].arguments[0])
 
     actualLength = min([len(log) for log in logs])
     for i in range(actualLength):
-        currentLine = [log[i] for log in logs]
-        default = currentLine[0]
+        currentLines = [log[i] for log in logs]
+        mergedLine = deepcopy(currentLines[0])
+        mergedItems = [reduce(lambda x, y: x.merge(y),
+                              [line.items[j] for line in currentLines])
+                       for j in range(len(currentLines[0].items))]
 
-        passedItems = [pLn.items for pLn in currentLine if
-                       ('CARD' not in pLn.items) and
-                       ('NOTHING' not in pLn.items)
-                       ]
+        mergedLine.items = mergedItems
 
-        passedItems = reduce(lambda x, y: x.merge(y), passedItems)
-
-        t = ParsedLine(default.player,
-                       default.indent,
-                       default.pred,
-                       passedItems if passedItems else default.items
-                       )
-
-        parsedLog.append(repr(t))
+        parsedLog.append(repr(mergedLine))
 
     return ('~'.join(parsedLog), gameNum)
 

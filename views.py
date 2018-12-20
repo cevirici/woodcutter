@@ -64,10 +64,8 @@ def plaintext(request, game_id):
     players = log.players.split('~')
 
     parsedLog, supply = unpack(log.log, log.supply)
-    gameMoves, blockLengths = parse_gameLog(parsedLog)
-    turnPoints = get_turn_points(blockLengths)
-    story, storyPlain = elaborate_story(players, gameMoves, turnPoints)
-    return HttpResponse('<br>'.join(storyPlain))
+    story = elaborate_story(players, parsedLog)
+    return HttpResponse('<br>'.join(story))
 
 
 def display(request, game_id):

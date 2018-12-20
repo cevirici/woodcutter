@@ -114,45 +114,31 @@ class Cardstack:
         for card in list(self.cards):
             yield str(card)
 
-    def __getitem__(self, item):
-        if Cards[item] in self.cards:
-            return self.cards[Cards[item]]
-        else:
-            return '' if item == 'ARGUMENT' else 0
-
-    def __setitem__(self, item, value):
-        if item != 'ARGUMENT':
-            self.cards[Cards[item]] = value
-        else:
-            if 'ARGUMENT' in self.cards:
-                self.cards[Cards['ARGUMENT']] += '/' + str(value)
-            else:
-                self.cards[Cards['ARGUMENT']] = str(value)
-
     def __delitem__(self, item):
         if item in self:
             del self.cards[Cards[item]]
 
+    def __getitem__(self, item):
+        return self.cards[Cards[item]] if Cards[item] in self.cards else 0
+
+    def __setitem__(self, item, value):
+        if value > 0:
+            self.cards[Cards[item]] = value
+        else:
+            del self[item]
+
     def __add__(self, other):
         t = deepcopy(self)
         for c in other:
-            if c not in ['ARGUMENT', 'NOTHING', 'CARD']:
-                if c in t:
-                    t[c] += other[c]
-                else:
-                    t[c] = other[c]
+            if c != 'NOTHING':
+                t[c] += other[c]
         return t
 
     def __sub__(self, other):
         t = deepcopy(self)
         for c in other:
-            if c not in ['ARGUMENT', 'NOTHING', 'CARD']:
-                if c in t:
-                    t[c] -= other[c]
-
-        for c in t:
-            if c in ['ARGUMENT', 'NOTHING', 'CARD'] or t[c] <= 0:
-                del t[c]
+            if c != 'NOTHING':
+                t[c] -= other[c]
         return t
 
     def __gt__(self, other):
@@ -162,15 +148,15 @@ class Cardstack:
         return not(len(self - other) > 0)
 
     def __str__(self):
-        return '|'.join(['{}:{}'.format(self[i], str(Cards[i]))
-                         for i in self])
+        return '+'.join(['{}:{}'.format(self.cards[i], str(i))
+                         for i in self.cards])
 
     def __repr__(self):
-        return '|'.join(['{}:{}'.format(self[i], repr(Cards[i]))
-                         for i in self])
+        return '+'.join(['{}:{}'.format(self.cards[i], repr(i))
+                         for i in self.cards])
 
     def __len__(self):
-        return sum([self[item] for item in self if item != 'ARGUMENT'])
+        return sum([self[item] for item in self if item != 'NOTHING'])
 
     def cardList(self):
         return list(self.cards)
@@ -180,27 +166,27 @@ class Cardstack:
 
     def strip(self):
         t = deepcopy(self)
-        for c in ['ARGUMENT', 'NOTHING', 'CARD']:
+        for c in ['NOTHING', 'CARD']:
             del t[c]
 
         return t
 
+    @property
     def primary(self):
         if len(self) > 0:
             return list(self.cards.keys())[0]
         else:
             return 'CARD'
 
-    def merge(self, target):
-        t = deepcopy(self)
-        for c in t:
-            if c not in ['ARGUMENT', 'NOTHING']:
-                if c in target:
-                    t[c] = min(self[c], target[c])
-                else:
-                    del t[c]
+    def merge(self, other):
+        output = deepcopy(self.strip())
+        for card in other.strip():
+            if card in output:
+                output[card] = min(self[card], other[card])
+            else:
+                output[card] = other[card]
 
-        return t
+        return output
 
 
 cardFile = open(os.path.join(settings.STATIC_ROOT,
@@ -1687,8 +1673,7 @@ def topdeckAction(move, i, bL, moves, cS):
 
 Preds['TOPDECK'].action = topdeckAction
 
-for p in ['WHARF DRAW', 'HIRELING DRAW', 'WOODS DRAW', 'ENCHANTRESS DRAW',
-          'CARAVAN DRAW', 'TACTICIAN DRAW', 'DRAW FROM', 'GT DRAW']:
+for p in ['DRAW GENERIC', 'TACTICIAN DRAW', 'DRAW FROM']:
     Preds[p].action = moveFunct('DECKS', 'HANDS')
 
 
@@ -1833,9 +1818,7 @@ def wishAction(move, i, bL, moves, cS):
 
 Preds['WISH SUCCESS'].action = wishAction
 
-
-for p in ['DRAW GEAR', 'DRAW HAVEN', 'DRAW ARCHIVE', 'CRYPT']:
-    Preds[p].action = moveFunct('OTHERS', 'HANDS')
+Preds['INHAND GENERIC'].action = moveFunct('OTHERS', 'HANDS')
 
 
 def turnStartAction(move, i, bL, moves, cS):
@@ -1883,8 +1866,7 @@ def genericVP(move, i, bL, moves, cS):
     return {}
 
 
-for p in ['SHIELD GAIN', 'SHIELD GET', 'SHIELD GROUNDSKEEPER', 'SHIELD GOONS',
-          'SHIELD OTHER']:
+for p in ['SHIELD GAIN', 'SHIELD GET', 'SHIELD GENERIC']:
     Preds[p].action = genericVP
 
 
