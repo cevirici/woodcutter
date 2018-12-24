@@ -1,4 +1,4 @@
-from .standards import Cards
+from .Standards import Cards
 import re
 
 
@@ -28,7 +28,7 @@ def elaborate_line(players, line):
     playerFields = ('player', 'playerb')
     cardFields = ('cards', 'cardsb')
     argumentFields = ('argument', 'argumentb', 'argumentc')
-    data = [[players[x - 1] for x in line.players],
+    data = [[players[x] for x in line.players],
             [elaborate_cards(x) for x in line.items],
             line.arguments]
 

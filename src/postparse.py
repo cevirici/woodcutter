@@ -18,7 +18,8 @@ def unpack(logString, supplyString):
         indent, pred, rawPlayers, rawItems, rawArguments = line.split('|')
         indent = int(indent)
         pred = PredList[int(pred, 16)]
-        players = [int(x) for x in rawPlayers.split('/')] if rawPlayers else []
+        players = [int(x) - 1 for x in rawPlayers.split('/')] if rawPlayers \
+            else []
         items = [unpackCardstack(x) for x in rawItems.split('/')] \
             if rawItems else []
         arguments = rawArguments.split('/') if rawArguments else []
@@ -35,7 +36,7 @@ def unpack(logString, supplyString):
     return (parsedLines, supply)
 
 
-def parse_gameLog(parsedLog):
+def get_blocklengths(parsedLog):
     blockLengths = []
     pointers = {}
     for i, line in enumerate(parsedLog):
@@ -48,84 +49,7 @@ def parse_gameLog(parsedLog):
 
         blockLengths.append(1)
 
-    tail = blockLengths[0]
-    limit = len(parsedLog)
-    while tail < limit:
-        tail += blockLengths[tail]
-        head = tail - 1
-        indentCap = parsedLog[head].indent
-        while parsedLog[head].indent <= indentCap and blockLengths[head] == 1:
-            indentCap = min(parsedLog[head].indent, indentCap)
-            parsedLog[head].isCleanup = True
-            head -= 1
-
     return blockLengths
-
-
-def parse_single_line(gM, i, bL, cS, activeExceptions):
-    def updateExceptions(target, move, i, bL, gM, cS, t):
-        newExceptions = target.action(move, i, bL, gM, cS)
-        if newExceptions:
-            for exc in newExceptions:
-                if exc.priority == 0:
-                    exc.priority = move.indent
-                t[exc] = newExceptions[exc]
-
-    move = gM[i]
-    priorities = [exception.priority for exception in activeExceptions]
-    pSorted = [[exc for exc in activeExceptions if exc.priority == p]
-               for p in priorities]
-    t = {}
-
-    for layer in pSorted:
-        triggered = False
-        for exc in layer:
-            if exc.condition(move):
-                triggered = True
-                updateExceptions(exc, move, i, bL, gM, cS, t)
-                if not exc.persistent:
-                    del activeExceptions[exc]
-
-        if triggered:
-            break
-
-    for exc in activeExceptions:
-        activeExceptions[exc] -= 1
-
-    activeExceptions = {exc: activeExceptions[exc] for exc in activeExceptions
-                        if activeExceptions[exc] != 0}
-
-    if not triggered:
-        updateExceptions(move.pred, move, i, bL, gM, cS, t)
-    for card in move.items.cardList():
-        updateExceptions(card, move, i, bL, gM, cS, t)
-
-    activeExceptions.update(t)
-    return (cS, activeExceptions)
-
-
-def parse_everything(gM, blockLengths, supply):
-    # Setup starting state
-    startState = GameState()
-    for card in supply:
-        if card not in DONT_LOAD:
-            startState.add(0, 'SUPPLY', Cardstack({card: supply[card]}))
-
-    if 'ZOMBIE APPRENTICE' in supply:
-        zombieStack = Cardstack({z: 1 for z in ('ZOMBIE APPRENTICE',
-                                                'ZOMBIE MASON',
-                                                'ZOMBIE SPY')})
-        startState.move(0, 'SUPPLY', 'TRASH', zombieStack)
-
-    gameStates = [startState]
-    aE = INTRINSIC_EXCEPTIONS
-    for i, bL in enumerate(blockLengths):
-        cS = deepcopy(gameStates[-1])
-
-        (cS, aE) = parse_single_line(gM, i, bL, cS, copy(aE))
-        gameStates.append(cS)
-
-    return gameStates
 
 
 def get_turn_points(blockLengths):

@@ -15,4 +15,5 @@ urlpatterns = [
     path('findlogs', views.find_logs, name='findlogs'),
     path('<int:game_id>/display/', views.display, name='display'),
     path('<int:game_id>/plain/', views.plaintext, name='plain'),
+    path('<int:game_id>/detail/', views.detailed, name='detail'),
 ]

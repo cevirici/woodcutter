@@ -19,7 +19,7 @@ f~^(?P<player>.*) trashes (?P<cards>.*)\. \((?P<cardsb>.*)\)$~TRASH GENERIC
 12~^(?P<player>.*) plays (?P<cards>.*) again\. \((?P<cardsb>.*)\)$~THRONE GENERIC
 13~^(?P<player>.*) plays (?P<cards>.*) again\. \(\+\$(?P<argument>.*)\)$~THRONE COIN
 14~^(?P<player>.*) plays (?P<cards>.*) again\.$~THRONE
-15~^(?P<player>.*) plays (?P<cards>.*) a third time\.$~KINGS
+15~^(?P<player>.*) plays (?P<cards>.*) a third time\.$~KING
 16~^(?P<player>.*) plays (?P<cards>.*)\. \(\+\$(?P<argument>.*)\)$~PLAY COIN
 17~^(?P<player>.*) plays (?P<cards>.*)\.$~PLAY
 18~^(?P<player>.*) topdecks (?P<cards>.*)\.$~TOPDECK
@@ -48,8 +48,8 @@ f~^(?P<player>.*) trashes (?P<cards>.*)\. \((?P<cardsb>.*)\)$~TRASH GENERIC
 2f~^(?P<player>.*) returns (?P<cards>.*) to (?P<argument>.*)\.$~RETURN TO
 30~^(?P<player>.*) returns (?P<cards>.*) set by (?P<argument>.*)\.$~RETURN SETBY
 31~^(?P<player>.*) returns (?P<cards>.*)\.$~RETURN
-32~^(?P<player>.*) receives (?P<cards>.*)\.$~RECEIVE.
-33~^(?P<player>.*) receives (?P<cards>.*)$~RECEIVE BOONHEX
+32~^(?P<player>.*) receives (?P<cards>.*)\.$~RECEIVE
+33~^BLANK$~BLANK
 34~^(?P<player>.*) passes (?P<cards>.*) to (?P<playerb>.*)\.$~PASS
 35~^(?P<player>.*) reacts with (?P<cards>.*)\.$~REACT
 36~^(?P<cards>.*) loses track of (?P<cardsb>.*) \((?P<argument>.*)\)\.$~LOSETRACK GENERIC
@@ -72,7 +72,7 @@ f~^(?P<player>.*) trashes (?P<cards>.*)\. \((?P<cardsb>.*)\)$~TRASH GENERIC
 47~^(?P<player>.*) takes (?P<argument>.*) debt\.$~TAKE DEBT
 48~^(?P<player>.*) takes (?P<cards>.*)\.$~TAKES BOONHEX
 49~^(?P<player>.*) repays (?P<argument>.*) debt \((?P<argumentb>.*) remaining\)\.$~REPAY DEBT PARTIAL
-4a~^(?P<player>.*) repays (?P<argument>.*)\.$~REPAY DEBT
+4a~^(?P<player>.*) repays (?P<argument>.*) debt\.$~REPAY DEBT
 4b~^(?P<player>.*) blocks with (?P<cards>.*)\.$~BLOCK
 4c~^(?P<player>.*) names (?P<cards>.*)\.$~NAME
 4d~^(?P<player>.*) inherits (?P<cards>.*)\.$~INHERIT
@@ -87,8 +87,8 @@ f~^(?P<player>.*) trashes (?P<cards>.*)\. \((?P<cardsb>.*)\)$~TRASH GENERIC
 56~^(?P<player>.*) gets \+\$(?P<argument>.*)\.$~GAIN COINS
 57~^(?P<player>.*) gets \+(?P<argument>.*) Buys\. \((?P<cards>.*)\)$~BUYS GENERIC
 58~^(?P<player>.*) gets \+(?P<argument>.*) Buy\. \((?P<cards>.*)\)$~BUY GENERIC
-59~^(?P<player>.*) gets \+(?P<argument>.*) Buys\.$~BUYS
-5a~^(?P<player>.*) gets \+(?P<argument>.*) Buy\.$~BUY
+59~^(?P<player>.*) gets \+(?P<argument>.*) Buys\.$~GET BUYS
+5a~^(?P<player>.*) gets \+(?P<argument>.*) Buy\.$~GET BUY
 5b~^(?P<player>.*) gets \+(?P<argument>.*) Actions. \((?P<argumentb>.*)\)$~ACTIONS GENERIC
 5c~^(?P<player>.*) gets \+(?P<argument>.*) Action. \((?P<argumentb>.*)\)$~ACTION GENERIC
 5d~^(?P<player>.*) gets \+(?P<argument>.*) Actions\.$~ACTIONS

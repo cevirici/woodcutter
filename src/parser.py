@@ -1,6 +1,6 @@
 import re
 from .classes import *
-from .standards import *
+from .Standards import *
 from functools import reduce
 from copy import deepcopy
 

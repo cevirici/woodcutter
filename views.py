@@ -68,6 +68,24 @@ def plaintext(request, game_id):
     return HttpResponse('<br>'.join(story))
 
 
+def detailed(request, game_id):
+    log = get_object_or_404(GameLog, game_id=game_id)
+    players = log.players.split('~')
+
+    parsedLog, supply = unpack(log.log, log.supply)
+    blockLengths = get_blocklengths(parsedLog)
+    gameStates = parse_everything(parsedLog, blockLengths, supply)
+    story = elaborate_story(players, parsedLog)
+
+    output = []
+    i = 0
+    for line, state in zip(story, gameStates[1:]):
+        output.append('Decision {}'.format(str(i)))
+        output.append(line + '<br>' + str(state))
+        i += 1
+    return HttpResponse('<br>'.join(output))
+
+
 def display(request, game_id):
     log = get_object_or_404(GameLog, game_id=game_id)
     players = log.players.split('~')

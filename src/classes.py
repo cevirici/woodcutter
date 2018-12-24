@@ -1,4 +1,6 @@
-from .standards import *
+from .Standards import *
+from .Cardstack import *
+from copy import deepcopy
 
 
 class ParsedLine:
@@ -13,10 +15,12 @@ class ParsedLine:
         self.isCleanup = isCleanup
 
     def __repr__(self):
+        playerStr = '/'.join([str(x) for x in self.players])
+        itemStr = '/'.join([repr(x) for x in self.items])
         return '{}|{}|{}|{}|{}'.format(self.indent,
                                        repr(self.pred),
-                                       '/'.join([str(x) for x in self.players]),
-                                       '/'.join([repr(x) for x in self.items]),
+                                       playerStr,
+                                       itemStr,
                                        '/'.join(self.arguments))
 
     @property
@@ -24,83 +28,96 @@ class ParsedLine:
         return self.players[0]
 
 
-gSZones = ('SUPPLY', 'DECKS', 'HANDS', 'INPLAYS',
-           'DISCARDS', 'OTHERS', 'TRASH')
-PERSONAL_ZONES = ('DECKS', 'HANDS', 'DISCARDS', 'OTHERS', 'INPLAYS')
-gSLengths = (1, 2, 2, 2, 2, 2, 1)
-gSQuantities = ('OBELISK', 'ACTIVE_PLAYER', 'INHERITED_CARDS',
-                'VPS', 'VALID', 'PHASE')
-quantityDefaults = ([],
-                    0,
-                    [Cards['NOTHING'], Cards['NOTHING']],
-                    [0, 0],
-                    True,
-                    0)
-
-
 class GameState:
-    def __init__(self):
-        self.boardState = {a: [Cardstack({}) for i in range(b)] for
-                           a, b in zip(gSZones, gSLengths)}
-        self.quantities = {a: b for a, b in
-                           zip(gSQuantities, quantityDefaults)}
+    playerZones = ('DECKS', 'HANDS', 'INPLAYS', 'DISCARDS', 'TAVERN', 'OTHERS')
+    soloZones = ('SUPPLY', 'TRASH')
+
+    def __init__(self, players=2):
+        self.boardState = {}
+        for zone in GameState.playerZones:
+            self.boardState[zone] = [Cardstack({}) for i in range(players)]
+        for zone in GameState.soloZones:
+            self.boardState[zone] = Cardstack({})
+
+        self.activePlayer = -1
+        self.obelisk = []
+        self.coins = 0
+        self.actions = 0
+        self.buys = 0
+        self.inherited = ['NOTHING', 'NOTHING']
+        self.vps = [0, 0]
+        self.coffers = [0, 0]
+        self.villagers = [0, 0]
+        self.debt = [0, 0]
+        self.phase = 0  # Start, Action, Buy, Night, Cleanup
+        self.exceptions = set()
+        self.durations = [[], []]
+
+        self.valid = True
 
     def __getitem__(self, item):
-        if type(item) == tuple:
-            (field, player) = item
-            if field in self.boardState:
-                index = min(len(self.boardState[field]) - 1, player)
-                return self.boardState[field][index]
-            else:
-                raise KeyError
-        elif item in self.quantities:
-            return self.quantities[item]
-        else:
-            raise KeyError
+        return self.boardState[item]
 
     def __setitem__(self, item, value):
-        if type(item) == tuple:
-            (field, player) = item
-            if field in self.boardState:
-                index = min(len(self.boardState[field]) - 1, player)
-                self.boardState[field][index] = value
-            else:
-                raise KeyError
-        elif item in self.quantities:
-            self.quantities[item] = value
-        else:
-            raise KeyError
+        self.boardState[item] = value
 
     def __str__(self):
-        outstr = ''
-        for zone in gSZones:
-            outstr += '\n    ' + zone
-            for part in self.boardState:
-                outstr += '\n    ' + str(part)
+        basestr = '\
+Player: {}<br>\
+Phase: {}<br>\
+C: {} A: {} B: {}<br>\
+vp: {}<br> co: {}<br> vi: {}<br> db: {}<br>'
+        basestr += str(self.durations)
+        outstr = basestr.format(self.activePlayer, self.phase, self.coins,
+                                self.actions, self.buys,
+                                ','.join([str(x) for x in self.vps]),
+                                ','.join([str(x) for x in self.coffers]),
+                                ','.join([str(x) for x in self.villagers]),
+                                ','.join([str(x) for x in self.debt]))
+        outstr += 'Cards:<br>'
+        for zone in self.boardState:
+            outstr += '<br>    ' + zone
+            if zone in GameState.playerZones:
+                for part in self.boardState[zone]:
+                    outstr += '<br>    ' + str(part) + '<br>'
+            else:
+                outstr += '<br>    ' + str(self.boardState[zone]) + '<br>'
 
-        outstr += '\n    ------\n'
+            outstr += '---'
+
+        outstr += '<br>    ------<br>'
         return outstr
 
     def move(self, player, src, dest, items):
-        itemsNoArgs = items.strip()
-        if itemsNoArgs > self[(src, player)]:
-            print('ILLEGAL MOVE {} from {} to {}'.format(items, src, dest))
-            self['VALID'] = False
+        items = items.strip()
+        if src in GameState.soloZones:
+            if items > self[src]:
+                self.valid = False
+            self[src] -= items
+        else:
+            if items > self[src][player]:
+                self.valid = False
+            self[src][player] -= items
 
-        self[(src, player)] -= itemsNoArgs
-        self[(dest, player)] += itemsNoArgs
+        if dest in GameState.soloZones:
+            self[dest] += items
+        else:
+            self[dest][player] += items
 
-    def add(self, player, dest, items):
-        self[(dest, player)] += items
+    def add(self, dest, items, player=0):
+        if dest in GameState.soloZones:
+            self[dest] += items
+        else:
+            self[dest][player] += items
 
     def crunch(self, zonelist, playerlist):
         outlist = Cardstack({})
         for zone in zonelist:
-            if len(self.boardState[zone]) > 1:
+            if zone in GameState.playerZones:
                 for player in playerlist:
-                    outlist += self[(zone, player)]
+                    outlist += self[zone][player]
             else:
-                outlist += self[(zone, player)]
+                outlist += self[zone]
 
         return outlist
 
