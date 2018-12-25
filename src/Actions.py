@@ -179,7 +179,7 @@ def turn_start_action(moves, i, blockLength, state):
     while index < i + blockLength:
         secondary = moves[index]
         if secondary.pred == 'COINS GENERIC' and \
-                secondary.cards[0].primary == 'AMULET':
+                secondary.items[0].primary == 'AMULET':
             amuletPlays -= 1
         elif secondary.pred == 'TRASH' and \
                 secondary.indent == moves[i].indent + 1:
