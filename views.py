@@ -74,7 +74,14 @@ def detailed(request, game_id):
 
     parsedLog, supply = unpack(log.log, log.supply)
     blockLengths = get_blocklengths(parsedLog)
-    gameStates = parse_everything(parsedLog, blockLengths, supply)
+    try:
+        gameStates = parse_everything(parsedLog, blockLengths, supply)
+    except BaseException:
+        log.valid = False
+        log.save()
+        raise
+    log.valid = gameStates[-1]['VALID']
+    log.save()
     story = elaborate_story(players, parsedLog)
 
     output = []
