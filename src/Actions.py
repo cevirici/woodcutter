@@ -1194,10 +1194,15 @@ def take_coffers(moves, i, blockLength, state):
     state.coffers[move.player] += int(move.arguments[0])
 
 
+def single_coffers(moves, i, blockLength, state):
+    move = moves[i]
+    state.coffers[move.player] += 1
+
+
 Preds['COFFERS GENERIC'].action = take_coffers
 Preds['COFFER GENERIC'].action = take_coffers
-Preds['COFFERS FROM'].action = take_coffers
 Preds['GAIN COFFERS'].action = take_coffers
+Preds['COFFERS FROM'].action = single_coffers
 
 
 def use_coffers(moves, i, blockLength, state):
