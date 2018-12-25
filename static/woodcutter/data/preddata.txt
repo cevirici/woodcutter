@@ -16,14 +16,14 @@ e~^(?P<player>.*) trashes nothing\.$~TRASH NOTHING
 f~^(?P<player>.*) trashes (?P<cards>.*)\. \((?P<cardsb>.*)\)$~TRASH GENERIC
 10~^(?P<player>.*) trashes (?P<cards>.*)\.$~TRASH
 11~^(?P<player>.*) discards (?P<cards>.*)\.$~DISCARD
-12~^(?P<player>.*) plays (?P<cards>.*) again\. \((?P<cardsb>.*)\)$~THRONE GENERIC
 13~^(?P<player>.*) plays (?P<cards>.*) again\. \(\+\$(?P<argument>.*)\)$~THRONE COIN
+12~^(?P<player>.*) plays (?P<cards>.*) again\. \((?P<cardsb>.*)\)$~THRONE GENERIC
 14~^(?P<player>.*) plays (?P<cards>.*) again\.$~THRONE
 15~^(?P<player>.*) plays (?P<cards>.*) a third time\.$~KING
 16~^(?P<player>.*) plays (?P<cards>.*)\. \(\+\$(?P<argument>.*)\)$~PLAY COIN
 17~^(?P<player>.*) plays (?P<cards>.*)\.$~PLAY
 18~^(?P<player>.*) topdecks (?P<cards>.*)\.$~TOPDECK
-19~^(?P<player>.*) draws (?P<cards>.*) \(from (?P<cardsb>.*)\)$~DRAW FROM
+19~^(?P<player>.*) draws (?P<cards>.*) \(from (?P<argument>.*)\)\.$~DRAW FROM
 1a~^(?P<player>.*) draws (?P<cards>.*) \((?P<cardsb>.*)\)\.$~DRAW GENERIC
 1b~^(?P<player>.*) draws (?P<cards>.*)\.$~DRAW
 1c~^(?P<player>.*) skips a draw \(because of (?P<cards>.*)\)$~PENALTY CARD

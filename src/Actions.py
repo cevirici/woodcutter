@@ -462,6 +462,7 @@ def get_stayout_duration(moves, i, state):
                 return len(secondary.items[0])
             j += 1
     elif target == 'SECRET CAVE':
+        j = i + 1
         while j < len(moves) and moves[j].indent > moves[i].indent:
             secondary = moves[j]
             if secondary.indent == move.indent + 1 and \
@@ -1079,9 +1080,9 @@ Preds['SHUFFLE'].action = shuffle_action
 def return_to_action(moves, i, blockLength, state):
     move = moves[i]
     if move.items[0].primary == 'ENCAMPMENT':
-        state.move(player, 'OTHERS', 'SUPPLY', move.items[0])
+        state.move(moves[i].player, 'OTHERS', 'SUPPLY', move.items[0])
     else:
-        state.move(player, 'INPLAYS', 'SUPPLY', move.items[0])
+        state.move(moves[i].player, 'INPLAYS', 'SUPPLY', move.items[0])
 
 
 Preds['RETURN TO'].action = return_to_action
@@ -1089,7 +1090,7 @@ Preds['RETURN TO'].action = return_to_action
 
 def return_action(moves, i, blockLength, state):
     move = moves[i]
-    target = move.items[0].primary()
+    target = move.items[0].primary
 
     if 's' not in Cards[target].types:
         state.move(moves[i].player, 'INPLAYS', 'SUPPLY', move.items[0])
@@ -1101,7 +1102,7 @@ Preds['RETURN'].action = return_action
 def standard_boonhex(grove=False):
     def out_function(moves, i, blockLength, state):
         move = moves[i]
-        target = move.items[0].primary()
+        target = move.items[0].primary
 
         triggers = {'BAD OMENS': [checkMove(['TOPDECK'], 'DISCARDS', 'DECKS')],
                     'FAMINE': [exc_revealDiscard,
@@ -1134,7 +1135,7 @@ def standard_boonhex(grove=False):
 
 def receive_action(moves, i, blockLength, state):
     move = moves[i]
-    target = move.items[0].primary()
+    target = move.items[0].primary
 
     if target in ['TREASURE HUNTER', 'WARRIOR', 'HERO', 'CHAMPION',
                   'SOLDIER', 'FUGITIVE', 'DISCIPLE', 'TEACHER', 'CHANGELING']:
@@ -1303,7 +1304,7 @@ Preds['USE VILLAGER'].action = use_villager
 
 def obelisk_choice(moves, i, blocklength, state):
     move = moves[i]
-    target = move.items.primary()
+    target = move.items.primary
     state.obelisk = [target]
 
     PAIRS = [['ENCAMPMENT', 'PLUNDER'],
