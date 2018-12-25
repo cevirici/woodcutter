@@ -73,7 +73,8 @@ def standard_trash(source):
         target = move.items[0].primary
         if target == 'ESTATE':
             target = state.inherited[move.player]
-        if moves[i + blockLength].pred == 'GAIN' and\
+        if i + blockLength < len(moves) and\
+                moves[i + blockLength].pred == 'GAIN' and\
                 moves[i + blockLength].items[0].primary in \
                 ['MADMAN', 'MERCENARY']:
             state.move(move.player, 'INPLAYS', 'TRASH', move.items[0])
