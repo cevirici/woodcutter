@@ -802,7 +802,7 @@ def standard_plays(moves, i, blockLength, state):
         state.cargoShips += 1
 
     elif target == 'IMPROVE':
-        for life in range(i, len(moves) - i):
+        for life in range(1, len(moves) - i):
             if moves[life].pred == 'NEW TURN':
                 break
         state.exceptions.add(Exception(check(['TRASH']),
