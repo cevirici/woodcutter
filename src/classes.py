@@ -66,14 +66,14 @@ class GameState:
         self.boardState[item] = value
 
     def __str__(self):
-        basestr = '\
+        basestr = '{}<br>\
 Player: {}<br>\
 Phase: {}<br>\
 C: {} A: {} B: {}<br>\
 vp: {}<br> co: {}<br> vi: {}<br> db: {}<br>\
 Score: {}<br>'
-        outstr = basestr.format(self.activePlayer, self.phase, self.coins,
-                                self.actions, self.buys,
+        outstr = basestr.format(str(self.valid), self.activePlayer, self.phase,
+                                self.coins, self.actions, self.buys,
                                 ','.join([str(x) for x in self.vps]),
                                 ','.join([str(x) for x in self.coffers]),
                                 ','.join([str(x) for x in self.villagers]),
