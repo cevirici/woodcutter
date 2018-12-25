@@ -46,7 +46,7 @@ f~^(?P<player>.*) trashes (?P<cards>.*)\. \((?P<cardsb>.*)\)$~TRASH GENERIC
 2d~^Reshuffling the Black Market deck\.$~SHUFFLE BM
 2e~^(?P<player>.*) inserts (?P<cards>.*) into their deck\.$~INSERT INTO
 2f~^(?P<player>.*) returns (?P<cards>.*) to (?P<argument>.*)\.$~RETURN TO
-30~^(?P<player>.*) returns (?P<cards>.*) set by (?P<argument>.*)\.$~RETURN SETBY
+30~^(?P<player>.*) returns (?P<cards>.*) set by (?P<argument>.*)\. \(\-\$(?P<argumentb>.*)\)$~RETURN SETBY
 31~^(?P<player>.*) returns (?P<cards>.*)\.$~RETURN
 32~^(?P<player>.*) receives (?P<cards>.*)\.$~RECEIVE
 33~^BLANK$~BLANK
@@ -70,7 +70,7 @@ f~^(?P<player>.*) trashes (?P<cards>.*)\. \((?P<cardsb>.*)\)$~TRASH GENERIC
 45~^(?P<player>.*) takes the Debt instead\.$~POSSESSION DEBT
 46~^(?P<player>.*) takes the VP tokens instead\.$~POSSESSION VP
 47~^(?P<player>.*) takes (?P<argument>.*) debt\.$~TAKE DEBT
-48~^(?P<player>.*) takes (?P<cards>.*)\.$~TAKES BOONHEX
+48~^(?P<player>.*) takes (?P<cards>.*)\.$~TAKES
 49~^(?P<player>.*) repays (?P<argument>.*) debt \((?P<argumentb>.*) remaining\)\.$~REPAY DEBT PARTIAL
 4a~^(?P<player>.*) repays (?P<argument>.*) debt\.$~REPAY DEBT
 4b~^(?P<player>.*) blocks with (?P<cards>.*)\.$~BLOCK

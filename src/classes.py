@@ -52,6 +52,10 @@ class GameState:
         self.phase = 0  # Start, Action, Buy, Night, Cleanup
         self.exceptions = set()
         self.durations = [[], []]
+        self.linkedPlays = []  # list: plays, cards, currentDurations
+        self.amuletSilvers = 0
+        self.cargoShips = 0
+        self.cargoCount = 0
 
         self.valid = True
 
@@ -67,7 +71,8 @@ Player: {}<br>\
 Phase: {}<br>\
 C: {} A: {} B: {}<br>\
 vp: {}<br> co: {}<br> vi: {}<br> db: {}<br>'
-        basestr += str(self.durations)
+        basestr += str(self.durations) + '<br>'
+        basestr += str(self.linkedPlays) + '<br>'
         outstr = basestr.format(self.activePlayer, self.phase, self.coins,
                                 self.actions, self.buys,
                                 ','.join([str(x) for x in self.vps]),
