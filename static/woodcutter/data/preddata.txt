@@ -23,6 +23,7 @@ f~^(?P<player>.*) trashes (?P<cards>.*)\. \((?P<cardsb>.*)\)$~TRASH GENERIC
 16~^(?P<player>.*) plays (?P<cards>.*)\. \(\+\$(?P<argument>.*)\)$~PLAY COIN
 17~^(?P<player>.*) plays (?P<cards>.*)\.$~PLAY
 18~^(?P<player>.*) topdecks (?P<cards>.*)\.$~TOPDECK
+4f~^(?P<player>.*) gets \+1 Buy, \+1 Action and draws (?P<cards>.*) \(Tactician\)\.$~TACTICIAN DRAW
 19~^(?P<player>.*) draws (?P<cards>.*) \(from (?P<argument>.*)\)\.$~DRAW FROM
 1a~^(?P<player>.*) draws (?P<cards>.*) \((?P<cardsb>.*)\)\.$~DRAW GENERIC
 1b~^(?P<player>.*) draws (?P<cards>.*)\.$~DRAW
@@ -77,7 +78,6 @@ f~^(?P<player>.*) trashes (?P<cards>.*)\. \((?P<cardsb>.*)\)$~TRASH GENERIC
 4c~^(?P<player>.*) names (?P<cards>.*)\.$~NAME
 4d~^(?P<player>.*) inherits (?P<cards>.*)\.$~INHERIT
 4e~^(?P<cards>.*) is enchanted by (?P<argument>.*)$~ENCHANTED
-4f~^(?P<player>.*) gets \+1 Buy, \+1 Action and draws (?P<cards>.*) \(Tactician\)\.$~TACTICIAN DRAW
 50~^(?P<player>.*) loses (?P<cards>.*) Coins\.$~LOSE COINS
 51~^(?P<player>.*) loses (?P<cards>.*) Coin\.$~LOSE COIN
 52~^(?P<player>.*) gets \+1 Action \(from (?P<cards>.*)\)$~ACTION TOKEN

@@ -72,11 +72,15 @@ def translate_file(inString):
                 matchedAliases = [name for name in names if
                                   re.match('^' + name, player)]
                 matchedAliases.sort(key=lambda x: -len(x))
+                if names.index(matchedAliases[0]) + 1 > 2:
+                    print(player)
                 parsed.players[i] = names.index(matchedAliases[0]) + 1
             else:
                 if player not in names:
                     names.append(player)
 
+                if names.index(player) + 1 > 2:
+                    print(player)
                 parsed.players[i] = names.index(player) + 1
 
         parsedLog.append(parsed)
