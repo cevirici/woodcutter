@@ -70,15 +70,15 @@ class GameState:
 Player: {}<br>\
 Phase: {}<br>\
 C: {} A: {} B: {}<br>\
-vp: {}<br> co: {}<br> vi: {}<br> db: {}<br>'
-        basestr += str(self.durations) + '<br>'
-        basestr += str(self.linkedPlays) + '<br>'
+vp: {}<br> co: {}<br> vi: {}<br> db: {}<br>\
+Score: {}<br>'
         outstr = basestr.format(self.activePlayer, self.phase, self.coins,
                                 self.actions, self.buys,
                                 ','.join([str(x) for x in self.vps]),
                                 ','.join([str(x) for x in self.coffers]),
                                 ','.join([str(x) for x in self.villagers]),
-                                ','.join([str(x) for x in self.debt]))
+                                ','.join([str(x) for x in self.debt]),
+                                ', '.join([str(x) for x in self.score]))
         outstr += 'Cards:<br>'
         for zone in self.boardState:
             outstr += '<br>    ' + zone
@@ -125,6 +125,16 @@ vp: {}<br> co: {}<br> vi: {}<br> db: {}<br>'
                 outlist += self[zone]
 
         return outlist
+
+    @property
+    def score(self):
+        output = []
+        for player in range(len(self['DECKS'])):
+            playerDeck = self.crunch(GameState.playerZones, [player])
+            output.append(sum([Cards[card].worth(self, player) *
+                               playerDeck[card]
+                               for card in playerDeck]))
+        return output
 
     def export(self):
         zoneStrings = [[repr(part) for part in self.boardState[zone]]

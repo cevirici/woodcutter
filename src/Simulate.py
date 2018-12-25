@@ -1,6 +1,6 @@
 from .classes import *
 from .Standards import *
-from .Actions import *
+from .Actions import INTRINSIC_EXCEPTIONS
 
 
 def parse_single_line(moves, i, blockLength, state):
