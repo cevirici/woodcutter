@@ -446,7 +446,7 @@ ff,Dungeon,Dungeons,a Dungeon,3,0,dda561,4f472d,a
 1bd,Bat,Bats,a Bat,2,1,30484e,475B5D,n
 1be,Ghost,Ghosts,a Ghost,4,1,7a5622,13b12f,
 1bf,Imp,Imps,an Imp,2,1,c4c0b4,936d69,a
-1c0,Will-o'-wisp,Will-o'-wisps,a Will-o'-wisp,0,1,c4c0b4,1d593f,a
+1c0,Will-o'-Wisp,Will-o'-Wisps,a Will-o'-Wisp,0,1,c4c0b4,1d593f,a
 1c1,Wish,Wishes,a Wish,0,1,c4c0b4,0f6551,a
 1c2,Zombie Apprentice,Zombie Apprentices,a Zombie Apprentice,3,1,c4c0b4,292d23,az
 1c3,Zombie Mason,Zombie Masons,a Zombie Mason,3,1,c4c0b4,5f513d,az

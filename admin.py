@@ -7,6 +7,7 @@ def getNames(log):
 
 
 class logAdmin(admin.ModelAdmin):
+    view_on_site = True
     list_display = ('valid', 'game_id', getNames)
 
 
