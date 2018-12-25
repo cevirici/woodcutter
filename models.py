@@ -12,7 +12,7 @@ class GameLog(models.Model):
 
     game_id = models.IntegerField(default=0, primary_key=True)
 
-    log = models.CharField(max_length=15000,
+    log = models.CharField(max_length=20000,
                            default='',
                            blank=True)
 
