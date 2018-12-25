@@ -7,19 +7,16 @@ class GameLog(models.Model):
 
     game_id = models.IntegerField(default=0, primary_key=True)
 
-    log = models.CharField(
-                    max_length=15000,
-                    default='',
-                    blank=True)
+    log = models.CharField(max_length=15000,
+                           default='',
+                           blank=True)
 
-    supply = models.CharField(
-                    max_length=1000,
-                    default='',
-                    blank=True)
+    supply = models.CharField(max_length=1000,
+                              default='',
+                              blank=True)
 
-    players = models.CharField(
-                    max_length=100,
-                    default='',
-                    blank=True)
+    players = models.CharField(max_length=100,
+                               default='',
+                               blank=True)
 
     valid = models.BooleanField(default=True)
