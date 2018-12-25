@@ -1159,6 +1159,7 @@ Preds['PASS'].action = pass_action
 def react_action(moves, i, blockLength, state):
     move = moves[i]
     target = move.items[0].primary
+    exc = None
     if target == 'HORSE TRADERS':
         exc = Exception(check(['SET ASIDE']), moveFunct('HANDS', 'OTHERS'),
                         2, [move.indent])
@@ -1168,7 +1169,8 @@ def react_action(moves, i, blockLength, state):
     elif target == 'FAITHFUL HOUND':
         exc = Exception(check(['SET ASIDE']), moveFunct('DISCARDS', 'OTHERS'),
                         2, [move.indent])
-    state.exceptions.add(exc)
+    if exc:
+        state.exceptions.add(exc)
 
 
 Preds['REACT'].action = react_action
