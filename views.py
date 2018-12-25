@@ -80,7 +80,7 @@ def detailed(request, game_id):
         log.valid = False
         log.save()
         raise
-    log.valid = gameStates[-1]['VALID']
+    log.valid = gameStates[-1].valid
     log.save()
     story = elaborate_story(players, parsedLog)
 
@@ -106,7 +106,7 @@ def display(request, game_id):
         log.save()
         raise
 
-    log.valid = gameStates[-1]['VALID']
+    log.valid = gameStates[-1].valid
     log.save()
 
     turnPoints = get_turn_points(blockLengths)
