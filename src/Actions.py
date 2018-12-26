@@ -1333,7 +1333,7 @@ def obelisk_choice(moves, i, blocklength, state):
 def inherit_action(moves, i, blocklength, state):
     move = moves[i]
     state.move(move.player, 'SUPPLY', 'OTHERS', move.items[0])
-    state.inherited[move.player] = move.items.primary
+    state.inherited[move.player] = move.items[0].primary
 
 
 Preds['OBELISK CHOICE'].action = obelisk_choice
