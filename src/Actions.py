@@ -679,15 +679,13 @@ def standard_plays(moves, i, blockLength, state):
     if target == 'REPLACE':
         for secondary in moves[i + 1: i + blockLength]:
             if secondary.pred == 'GAIN':
-                target = move.items[0]
-
                 def replace_topdeck(moves, i, blockLength, state):
                     block = Cardstack({target.primary: 1})
                     state.move(moves[i].player, get_gain_dest(target.primary),
                                'DECKS', block)
 
                 newExc = Exception(check(['TOPDECK'],
-                                         ['CARD', target.primary]),
+                                         ['CARD', move.items[0].primary]),
                                    replace_topdeck)
                 newExc.lifespan = blockLength
                 newExc.indents = [secondary.indent + 1]
