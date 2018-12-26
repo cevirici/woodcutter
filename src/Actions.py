@@ -714,7 +714,7 @@ def standard_plays(moves, i, blockLength, state):
                 for j in range(len(state.linkedPlays)):
                     plays, cards, current = state.linkedPlays[j]
                     if current:
-                        state.durations.remove(current)
+                        state.durations[moves[i].player].remove(current)
                         newDur = [cards, 1]
                         plays.append(i + 1)
                         cards['SCEPTER'] += 1
@@ -736,7 +736,7 @@ def standard_plays(moves, i, blockLength, state):
                 # Look for minimal in linkedPlays
                 state.linkedPlays.sort(key=lambda x: len(x[1]))
                 plays, cards, current = state.linkedPlays[0]
-                state.durations.remove(current)
+                state.durations[moves[i].player].remove(current)
                 newDur = [cards, 1]
                 plays.append(i + 1)
                 cards['SCEPTER'] += 1
@@ -763,7 +763,7 @@ def standard_plays(moves, i, blockLength, state):
                 # Look for minimal in linkedPlays
                 state.linkedPlays.sort(key=lambda x: len(x[1]))
                 plays, cards, current = state.linkedPlays[0]
-                state.durations.remove(current)
+                state.durations[moves[i].player].remove(current)
                 newDur = [cards, 1]
                 plays.append(i + 1)
                 cards['SCEPTER'] += 1
