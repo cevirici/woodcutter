@@ -14,7 +14,6 @@ def get_card(name):
     for card in Cards:
         if name in Cards[card].names:
             return card
-    print(name)
 
 
 def parse_card_phrase(cardlist):

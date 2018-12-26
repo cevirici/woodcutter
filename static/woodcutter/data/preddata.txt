@@ -47,7 +47,7 @@ f~^(?P<player>.*) trashes (?P<cards>.*)\. \((?P<cardsb>.*)\)$~TRASH GENERIC
 2d~^Reshuffling the Black Market deck\.$~SHUFFLE BM
 2e~^(?P<player>.*) inserts (?P<cards>.*) into their deck\.$~INSERT INTO
 2f~^(?P<player>.*) returns (?P<cards>.*) to (?P<argument>.*)\.$~RETURN TO
-30~^(?P<player>.*) returns (?P<cards>.*) set by (?P<argument>.*)\. \(\-\$(?P<argumentb>.*)\)$~RETURN SETBY
+30~^(?P<player>.*) returns (?P<argument>.*) set by (?P<cards>.*)\. \(\-\$(?P<argumentb>.*)\)$~RETURN SETBY
 31~^(?P<player>.*) returns (?P<cards>.*)\.$~RETURN
 32~^(?P<player>.*) receives (?P<cards>.*)\.$~RECEIVE
 33~^BLANK$~BLANK
