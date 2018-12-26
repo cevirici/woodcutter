@@ -1310,7 +1310,7 @@ Preds['USE VILLAGER'].action = use_villager
 
 def obelisk_choice(moves, i, blocklength, state):
     move = moves[i]
-    target = move.items.primary
+    target = move.items[0].primary
     state.obelisk = [target]
 
     sets = [['ENCAMPMENT', 'PLUNDER'],
