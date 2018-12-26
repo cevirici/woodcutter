@@ -37,7 +37,6 @@ def parse_card_phrase(cardlist):
 def parse_line(line):
     indent = get_indent(line)
     line = re.sub('<.*?>|&bull;|&sdot;', '', line).strip()
-
     for p in predParseOrder:
         if re.match(p.regex, line):
             pred = p

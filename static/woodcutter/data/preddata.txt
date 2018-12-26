@@ -78,8 +78,8 @@ f~^(?P<player>.*) trashes (?P<cards>.*)\. \((?P<cardsb>.*)\)$~TRASH GENERIC
 4c~^(?P<player>.*) names (?P<cards>.*)\.$~NAME
 4d~^(?P<player>.*) inherits (?P<cards>.*)\.$~INHERIT
 4e~^(?P<cards>.*) is enchanted by (?P<argument>.*)$~ENCHANTED
-50~^(?P<player>.*) loses (?P<cards>.*) Coins\.$~LOSE COINS
-51~^(?P<player>.*) loses (?P<cards>.*) Coin\.$~LOSE COIN
+50~^(?P<player>.*) loses (?P<argument>.*) Coins\.$~LOSE COINS
+51~^(?P<player>.*) loses (?P<argument>.*) Coin\.$~LOSE COIN
 52~^(?P<player>.*) gets \+1 Action \(from (?P<cards>.*)\)$~ACTION TOKEN
 53~^(?P<player>.*) gets \+1 Buy \(from (?P<cards>.*)\)$~BUY TOKEN
 54~^(?P<player>.*) gets \+1 Coin \(from (?P<cards>.*)\)$~COIN TOKEN
