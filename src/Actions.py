@@ -1313,21 +1313,21 @@ def obelisk_choice(moves, i, blocklength, state):
     target = move.items.primary
     state.obelisk = [target]
 
-    PAIRS = [['ENCAMPMENT', 'PLUNDER'],
-             ['PATRICIAN', 'EMPORIUM'],
-             ['SETTLERS', 'BUSTLING VILLAGE'],
-             ['CATAPULT', 'ROCKS'],
-             ['GLADIATOR', 'FORTUNE'],
-             ['DAME ANNA', 'DAME JOSEPHINE', 'DAME MOLLY', 'DAME NATALIE',
-              'DAME SYLVIA', 'SIR BAILEY', 'SIR DESTRY', 'SIR MARTIN',
-              'SIR MICHAEL', 'SIR VANDER'],
-             ['RUINED LIBRARY', 'RUINED VILLAGE', 'ABANDONED MINE',
-              'RUINED MARKET', 'SURVIVORS'],
-             ['SAUNA', 'AVANTO']]
+    sets = [['ENCAMPMENT', 'PLUNDER'],
+            ['PATRICIAN', 'EMPORIUM'],
+            ['SETTLERS', 'BUSTLING VILLAGE'],
+            ['CATAPULT', 'ROCKS'],
+            ['GLADIATOR', 'FORTUNE'],
+            ['KNIGHTS', 'DAME ANNA', 'DAME JOSEPHINE', 'DAME MOLLY',
+             'DAME NATALIE', 'DAME SYLVIA', 'SIR BAILEY', 'SIR DESTRY',
+             'SIR MARTIN', 'SIR MICHAEL', 'SIR VANDER'],
+            ['RUINS', 'RUINED LIBRARY', 'RUINED VILLAGE', 'ABANDONED MINE',
+             'RUINED MARKET', 'SURVIVORS'],
+            ['SAUNA', 'AVANTO']]
 
-    for pair in PAIRS:
-        if target in pair:
-            state.obelisk = pair
+    for group in sets:
+        if target == group[0]:
+            state.obelisk = group
 
 
 def inherit_action(moves, i, blocklength, state):

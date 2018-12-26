@@ -105,7 +105,7 @@ f~^(?P<player>.*) trashes (?P<cards>.*)\. \((?P<cardsb>.*)\)$~TRASH GENERIC
 68~^(?P<player>.*) gets \+(?P<argument>.*) Coffers\. \((?P<cards>.*)\)$~COFFER GENERIC
 69~^(?P<player>.*) gets a Coffers from (?P<cards>.*)\.$~COFFERS FROM
 6a~^(?P<player>.*) gets \+(?P<argument>.*) Coffers\.$~GAIN COFFERS
-6b~^Obelisk chooses (?P<cards>.*)\.$~OBELISK CHOICE
+6b~^Obelisk chooses the (?P<cards>.*) pile\.$~OBELISK CHOICE
 6c~^Obelisk failed to select an Action Supply pile\.$~OBELISK FAIL
 6d~^(?P<player>.*) had no cards to set aside\.$~SET FAIL
 6e~^(?P<player>.*) had no cards to discard or topdeck\.$~TOPDECK FAIL
