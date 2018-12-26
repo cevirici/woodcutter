@@ -62,11 +62,11 @@ f~^(?P<player>.*) trashes (?P<cards>.*)\. \((?P<cardsb>.*)\)$~TRASH GENERIC
 3c~^(?P<player>.*) gets (?P<argument>.*) VP\.$~SHIELD GET
 3d~^(?P<player>.*) adds (?P<argument>.*) VP to (?P<argumentb>.*)\.$~SHIELD ADD
 3e~^(?P<player>.*) moves (?P<argument>.*) to (?P<argumentb>.*)\.$~MOVE
-3f~^(?P<player>.*) adds (?P<cards>.*) to (?P<argument>.*)\.$~ADD TO
+3f~^(?P<player>.*) adds (?P<argument>.*) Debt to (?P<argumentb>.*)\.$~ADD TO
 40~^(?P<player>.*) flips (?P<argument>.*) face down\.$~FLIP DOWN
 41~^(?P<player>.*) flips (?P<argument>.*) face up\.$~FLIP UP
 42~^(?P<player>.*) takes an extra turn after this one\.$~EXTRATURN
-43~^(?P<player>.*) takes (?P<cards>.*) from (?P<argument>.*)\.$~TAKE FROM
+43~^(?P<player>.*) takes (?P<argument>.*) Debt from (?P<argumentb>.*)\.$~TAKE FROM
 44~^(?P<player>.*) takes the coin tokens instead\.$~POSSESSION COFFERS
 45~^(?P<player>.*) takes the Debt instead\.$~POSSESSION DEBT
 46~^(?P<player>.*) takes the VP tokens instead\.$~POSSESSION VP
