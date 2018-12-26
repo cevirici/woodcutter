@@ -266,6 +266,7 @@ def standard_gains(source, destination='DISCARDS'):
 
         def cargo_check(move):
             return move.pred == 'SET ASIDE WITH' and \
+                len(move.items) > 1 and \
                 move.items[1].primary == 'CARGO SHIP'
 
         def cargo_move(moves, i, blockLength, state):
@@ -569,7 +570,8 @@ def standard_plays(moves, i, blockLength, state):
                 'COUNTING HOUSE': [exc_settlers],
                 'LOAN': [exc_revealDiscard, exc_revealTrash],
                 'RABBLE': [exc_revealDiscard, exc_revealTopdeck],
-                'VENTURE': [exc_revealDiscard, move_play('DECKS')],
+                'VENTURE': [exc_revealDiscard,
+                            Exception(check(['PLAY']), move_play('DECKS'))],
                 'BAG OF GOLD': [gainTo('SUPPLY', 'DECKS')],
                 'FARMING VILLAGE': [exc_revealDiscard],
                 'FORTUNE TELLER': [exc_revealDiscard, exc_revealTopdeck],
@@ -704,66 +706,70 @@ def standard_plays(moves, i, blockLength, state):
                                                         subject: 1}), None])
 
     elif target == 'SCEPTER':
-        stayout = get_stayout_duration(moves, i + 1, state)
-        subject = moves[i + 1].items[0].primary
-        if stayout:
-            # Look for something already going
-            for j in range(len(state.linkedPlays)):
-                plays, cards, current = state.linkedPlays[j]
-                if current:
-                    state.durations.remove(current)
-                    newDur = [cards, 1]
-                    plays.append(i + 1)
-                    cards['SCEPTER'] += 1
-                    state.linkedPlays[j][2] = newDur
-                    state.durations[moves[i].player].append(newDur)
-                    return
-            # Look for something minimal (not in linkedPlays)
-            for j in range(0, i):
-                secondary = moves[j]
-                if check(['PLAY'], [subject])(secondary):
-                    if len([x for x in state.linkedPlays if j in x[0]]) == 0:
-                        block = Cardstack({secondary: 1, 'SCEPTER': 1})
-                        newDur = [block, 1]
-                        state.linkedPlays.append([[j, i + 1], block, newDur])
+        if moves[i + 1].pred == 'PLAY':
+            stayout = get_stayout_duration(moves, i + 1, state)
+            subject = moves[i + 1].items[0].primary
+            if stayout:
+                # Look for something already going
+                for j in range(len(state.linkedPlays)):
+                    plays, cards, current = state.linkedPlays[j]
+                    if current:
+                        state.durations.remove(current)
+                        newDur = [cards, 1]
+                        plays.append(i + 1)
+                        cards['SCEPTER'] += 1
+                        state.linkedPlays[j][2] = newDur
                         state.durations[moves[i].player].append(newDur)
                         return
-            # Look for minimal in linkedPlays
-            state.linkedPlays.sort(key=lambda x: len(x[1]))
-            plays, cards, current = state.linkedPlays[0]
-            state.durations.remove(current)
-            newDur = [cards, 1]
-            plays.append(i + 1)
-            cards['SCEPTER'] += 1
-            state.linkedPlays[0][2] = newDur
-            state.durations[moves[i].player].append(newDur)
-            return
-        else:
-            # Look for something not already going
-            for j in range(len(state.linkedPlays)):
-                plays, cards, current = state.linkedPlays[j]
-                if not current:
-                    plays.append(i + 1)
-                    cards['SCEPTER'] += 1
-                    return
-            # Look for something minimal (not in linkedPlays)
-            for j in range(0, i):
-                secondary = moves[j]
-                if check(['PLAY'], [subject])(secondary):
-                    if len([x for x in state.linkedPlays if j in x[0]]) == 0:
-                        block = Cardstack({secondary: 1, 'SCEPTER': 1})
-                        state.linkedPlays.append([[j, i + 1], block, None])
+                # Look for something minimal (not in linkedPlays)
+                for j in range(0, i):
+                    secondary = moves[j]
+                    if check(['PLAY'], [subject])(secondary):
+                        if len([x for x in state.linkedPlays
+                                if j in x[0]]) == 0:
+                            block = Cardstack({secondary: 1, 'SCEPTER': 1})
+                            newDur = [block, 1]
+                            state.linkedPlays.append([[j, i + 1], block,
+                                                      newDur])
+                            state.durations[moves[i].player].append(newDur)
+                            return
+                # Look for minimal in linkedPlays
+                state.linkedPlays.sort(key=lambda x: len(x[1]))
+                plays, cards, current = state.linkedPlays[0]
+                state.durations.remove(current)
+                newDur = [cards, 1]
+                plays.append(i + 1)
+                cards['SCEPTER'] += 1
+                state.linkedPlays[0][2] = newDur
+                state.durations[moves[i].player].append(newDur)
+                return
+            else:
+                # Look for something not already going
+                for j in range(len(state.linkedPlays)):
+                    plays, cards, current = state.linkedPlays[j]
+                    if not current:
+                        plays.append(i + 1)
+                        cards['SCEPTER'] += 1
                         return
-            # Look for minimal in linkedPlays
-            state.linkedPlays.sort(key=lambda x: len(x[1]))
-            plays, cards, current = state.linkedPlays[0]
-            state.durations.remove(current)
-            newDur = [cards, 1]
-            plays.append(i + 1)
-            cards['SCEPTER'] += 1
-            state.linkedPlays[0][2] = newDur
-            state.durations[moves[i].player].append(newDur)
-            return
+                # Look for something minimal (not in linkedPlays)
+                for j in range(0, i):
+                    secondary = moves[j]
+                    if check(['PLAY'], [subject])(secondary):
+                        if len([x for x in state.linkedPlays
+                                if j in x[0]]) == 0:
+                            block = Cardstack({secondary: 1, 'SCEPTER': 1})
+                            state.linkedPlays.append([[j, i + 1], block, None])
+                            return
+                # Look for minimal in linkedPlays
+                state.linkedPlays.sort(key=lambda x: len(x[1]))
+                plays, cards, current = state.linkedPlays[0]
+                state.durations.remove(current)
+                newDur = [cards, 1]
+                plays.append(i + 1)
+                cards['SCEPTER'] += 1
+                state.linkedPlays[0][2] = newDur
+                state.durations[moves[i].player].append(newDur)
+                return
 
     elif target == 'STORYTELLER':
         state.coins = 0

@@ -56,6 +56,21 @@ def submit(request):
         oldLog.players = players
         oldLog.save()
 
+    # Try to parse
+    log = get_object_or_404(GameLog, game_id=gameID)
+    players = log.players.split('~')
+
+    parsedLog, supply = unpack(log.log, log.supply)
+    blockLengths = get_blocklengths(parsedLog)
+    try:
+        gameStates = parse_everything(parsedLog, blockLengths, supply)
+    except BaseException:
+        log.valid = False
+        log.save()
+        raise
+    log.valid = gameStates[-1].valid
+    log.save()
+
     return HttpResponseRedirect(reverse('woodcutter:display', args=(gameID,)))
 
 
