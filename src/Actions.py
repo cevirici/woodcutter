@@ -704,7 +704,7 @@ def standard_plays(moves, i, blockLength, state):
                                                         subject: 1}), None])
 
     elif target == 'SCEPTER':
-        if moves[i + 1].pred == 'PLAY':
+        if i + 1 < len(moves) and moves[i + 1].pred == 'PLAY':
             stayout = get_stayout_duration(moves, i + 1, state)
             subject = moves[i + 1].items[0].primary
             if stayout:
