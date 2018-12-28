@@ -12,8 +12,10 @@ def duke_worth(state, player):
 
 def vineyard_worth(state, player):
     playerDeck = state.crunch(GameState.playerZones, [player])
-    return sum([playerDeck[item] for item in playerDeck if
-                'a' in Cards[item].types]) // 3
+    estates = playerDeck['ESTATE'] if state.inherited[player] != 'NOTHING' \
+        else 0
+    return (sum([playerDeck[item] for item in playerDeck if
+                 'a' in Cards[item].types]) + estates) // 3
 
 
 def fairgrounds_worth(state, player):
@@ -80,8 +82,10 @@ def obelisk_worth(state, player):
 
 def orchard_worth(state, player):
     playerDeck = state.crunch(GameState.playerZones, [player])
+    estates = 4 if state.inherited[player] != 'NOTHING' and\
+        playerDeck['ESTATE'] >= 3 else 0
     return len([item for item in playerDeck if
-                'a' in Cards[item].types and player[item] >= 3]) * 4
+                'a' in Cards[item].types and player[item] >= 3]) * 4 + estates
 
 
 def palace_worth(state, player):
@@ -122,9 +126,10 @@ def tower_worth(state, player):
 
 def arch_worth(state, player):
     playerDeck = state.crunch(GameState.playerZones, [player])
+    estates = state.inherited[player] != 'NOTHING'
     best, second = (0, 0)
     for card in playerDeck:
-        if 'a' in Cards[card].types:
+        if 'a' in Cards[card].types or (estates and card == 'ESTATE'):
             amount = playerDeck[card]
             if amount > best:
                 second, best = best, amount

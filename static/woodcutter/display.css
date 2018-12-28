@@ -4,13 +4,13 @@
 
 body {
     margin: 0;
+    background: #231F26;
 }
 
 
 .content {
     width: 100%;
     height: 100vh;
-    background: #231F26;
     display: grid;
     grid-template-columns: 75% 25%;
     grid-template-rows: 5% 80% 15%;
@@ -32,12 +32,6 @@ body {
 
 .board-container{
     grid-row: 2 / 3;
-    grid-column: 1 / 2;
-}
-
-
-.base-container{
-    grid-row: 3 / 4;
     grid-column: 1 / 2;
 }
 
@@ -128,19 +122,59 @@ body {
 
 .card-stack {
     display: flex;
-    background: #282923;
+    z-index: -2;
     border: 1px solid #ADA9AF;
 }
+
 .card-stack:not(.inplays){
     flex-flow: column wrap;
     justify-content: flex-start;
     align-items: center;
 }
 
+.card-stack.top{
+    background: #35191D;
+}
+
+.card-stack.bot{
+    background: #0C162B;
+}
+
+.card-stack:not(.top):not(.bot){
+    background: #282923;
+}
+
 .card-stack.inplays{
     flex-flow: row;
     justify-content: flex-start;
     align-items: center;
+}
+
+
+.label{
+    grid-column: 2 / 7;
+    opacity: 0.3;
+    z-index: -1;
+    color: #666;
+    font: 9vh Bahnschrift;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    -webkit-transform: rotate(-7deg);
+    -moz-transform: rotate(-7deg);
+    -ms-transform: rotate(-7deg);
+    -o-transform: rotate(-7deg);
+}
+
+
+.stack-label{
+    opacity: 0.5;
+    z-index: -1;
+    position: absolute;
+    padding-top: 10px;
+    color: #666;
+    text-align: center;
+    font: 3.5vh Bahnschrift;
 }
 
 
@@ -200,5 +234,39 @@ body {
     font: 1.5vh Segoe UI;
 }
 .story-line:hover{
-    background-color: #6D5B1C;
+    background-color: #092940;
+}
+
+.story-line.highlight{
+    background-color: #0D394B;
+}
+
+
+/**** Controls ****/
+
+
+.base-container{
+    grid-row: 3 / 4;
+    grid-column: 1 / 2;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+}
+
+
+.controls{
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+}
+
+
+.control-button{
+    width: 10vh;
+    height: 10vh;
+    background-size: 10vh 10vh;
+}
+
+.control-button:hover{
+    filter: drop-shadow(0 0 5px #EFDE1D);
 }

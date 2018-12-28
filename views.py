@@ -126,43 +126,20 @@ def display(request, game_id):
     story = '~'.join(elaborate_story(players, parsedLog, True))
     boards = '~'.join([repr(x) for x in gameStates])
     titleString = 'Game {}: {} vs. {}'.format(str(game_id), *players)
+    colors, borders, urls = get_passables()
+    stepPoints, turnPoints = get_points(parsedLog)
 
     context = {'story': story,
                'boards': boards,
-               'titlestring': titleString}
+               'titlestring': titleString,
+               'players': players,
+               'stepPoints': stepPoints,
+               'turnPoints': turnPoints,
+               'interiors': colors,
+               'borders': borders,
+               'urls': urls}
 
     return render(request, 'woodcutter/display.html', context)
-
-
-def quickUpdate(request):
-    game_ids = request.GET['ids'].split(',')[:50]
-    for game_id in game_ids:
-        log = get_object_or_404(GameLog, game_id=game_id)
-        players = log.players.split('~')
-
-        repairable = True
-        while repairable:
-            moveData = unpack(log.log, log.supply)
-            indents = [parsedLine.indent for parsedLine in moveData[0]]
-            moveTree = parse_game(moveData[0])
-            try:
-                gameStates = get_decision_state(moveTree, moveData[1])
-            except BaseException:
-                log.valid = False
-                log.save()
-                raise
-
-            attemptedRepair = fullRepair(log.log, moveTree, gameStates, moveData[1])
-            if attemptedRepair[1]:
-                log.log = attemptedRepair[0]
-                log.save()
-            else:
-                repairable = False
-
-        log.valid = gameStates[-1].valid
-        log.save()
-
-    return render(request, 'woodcutter/main.html')
 
 
 def error_list(request):

@@ -4,11 +4,22 @@ import re
 
 def get_passables():
     colors, borders, urls = [], [], []
-    for card in Cardlist:
+    for card in CardList:
         colors.append(card.card_color)
         borders.append(card.border_color)
         urls.append(card.cardurl)
-    return (colors, borders, names)
+    return colors, borders, urls
+
+
+def get_points(moves):
+    stepPoints = []
+    turnPoints = []
+    for i, move in enumerate(moves):
+        if move.pred == 'NEW TURN':
+            turnPoints.append(i)
+        if move.indent == 0:
+            stepPoints.append(i)
+    return stepPoints, turnPoints
 
 
 def elaborate_card(number, card):
