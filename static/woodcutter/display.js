@@ -180,19 +180,19 @@ class Container extends React.Component{
                 this.changeIndex(newIndex);
                 break;
             case 'forward':
-                var newIndex = (this.state.index > n - 1 ? n - 1 : this.state.index + 1);
+                var newIndex = (this.state.index > n - 3 ? n - 2 : this.state.index + 1);
                 this.changeIndex(newIndex);
                 break;
             case 'forward-step':
-                var newIndex = (this.state.index > n - 1 ? n - 1 : this.state.index + 1);
-                while ((!stepPoints.includes(newIndex)) && newIndex < n - 1){
+                var newIndex = (this.state.index > n - 3 ? n - 2 : this.state.index + 1);
+                while ((!stepPoints.includes(newIndex)) && newIndex < n - 2){
                     newIndex++;
                 }
                 this.changeIndex(newIndex);
                 break;
             case 'forward-turn':
-                var newIndex = (this.state.index > n - 1 ? n - 1 : this.state.index + 1);
-                while ((!turnPoints.includes(newIndex)) && newIndex < n - 1){
+                var newIndex = (this.state.index > n - 3 ? n - 2 : this.state.index + 1);
+                while ((!turnPoints.includes(newIndex)) && newIndex < n - 2){
                     newIndex++;
                 }
                 this.changeIndex(newIndex);
