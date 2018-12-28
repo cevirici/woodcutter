@@ -1,5 +1,5 @@
 from .parser import *
-from .display import *
+from .Display import *
 from .postparse import *
 from .classes import *
 from .Standards import *

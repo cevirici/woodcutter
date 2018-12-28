@@ -103,7 +103,7 @@ def detailed(request, game_id):
     i = 0
     for line, state in zip(story, gameStates[1:]):
         output.append('Decision {}'.format(str(i)))
-        output.append(line + '<br>' + str(state))
+        output.append(line + '<br>' + repr(state))
         i += 1
     return HttpResponse('<br>'.join(output))
 
@@ -112,90 +112,24 @@ def display(request, game_id):
     log = get_object_or_404(GameLog, game_id=game_id)
     players = log.players.split('~')
 
-    (parsedLog, supply) = unpack(log.log, log.supply)
-    (gameMoves, blockLengths) = parse_gameLog(parsedLog)
+    parsedLog, supply = unpack(log.log, log.supply)
+    blockLengths = get_blocklengths(parsedLog)
     try:
-        gameStates = parse_everything(gameMoves, blockLengths, supply)
+        gameStates = parse_everything(parsedLog, blockLengths, supply)
     except BaseException:
         log.valid = False
         log.save()
         raise
-
     log.valid = gameStates[-1].valid
     log.save()
 
-    turnPoints = get_turn_points(blockLengths)
-    turnOwners = get_turn_owners(gameMoves, turnPoints)
-    shuffledTurns = get_shuffled_turns(gameMoves, turnPoints)
+    story = '~'.join(elaborate_story(players, parsedLog, True))
+    boards = '~'.join([repr(x) for x in gameStates])
+    titleString = 'Game {}: {} vs. {}'.format(str(game_id), *players)
 
-    involvedCards = get_involved_cards(gameStates)
-
-    allCards = find_turn_decks(turnPoints, gameStates)
-    gainedCards = find_gained_cards(turnPoints, gameStates)
-
-    cleanupPoints = [x+y for x, y in zip(get_cleanup_points(gameMoves),
-                     [-1] + turnPoints)]
-    cleanupPoints[0] = turnPoints[0] + 1
-    progressCards = find_shuffle_progress(turnPoints, cleanupPoints,
-                                          gameStates)
-
-    vpCards = find_vp(turnPoints, gameStates, gameData[1])
-
-    graph_all_top = render_graph_row(allCards, [''], 0)
-    graph_all_bot = render_graph_row(allCards, [''], 1)
-
-    graph_gained_top = render_graph_row(gainedCards, ['redoutline', 'redoutline faded', ''], 0)
-    graph_gained_bot = render_graph_row(gainedCards, ['redoutline', 'redoutline faded', ''], 1)
-
-    graph_progress_top = render_graph_row(progressCards, ['faded', '', 'faded'], 0)
-    graph_progress_bot = render_graph_row(progressCards, ['faded', '', 'faded'], 1)
-
-    graph_vps_top = render_vp_row(vpCards, 0)
-    graph_vps_bot = render_vp_row(vpCards, 1)
-
-    axisLabels = render_axis_labels(turnOwners)
-    bgData_top = render_graph_background(turnOwners, shuffledTurns, 0)
-    bgData_bot = render_graph_background(turnOwners, shuffledTurns, 1)
-    legendBoxes = render_legend_boxes(involvedCards)
-    sidebarLabels = render_story_sidebar_labels(turnOwners, turnPoints)
-    storyRaw = elaborate_story(players, gameMoves)
-    story = storyRaw[0]
-    storyPlain = storyRaw[1]
-
-    full_printout(gameMoves, gameStates)
-
-    kingdom = render_kingdom(gameData[1])
-
-    titleString = 'Game #{}: {} - {}'.format(game_id, players[0], players[1])
-    kingdomColors = relevantColors(gameData[1])
-
-    cards = [x.simple_name for x in standardCards]
-
-    context = {
-        'title_string': titleString,
-        'gameStates': exportGameStates(gameStates),
-        'relevantColors': kingdomColors,
-        'graph_all_top': graph_all_top,
-        'graph_all_bot': graph_all_bot,
-        'graph_gained_top': graph_gained_top,
-        'graph_gained_bot': graph_gained_bot,
-        'graph_progress_top': graph_progress_top,
-        'graph_progress_bot': graph_progress_bot,
-        'graph_vps_top': graph_vps_top[0],
-        'graph_vps_labels_top': graph_vps_top[1],
-        'graph_vps_bot': graph_vps_bot[0],
-        'graph_vps_labels_bot': graph_vps_bot[1],
-        'turnOwners': turnOwners,
-        'bgData_top': bgData_top,
-        'bgData_bot': bgData_bot,
-        'axisLabels': axisLabels,
-        'legendBoxes': legendBoxes,
-        'story_lines': story,
-        'sidebar_labels': sidebarLabels,
-        'kingdomCards': kingdom,
-        'storyPlain': storyPlain,
-        'gameid': game_id,
-    }
+    context = {'story': story,
+               'boards': boards,
+               'titlestring': titleString}
 
     return render(request, 'woodcutter/display.html', context)
 

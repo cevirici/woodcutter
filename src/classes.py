@@ -65,6 +65,16 @@ class GameState:
     def __setitem__(self, item, value):
         self.boardState[item] = value
 
+    def __repr__(self):
+        outstr = ''
+        for zone in self.boardState:
+            if zone in GameState.playerZones:
+                for part in self.boardState[zone]:
+                    outstr += repr(part) + '|'
+            else:
+                outstr += repr(self.boardState[zone]) + '|'
+        return outstr
+
     def __str__(self):
         basestr = '{}<br>\
 Player: {}<br>\

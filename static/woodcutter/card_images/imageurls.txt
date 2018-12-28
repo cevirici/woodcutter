@@ -414,7 +414,7 @@ Cobbler:images/cards/art/nocturne/cobbler.jpg
 Conclave:images/cards/art/nocturne/conclave.jpg
 Crypt:images/cards/art/nocturne/crypt.jpg
 Cursed Village:images/cards/art/nocturne/cursed-village.jpg
-Den Of Sin:images/cards/art/nocturne/den-of-sin.jpg
+Den of Sin:images/cards/art/nocturne/den-of-sin.jpg
 Devil's Workshop:images/cards/art/nocturne/devils-workshop.jpg
 Druid:images/cards/art/nocturne/druid.jpg
 Exorcist:images/cards/art/nocturne/exorcist.jpg
@@ -449,7 +449,7 @@ Pouch:images/cards/art/nocturne/pouch.jpg
 Bat:images/cards/art/nocturne/bat.jpg
 Ghost:images/cards/art/nocturne/ghost.jpg
 Imp:images/cards/art/nocturne/imp.jpg
-Will-o'-wisp:images/cards/art/nocturne/will-o-wisp.jpg
+Will-o'-Wisp:images/cards/art/nocturne/will-o-wisp.jpg
 Wish:images/cards/art/nocturne/wish.jpg
 Zombie Apprentice:images/cards/art/nocturne/zombie-apprentice.jpg
 Zombie Mason:images/cards/art/nocturne/zombie-mason.jpg
@@ -465,3 +465,53 @@ Summon:images/cards/art/promos/summon.jpg
 Walled Village:images/cards/art/promos/walled-village.jpg
 Black Market Deck:images/cards/art/promos/black-market-pile.jpg
 Dismantle:images/cards/art/promos/dismantle.jpg
+Acting Troupe:images/cards/art/renaissance/acting-troupe.jpg
+Border Guard:images/cards/art/renaissance/border-guard.jpg
+Cargo Ship:images/cards/art/renaissance/cargo-ship.jpg
+Ducat:images/cards/art/renaissance/ducat.jpg
+Experiment:images/cards/art/renaissance/experiment.jpg
+Flag Bearer:images/cards/art/renaissance/flag-bearer.jpg
+Hideout:images/cards/art/renaissance/hideout.jpg
+Inventor:images/cards/art/renaissance/inventor.jpg
+Improve:images/cards/art/renaissance/improve.jpg
+Lackeys:images/cards/art/renaissance/lackeys.jpg
+Mountain Village:images/cards/art/renaissance/mountain-village.jpg
+Patron:images/cards/art/renaissance/patron.jpg
+Priest:images/cards/art/renaissance/priest.jpg
+Research:images/cards/art/renaissance/research.jpg
+Silk Merchant:images/cards/art/renaissance/silk-merchant.jpg
+Old Witch:images/cards/art/renaissance/old-witch.jpg
+Recruiter:images/cards/art/renaissance/recruiter.jpg
+Scepter:images/cards/art/renaissance/scepter.jpg
+Scholar:images/cards/art/renaissance/scholar.jpg
+Sculptor:images/cards/art/renaissance/sculptor.jpg
+Seer:images/cards/art/renaissance/seer.jpg
+Spices:images/cards/art/renaissance/spices.jpg
+Swashbuckler:images/cards/art/renaissance/swashbuckler.jpg
+Treasurer:images/cards/art/renaissance/treasurer.jpg
+Villain:images/cards/art/renaissance/villain.jpg
+Flag:images/cards/art/renaissance/flag.jpg
+Horn:images/cards/art/renaissance/horn.jpg
+Key:images/cards/art/renaissance/key.jpg
+Lantern:images/cards/art/renaissance/lantern.jpg
+Treasure Chest:images/cards/art/renaissance/treasure-chest.jpg
+Academy:images/cards/art/renaissance/academy.jpg
+Barracks:images/cards/art/renaissance/barracks.jpg
+Canal:images/cards/art/renaissance/canal.jpg
+Capitalism:images/cards/art/renaissance/capitalism.jpg
+Cathedral:images/cards/art/renaissance/cathedral.jpg
+Citadel:images/cards/art/renaissance/citadel.jpg
+City Gate:images/cards/art/renaissance/city-gate.jpg
+Crop Rotation:images/cards/art/renaissance/crop-rotation.jpg
+Exploration:images/cards/art/renaissance/exploration.jpg
+Fair:images/cards/art/renaissance/fair.jpg
+Fleet:images/cards/art/renaissance/fleet.jpg
+Guildhall:images/cards/art/renaissance/guildhall.jpg
+Innovation:images/cards/art/renaissance/innovation.jpg
+Pageant:images/cards/art/renaissance/pageant.jpg
+Piazza:images/cards/art/renaissance/piazza.jpg
+Road Network:images/cards/art/renaissance/road-network.jpg
+Sewers:images/cards/art/renaissance/sewers.jpg
+Silos:images/cards/art/renaissance/silos.jpg
+Sinister Plot:images/cards/art/renaissance/sinister-plot.jpg
+Star Chart:images/cards/art/renaissance/star-chart.jpg

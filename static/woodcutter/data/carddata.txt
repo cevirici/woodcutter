@@ -464,53 +464,53 @@ ff,Dungeon,Dungeons,a Dungeon,3,0,dda561,4f472d,a
 1cf,Dismantle,Dismantles,a Dismantle,4,0,c4c0b4,8DAEB6,a
 1d0,Debt,Debt,1 Debt,0,0,C73400,A02900,
 1d1,debt,debt,1 debt,0,0,C73400,A02900,
-1d2,Acting Troupe,Acting Troupes,an Acting Troupe,3,0,5a382c,c0beb8,a
-1d3,Border Guard,Border Guards,a Border Guard,2,0,86785e,c0beb8,a
-1d4,Cargo Ship,Cargo Ships,a Cargo Ship,3,0,95b2be,bfa381,a
-1d5,Ducat,Ducats,a Ducat,2,0,d3bb66,c5ba99,t
-1d6,Experiment,Experiments,an Experiment,3,0,725151,c0beb8,a
-1d7,Flag Bearer,Flag Bearers,a Flag Bearer,4,0,c0c4c4,c0beb8,a
-1d8,Hideout,Hideouts,a Hideout,4,0,292b23,c0beb8,a
-1d9,Inventor,Inventors,an Inventor,4,0,5b4c2d,c0beb8,a
-1da,Improve,Improves,an Improve,3,0,9e8f7e,c0beb8,a
-1db,Lackeys,Lackeys,a Lackeys,2,0,826275,c0beb8,a
-1dc,Mountain Village,Mountain Villages,a Mountain Village,4,0,819369,c0beb8,a
-1dd,Patron,Patrons,a Patron,4,0,795547,98a3ba,a
-1de,Priest,Priests,a Priest,4,0,926221,c0beb8,a
-1df,Research,Researches,a Research,4,0,614c35,bfa381,a
-1e0,Silk Merchant,Silk Merchants,a Silk Merchant,4,0,965744,c0beb8,a
-1e1,Old Witch,Old Witches,an Old Witch,5,0,483830,c0beb8,a
-1e2,Recruiter,Recruiters,a Recruiter,5,0,8e8973,c0beb8,a
-1e3,Scepter,Scepters,a Scepter,5,0,8c6752,c5ba99,t
-1e4,Scholar,Scholars,a Scholar,5,0,52494d,c0beb8,a
-1e5,Sculptor,Sculptors,a Sculptor,5,0,3d322c,c0beb8,a
-1e6,Seer,Seers,a Seer,5,0,725a47,c0beb8,a
-1e7,Spices,Spices,a Spices,5,0,6d413e,c5ba99,t
-1e8,Swashbuckler,Swashbucklers,a Swashbuckler,5,0,99928b,c0beb8,a
-1e9,Treasurer,Treasurers,a Treasurer,5,0,7e5a45,c0beb8,a
-1ea,Villain,Villains,a Villain,5,0,3d2e31,c0beb8,a
-1eb,Flag,Flags,the Flag,0,-1,eee1c9,ae9573,f
-1ec,Horn,Horns,the Horn,0,-1,85745b,ae9573,f
-1ed,Key,Keys,the Key,0,-1,7b5244,ae9573,f
-1ee,Lantern,Lanterns,the Lantern,0,-1,594646,ae9573,f
-1ef,Treasure Chest,Treasure Chests,the Treasure Chest,0,-1,93743f,ae9573,f
-1f0,Academy,Academy,Academy,5,2,9f8c74,b99489,p
-1f1,Barracks,Barracks,Barracks,6,2,6f797b,b99489,p
-1f2,Canal,Canal,Canal,7,2,a89385,b99489,p
-1f3,Capitalism,Capitalism,Capitalism,5,2,908691,b99489,p
-1f4,Cathedral,Cathedral,Cathedral,3,2,9fa087,b99489,p
-1f5,Citadel,Citadel,Citadel,8,2,abac91,b99489,p
-1f6,City Gate,City Gate,City Gate,3,2,8d7955,b99489,p
-1f7,Crop Rotation,Crop Rotation,Crop Rotation,6,2,888b78,b99489,p
-1f8,Exploration,Exploration,Exploration,4,2,87afc6,b99489,p
-1f9,Fair,Fair,Fair,4,2,726d6f,b99489,p
-1fa,Fleet,Fleet,Fleet,5,2,7b5d53,b99489,p
-1fb,Guildhall,Guildhall,Guildhall,5,2,675b56,b99489,p
-1fc,Innovation,Innovation,Innovation,6,2,c79b6d,b99489,p
-1fd,Pageant,Pageant,Pageant,3,2,6c7065,b99489,p
-1fe,Piazza,Piazza,Piazza,5,2,a59075,b99489,p
-1ff,Road Network,Road Network,Road Network,5,2,819794,b99489,p
-200,Sewers,Sewers,Sewers,3,2,2d2c28,b99489,p
-201,Silos,Silos,Silos,4,2,8c948c,b99489,p
-202,Sinister Plot,Sinister Plot,Sinister Plot,4,2,534637,b99489,p
-203,Star Chart,Star Chart,Star Chart,3,2,b9987c,b99489,p
+1d2,Acting Troupe,Acting Troupes,an Acting Troupe,3,0,c0beb8,5a382c,a
+1d3,Border Guard,Border Guards,a Border Guard,2,0,c0beb8,86785e,a
+1d4,Cargo Ship,Cargo Ships,a Cargo Ship,3,0,bfa381,95b2be,a
+1d5,Ducat,Ducats,a Ducat,2,0,c5ba99,d3bb66,t
+1d6,Experiment,Experiments,an Experiment,3,0,c0beb8,725151,a
+1d7,Flag Bearer,Flag Bearers,a Flag Bearer,4,0,c0beb8,c0c4c4,a
+1d8,Hideout,Hideouts,a Hideout,4,0,c0beb8,292b23,a
+1d9,Inventor,Inventors,an Inventor,4,0,c0beb8,5b4c2d,a
+1da,Improve,Improves,an Improve,3,0,c0beb8,9e8f7e,a
+1db,Lackeys,Lackeys,a Lackeys,2,0,c0beb8,826275,a
+1dc,Mountain Village,Mountain Villages,a Mountain Village,4,0,c0beb8,819369,a
+1dd,Patron,Patrons,a Patron,4,0,98a3ba,795547,a
+1de,Priest,Priests,a Priest,4,0,c0beb8,926221,a
+1df,Research,Researches,a Research,4,0,bfa381,614c35,a
+1e0,Silk Merchant,Silk Merchants,a Silk Merchant,4,0,c0beb8,965744,a
+1e1,Old Witch,Old Witches,an Old Witch,5,0,c0beb8,483830,a
+1e2,Recruiter,Recruiters,a Recruiter,5,0,c0beb8,8e8973,a
+1e3,Scepter,Scepters,a Scepter,5,0,c5ba99,8c6752,t
+1e4,Scholar,Scholars,a Scholar,5,0,c0beb8,52494d,a
+1e5,Sculptor,Sculptors,a Sculptor,5,0,c0beb8,3d322c,a
+1e6,Seer,Seers,a Seer,5,0,c0beb8,725a47,a
+1e7,Spices,Spices,a Spices,5,0,c5ba99,6d413e,t
+1e8,Swashbuckler,Swashbucklers,a Swashbuckler,5,0,c0beb8,99928b,a
+1e9,Treasurer,Treasurers,a Treasurer,5,0,c0beb8,7e5a45,a
+1ea,Villain,Villains,a Villain,5,0,c0beb8,3d2e31,a
+1eb,Flag,Flags,the Flag,0,-1,ae9573,eee1c9,f
+1ec,Horn,Horns,the Horn,0,-1,ae9573,85745b,f
+1ed,Key,Keys,the Key,0,-1,ae9573,7b5244,f
+1ee,Lantern,Lanterns,the Lantern,0,-1,ae9573,594646,f
+1ef,Treasure Chest,Treasure Chests,the Treasure Chest,0,-1,ae9573,93743f,f
+1f0,Academy,Academy,Academy,5,2,b99489,9f8c74,p
+1f1,Barracks,Barracks,Barracks,6,2,b99489,6f797b,p
+1f2,Canal,Canal,Canal,7,2,b99489,a89385,p
+1f3,Capitalism,Capitalism,Capitalism,5,2,b99489,908691,p
+1f4,Cathedral,Cathedral,Cathedral,3,2,b99489,9fa087,p
+1f5,Citadel,Citadel,Citadel,8,2,b99489,abac91,p
+1f6,City Gate,City Gate,City Gate,3,2,b99489,8d7955,p
+1f7,Crop Rotation,Crop Rotation,Crop Rotation,6,2,b99489,888b78,p
+1f8,Exploration,Exploration,Exploration,4,2,b99489,87afc6,p
+1f9,Fair,Fair,Fair,4,2,b99489,726d6f,p
+1fa,Fleet,Fleet,Fleet,5,2,b99489,7b5d53,p
+1fb,Guildhall,Guildhall,Guildhall,5,2,b99489,675b56,p
+1fc,Innovation,Innovation,Innovation,6,2,b99489,c79b6d,p
+1fd,Pageant,Pageant,Pageant,3,2,b99489,6c7065,p
+1fe,Piazza,Piazza,Piazza,5,2,b99489,a59075,p
+1ff,Road Network,Road Network,Road Network,5,2,b99489,819794,p
+200,Sewers,Sewers,Sewers,3,2,b99489,2d2c28,p
+201,Silos,Silos,Silos,4,2,b99489,8c948c,p
+202,Sinister Plot,Sinister Plot,Sinister Plot,4,2,b99489,534637,p
+203,Star Chart,Star Chart,Star Chart,3,2,b99489,b9987c,p

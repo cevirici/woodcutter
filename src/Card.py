@@ -7,7 +7,7 @@ cardUrls = {}
 f = open(os.path.join(settings.STATIC_ROOT, CARD_URLS_PATH))
 for line in f:
     raw = line.strip().split(':')
-    raw[1] = 'woodcutter/card_images/{}'.format(raw[1][raw[1].rfind('/') + 1:])
+    raw[1] = raw[1][raw[1].rfind('/') + 1:raw[1].rfind('.')]
     cardUrls[raw[0]] = raw[1]
 
 
