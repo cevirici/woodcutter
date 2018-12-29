@@ -41,7 +41,8 @@ def get_kingdom(supply):
             output[Cards[pairs[pair]].supply_type].append(pairs[pair])
 
     for card in supply:
-        if supply[card] > 1 and Cards[card].supply_type != -1:
+        if (supply[card] > 1 and Cards[card].supply_type != -1) or \
+                Cards[card].supply_type == 2:
             output[Cards[card].supply_type].append(card)
 
     for n in range(len(output)):
