@@ -11,6 +11,10 @@ def get_passables():
     return colors, borders, urls
 
 
+def get_turn_owners(moves):
+    return [move.player for move in moves]
+
+
 def get_points(moves):
     stepPoints = []
     turnPoints = []

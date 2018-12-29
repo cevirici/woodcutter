@@ -25,7 +25,7 @@ class ParsedLine:
 
     @property
     def player(self):
-        return self.players[0]
+        return self.players[0] if self.players else 0
 
 
 class GameState:
@@ -45,14 +45,18 @@ class GameState:
         self.actions = 0
         self.buys = 0
         self.inherited = ['NOTHING', 'NOTHING']
+        self.projects = [set(), set()]
         self.vps = [0, 0]
         self.coffers = [0, 0]
         self.villagers = [0, 0]
         self.debt = [0, 0]
+        self.bridges = 0
         self.phase = 0  # Start, Action, Buy, Night, Cleanup
+
         self.exceptions = set()
         self.durations = [[], []]
         self.linkedPlays = []  # list: plays, cards, currentDurations
+
         self.amuletSilvers = 0
         self.cargoShips = 0
         self.cargoCount = 0
@@ -73,6 +77,13 @@ class GameState:
                     outstr += repr(part) + '|'
             else:
                 outstr += repr(self.boardState[zone]) + '|'
+        outstr += '/'
+        outstr += '|'.join([str(self.actions), str(self.buys), str(self.coins),
+                            *[str(x) for x in self.debt],
+                            *[str(x) for x in self.coffers],
+                            *[str(x) for x in self.villagers],
+                            *[str(x) for x in self.vps],
+                            *[str(x) for x in self.score]])
         return outstr
 
     def __str__(self):

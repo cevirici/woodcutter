@@ -21,7 +21,7 @@ class Card:
         self.multi_name = multi_name
         self.phrase_name = phrase_name
         self.names = [self.simple_name, self.multi_name, self.phrase_name]
-        self.cost = cost
+        self.cost = [int(x) for x in cost.split('d')]
         self.supply_type = supply_type
         self.action = action
         self.border_color = border_color

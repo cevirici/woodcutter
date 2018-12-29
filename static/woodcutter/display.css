@@ -13,7 +13,7 @@ body {
     height: 100vh;
     display: grid;
     grid-template-columns: 75% 25%;
-    grid-template-rows: 5% 80% 15%;
+    grid-template-rows: 5% 75% 20%;
     overflow: hidden;
 }
 
@@ -255,6 +255,7 @@ body {
 
 
 .controls{
+    width: 30%;
     display: flex;
     justify-content: flex-start;
     align-items: center;
@@ -262,11 +263,50 @@ body {
 
 
 .control-button{
-    width: 10vh;
-    height: 10vh;
-    background-size: 10vh 10vh;
+    width: 8vh;
+    height: 8vh;
+    background-size: 8vh 8vh;
 }
 
 .control-button:hover{
     filter: drop-shadow(0 0 5px #EFDE1D);
+}
+
+
+.info{
+    width: 40%;
+}
+
+
+.icon-row, .label-row{
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+}
+
+
+.label-row{
+    margin-top: 10px;
+}
+
+
+.icon-row > img{
+    width: 6vh;
+    height: 6vh;
+}
+
+
+.single-label, .top-label, .bot-label{
+    width: 6vh;
+    text-align: center;
+    color: #666;
+    font: 3vh Bahnschrift;
+}
+
+.top-label{
+    color: #9A0F0F;
+}
+
+.bot-label{
+    color: #2B2D7C;
 }

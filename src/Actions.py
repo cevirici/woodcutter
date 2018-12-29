@@ -131,6 +131,7 @@ def new_turn_action(moves, i, blockLength, state):
     state.linkedPlays = []
     state.amuletSilvers = 0
     state.cargoShips = 0
+    state.bridges = 0
 
 
 Preds['NEW TURN'].action = new_turn_action
@@ -368,6 +369,30 @@ def gain_experiment(moves, i, blockLength, state):
                Cardstack({'EXPERIMENT': 1}))
 
 
+def get_cost(card, player, state):
+    reductions = state.bridges
+    highwayLike = ['HIGHWAY', 'BRIDGE TROLL', 'PRINCESS']
+
+    for highway in highwayLike:
+        reductions += state['INPLAYS'][player][highway]
+    reductions += state['INPLAYS'][player]['PRINCESS']
+
+    if 'a' in Cards[card].types:
+        reductions += state['INPLAYS'][player]['QUARRY'] * 2
+
+    if 'CANAL' in state.projects[player]:
+        reductions += 1
+
+    if card == 'PEDDLER' and state.phase == 2:
+        for inplay in state['INPLAYS'][player]:
+            if 'a' in Cards[inplay].types:
+                reductions += state['INPLAYS'][player][inplay] * 2
+
+    actualCost = deepcopy(Cards[card].cost)
+    actualCost[0] = max(0, actualCost[0])
+    return actualCost
+
+
 def buy_action(moves, i, blockLength, state):
     move = moves[i]
     target = move.items[0].primary
@@ -375,6 +400,11 @@ def buy_action(moves, i, blockLength, state):
     if move.indent == 0:
         state.phase = 2
         state.buys -= 1
+
+    cost = get_cost(target, move.player, state)
+    state.coins -= cost[0]
+    if len(cost) > 1:
+        state.debt[move.player] += cost[1]
 
     triggers = {'MINT': [exc_inplayTrash],
                 'DOCTOR': [exc_revealTrash, exc_revealDiscard,
@@ -402,6 +432,9 @@ def buy_action(moves, i, blockLength, state):
                                        moveFunct('OTHERS', 'HANDS'),
                                        lifespan=life,
                                        indents=[0]))
+
+    elif 'p' in Cards[target].types:
+        state.projects[move.player].add(target)
 
 
 def buy_and_gain(moves, i, blockLength, state):
@@ -691,6 +724,9 @@ def standard_plays(moves, i, blockLength, state):
                 newExc.indents = [secondary.indent + 1]
                 state.exceptions.add(newExc)
                 break
+
+    elif target in ['BRIGE', 'INVENTOR']:
+        state.bridges += 1
 
     elif target in ['THRONE ROOM', "KING'S COURT", 'DISCIPLE', 'CROWN']:
         plays = []

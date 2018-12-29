@@ -308,7 +308,7 @@ ff,Dungeon,Dungeons,a Dungeon,3,0,dda561,4f472d,a
 133,Catapult,Catapults,a Catapult,3,0,c4c0b4,839f55,a
 134,Rocks,Rocks,a Rocks,4,0,d8c280,80963a,t
 135,Gladiator,Gladiators,a Gladiator,3,0,c4c0b4,b28674,a
-136,Fortune,Fortunes,a Fortune,16,0,d8c280,94794F,t
+136,Fortune,Fortunes,a Fortune,8d8,0,d8c280,94794F,t
 137,Castles,Castles,a Castles,3,0,9cbe8a,2d7bbb,vc
 138,Humble Castle,Humble Castles,a Humble Castle,3,-1,a9c35d,63af7f,tvc
 139,Crumbling Castle,Crumbling Castles,a Crumbling Castle,4,-1,9cbe8a,ceb22c,vc,1
@@ -319,7 +319,7 @@ ff,Dungeon,Dungeons,a Dungeon,3,0,dda561,4f472d,a
 13e,Grand Castle,Grand Castles,a Grand Castle,9,-1,9cbe8a,9e7e5a,vc,5
 13f,King's Castle,King's Castles,a King's Castle,10,-1,9cbe8a,cd8959,vc
 140,Advance,Advances,an Advance,0,2,a9a39d,714d41,e
-141,Annex,Annexes,an Annex,8,2,a9a39d,7a5a36,e
+141,Annex,Annexes,an Annex,0d8,2,a9a39d,7a5a36,e
 142,Archive,Archives,an Archive,5,0,dda561,7b5d47,a
 143,Aqueduct,Aqueducts,an Aqueduct,0,2,65ab6f,9a905c,l
 144,Arena,Arenas,an Arena,0,2,65ab6f,b0587c,l
@@ -331,16 +331,16 @@ ff,Dungeon,Dungeons,a Dungeon,3,0,dda561,4f472d,a
 14a,Capital,Capitals,a Capital,5,0,d8c280,765648,t
 14b,Charm,Charms,a Charm,5,0,d8c280,756349,t
 14c,Chariot Race,Chariot Races,a Chariot Race,3,0,c4c0b4,7f7569,a
-14d,City Quarter,City Quarters,a City Quarter,8,0,c4c0b4,7e6a30,a
+14d,City Quarter,City Quarters,a City Quarter,0d8,0,c4c0b4,7e6a30,a
 14e,Colonnade,Colonnades,a Colonnade,0,2,65ab6f,9f7b27,l
 14f,Conquest,Conquests,a Conquest,6,2,a9a39d,7c9692,e
 150,Crown,Crowns,a Crown,5,0,cec28a,7b4b33,at
 151,Delve,Delves,a Delve,2,2,a9a39d,716149,e
 152,Defiled Shrine,Defiled Shrines,a Defiled Shrine,0,2,65ab6f,5a746e,l
 153,Dominate,Dominates,a Dominate,14,2,a9a39d,896b71,e
-154,Donate,Donates,a Donate,8,2,a9a39d,886c7a,e
+154,Donate,Donates,a Donate,0d8,2,a9a39d,886c7a,e
 155,Enchantress,Enchantresses,an Enchantress,3,0,dda561,a5855f,a
-156,Engineer,Engineers,an Engineer,4,0,c4c0b4,733719,a
+156,Engineer,Engineers,an Engineer,0d4,0,c4c0b4,733719,a
 157,Farmers' Market,Farmers' Markets,a Farmers' Market,3,0,c4c0b4,867642,a
 158,Forum,Forums,a Forum,5,0,c4c0b4,bc9256,a
 159,Fountain,Fountains,a Fountain,0,0,65ab6f,7c5a34,l
@@ -352,7 +352,7 @@ ff,Dungeon,Dungeons,a Dungeon,3,0,dda561,4f472d,a
 15f,Museum,Museums,a Museum,0,2,65ab6f,c47a00,l
 160,Obelisk,Obelisks,an Obelisk,0,2,65ab6f,774d29,l
 161,Orchard,Orchards,an Orchard,0,2,65ab6f,707c5c,l
-162,Overlord,Overlords,an Overlord,8,0,c4c0b4,9a8a90,a
+162,Overlord,Overlords,an Overlord,0d8,0,c4c0b4,9a8a90,a
 163,Palace,Palaces,a Palace,0,2,65ab6f,c07442,l
 164,Ritual,Rituals,a Ritual,4,2,a9a39d,7a5224,e
 165,Royal Blacksmith,Royal Blacksmiths,a Royal Blacksmith,8,0,c4c0b4,69452b,a
@@ -362,12 +362,12 @@ ff,Dungeon,Dungeons,a Dungeon,3,0,dda561,4f472d,a
 169,Temple,Temples,a Temple,4,0,c4c0b4,d6b452,a
 16a,Tomb,Tombs,a Tomb,0,2,65ab6f,8b8585,l
 16b,Tower,Towers,a Tower,0,2,65ab6f,bb9b3d,l
-16c,Triumph,Triumphs,a Triumph,5,2,a9a39d,913d05,e
+16c,Triumph,Triumphs,a Triumph,0d5,2,a9a39d,913d05,e
 16d,Triumphal Arch,Triumphal Arches,a Triumphal Arch,0,2,65ab6f,8f8b51,l
 16e,Villa,Villas,a Villa,4,0,c4c0b4,87b34f,a
 16f,Wall,Walls,a Wall,0,2,65ab6f,5e4a54,l
 170,Wolf Den,Wolf Dens,a Wolf Den,0,2,65ab6f,a1a18f,l
-171,Wedding,Weddings,a Wedding,7,2,a9a39d,715919,e
+171,Wedding,Weddings,a Wedding,4d3,2,a9a39d,715919,e
 172,Wild Hunt,Wild Hunts,a Wild Hunt,5,0,c4c0b4,15516f,a
 173,Windfall,Windfalls,a Windfall,5,2,a9a39d,9e5402,e
 174,Boon Drawpile,Boon Drawpiles,a Boon Drawpile,0,-1,dbcf00,666666,

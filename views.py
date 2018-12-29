@@ -112,10 +112,10 @@ def display(request, game_id):
     log = get_object_or_404(GameLog, game_id=game_id)
     players = log.players.split('~')
 
-    parsedLog, supply = unpack(log.log, log.supply)
-    blockLengths = get_blocklengths(parsedLog)
+    gameMoves, supply = unpack(log.log, log.supply)
+    blockLengths = get_blocklengths(gameMoves)
     try:
-        gameStates = parse_everything(parsedLog, blockLengths, supply)
+        gameStates = parse_everything(gameMoves, blockLengths, supply)
     except BaseException:
         log.valid = False
         log.save()
@@ -123,16 +123,18 @@ def display(request, game_id):
     log.valid = gameStates[-1].valid
     log.save()
 
-    story = '~'.join(elaborate_story(players, parsedLog, True))
+    story = '~'.join(elaborate_story(players, gameMoves, True))
     boards = '~'.join([repr(x) for x in gameStates])
     titleString = 'Game {}: {} vs. {}'.format(str(game_id), *players)
+    turnOwners = get_turn_owners(gameMoves)
     colors, borders, urls = get_passables()
-    stepPoints, turnPoints = get_points(parsedLog)
+    stepPoints, turnPoints = get_points(gameMoves)
 
     context = {'story': story,
                'boards': boards,
                'titlestring': titleString,
                'players': players,
+               'turnOwners': turnOwners,
                'stepPoints': stepPoints,
                'turnPoints': turnPoints,
                'interiors': colors,

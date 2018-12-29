@@ -45,9 +45,9 @@ class CardStack extends React.Component {
 
 class Board extends React.Component {
     render(){
-        var boardString = boards.split('~')[this.props.index + 1];
+        var boardString = boards.split('~')[this.props.index + 1].split('/')[0];
         var cardStacks = boardString.split('|');
-        var inPlays = (cardStacks[4] ? cardStacks[4] : cardStacks[5]);
+        var inPlays = (turnOwners[this.props.index] == 0 ? cardStacks[4] : cardStacks[5]);
         return(
             <div className='board'>
                 <CardStack cards={cardStacks[0]} classes='decks top' stackName='DECK'/>
@@ -121,6 +121,61 @@ class StoryLine extends React.Component {
         );
     }
 }
+
+
+function BaseContainer(props){
+    let boardString = boards.split('~')[props.index + 1].split('/')[1];
+    let data = boardString.split('|');
+    return  (
+        <div className='base-container'>
+            <div className='controls'>
+                <ControlButton name='back-turn' buttonShift={props.buttonShift} />
+                <ControlButton name='back-step' buttonShift={props.buttonShift} />
+                <ControlButton name='back' buttonShift={props.buttonShift} />
+                <ControlButton name='forward' buttonShift={props.buttonShift} />
+                <ControlButton name='forward-step' buttonShift={props.buttonShift} />
+                <ControlButton name='forward-turn' buttonShift={props.buttonShift} />
+            </div>
+            <div className='info'>
+                <div className='icon-row'>
+                    <img src={staticRoot + "/hud-icons/actions.png"} />
+                    <img src={staticRoot + "/hud-icons/buys.png"} />
+                    <img src={staticRoot + "/hud-icons/coins.png"} />
+                    <img src={staticRoot + "/hud-icons/debt.png"} />
+                    <img src={staticRoot + "/hud-icons/coffers.png"} />
+                    <img src={staticRoot + "/hud-icons/villagers.png"} />
+                    <img src={staticRoot + "/hud-icons/vp.png"} />
+                    <img src={staticRoot + "/hud-icons/points.png"} />
+                </div>
+                <div className='label-row'>
+                    <div className='single-label'> {data[0]} </div>
+                    <div className='single-label'> {data[1]} </div>
+                    <div className='single-label'> {data[2]} </div>
+                    <div className='double-label'>
+                        <div className='top-label'>{data[3]}</div>
+                        <div className='bot-label'>{data[4]}</div>
+                    </div>
+                    <div className='double-label'>
+                        <div className='top-label'>{data[5]}</div>
+                        <div className='bot-label'>{data[6]}</div>
+                    </div>
+                    <div className='double-label'>
+                        <div className='top-label'>{data[7]}</div>
+                        <div className='bot-label'>{data[8]}</div>
+                    </div>
+                    <div className='double-label'>
+                        <div className='top-label'>{data[9]}</div>
+                        <div className='bot-label'>{data[10]}</div>
+                    </div>
+                    <div className='double-label'>
+                        <div className='top-label'>{data[11]}</div>
+                        <div className='bot-label'>{data[12]}</div>
+                    </div>
+                </div>
+            </div>
+        </div>);
+}
+
 
 
 class Story extends React.Component {
@@ -203,16 +258,7 @@ class Container extends React.Component{
         return (
             <React.Fragment>
                 <div className='title-container'>{ titlestring }</div>
-                <div className='base-container'>
-                    <div className='controls'>
-                        <ControlButton name='back-turn' buttonShift={this.buttonShift} />
-                        <ControlButton name='back-step' buttonShift={this.buttonShift} />
-                        <ControlButton name='back' buttonShift={this.buttonShift} />
-                        <ControlButton name='forward' buttonShift={this.buttonShift} />
-                        <ControlButton name='forward-step' buttonShift={this.buttonShift} />
-                        <ControlButton name='forward-turn' buttonShift={this.buttonShift} />
-                    </div>
-                </div>
+                <BaseContainer buttonShift={this.buttonShift} index={this.state.index} />
                 <div className='board-container'>
                     <Board index={this.state.index}/>
                 </div>
