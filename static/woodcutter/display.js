@@ -394,3 +394,8 @@ const mainContainer = document.querySelector('.content');
 ReactDOM.render(<Container />, mainContainer);
 const bottomContainer = document.querySelector('.bottom-tabs');
 ReactDOM.render(<BottomTabs />, bottomContainer);
+
+const cardStacks = document.querySelectorAll('.card-stack');
+for (let stack of cardStacks){
+    new PerfectScrollbar(stack);
+}

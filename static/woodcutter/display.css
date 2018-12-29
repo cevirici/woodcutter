@@ -38,6 +38,9 @@ body {
 
 
 .story-container{
+    margin-right: -3vw;
+    padding-right: 3vw;
+    height: 100%;
     grid-row: 1 / 4;
     grid-column: 2 / 3;
     overflow: auto;
