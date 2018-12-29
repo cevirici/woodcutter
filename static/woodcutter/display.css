@@ -38,13 +38,16 @@ body {
 
 
 .story-container{
-    margin-right: -3vw;
-    padding-right: 3vw;
     height: 100%;
     grid-row: 1 / 4;
     grid-column: 2 / 3;
     overflow: auto;
+    scrollbar-color: transparent transparent;
 }
+.story-container::-webkit-scrollbar {
+    display: none;
+}
+
 
 
 .story{
@@ -129,6 +132,11 @@ body {
     z-index: -2;
     border: 1px solid #3E3B3F;
     overflow: auto;
+    scrollbar-color: transparent transparent;
+
+}
+.card-stack::-webkit-scrollbar {
+    display: none;
 }
 
 .card-stack:not(.inplays){

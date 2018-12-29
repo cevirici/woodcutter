@@ -338,12 +338,14 @@ class Kingdom extends React.Component{
     render() {
         let rows = kingdom.split('~');
         let output = [];
+        let i = 0;
         for (var row of rows){
             let rowDat = [];
             if (row.length > 0) {
                 rowDat.push(row.split('|').map((i, n) => <BigCard index={parseInt(i)} key={n} />));
             }
-            output.push(<div className='kingdom-container'> {rowDat} </div>);
+            output.push(<div className='kingdom-container' key={i}> {rowDat} </div>);
+            i++ ;
         }
         let classes = 'bottom-tab';
         if (this.props.hover){
@@ -394,8 +396,3 @@ const mainContainer = document.querySelector('.content');
 ReactDOM.render(<Container />, mainContainer);
 const bottomContainer = document.querySelector('.bottom-tabs');
 ReactDOM.render(<BottomTabs />, bottomContainer);
-
-const cardStacks = document.querySelectorAll('.card-stack');
-for (let stack of cardStacks){
-    new PerfectScrollbar(stack);
-}
