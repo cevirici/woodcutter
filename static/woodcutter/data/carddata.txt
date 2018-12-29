@@ -300,15 +300,15 @@ ff,Dungeon,Dungeons,a Dungeon,3,0,dda561,4f472d,a
 12b,Warrior,Warriors,a Warrior,4,1,c2bfba,564543,ar
 12c,Wine Merchant,Wine Merchants,a Wine Merchant,5,0,c5af85,855b31,a
 12d,Encampment,Encampments,an Encampment,2,0,c4c0b4,6d4527,a
-12e,Plunder,Plunders,a Plunder,5,0,d8c280,573E30,t
+12e,Plunder,Plunders,a Plunder,5,-1,d8c280,573E30,t
 12f,Patrician,Patricians,a Patrician,2,0,c4c0b4,6a80a0,a
-130,Emporium,Emporia,an Emporium,5,0,c4c0b4,50ABDF,a
+130,Emporium,Emporia,an Emporium,5,-1,c4c0b4,50ABDF,a
 131,Settlers,Settlers,a Settlers,2,0,c4c0b4,784624,a
-132,Bustling Village,Bustling Villages,a Bustling Village,5,0,c4c0b4,745E4D,a
+132,Bustling Village,Bustling Villages,a Bustling Village,5,-1,c4c0b4,745E4D,a
 133,Catapult,Catapults,a Catapult,3,0,c4c0b4,839f55,a
-134,Rocks,Rocks,a Rocks,4,0,d8c280,80963a,t
+134,Rocks,Rocks,a Rocks,4,-1,d8c280,80963a,t
 135,Gladiator,Gladiators,a Gladiator,3,0,c4c0b4,b28674,a
-136,Fortune,Fortunes,a Fortune,8d8,0,d8c280,94794F,t
+136,Fortune,Fortunes,a Fortune,8d8,-1,d8c280,94794F,t
 137,Castles,Castles,a Castles,3,0,9cbe8a,2d7bbb,vc
 138,Humble Castle,Humble Castles,a Humble Castle,3,-1,a9c35d,63af7f,tvc
 139,Crumbling Castle,Crumbling Castles,a Crumbling Castle,4,-1,9cbe8a,ceb22c,vc,1

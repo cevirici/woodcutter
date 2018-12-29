@@ -11,12 +11,27 @@ class Card extends React.Component {
     render() {
         return (
             <div className='card-container'>
-                <div className='card-label'>
+                <div className='card-label noselect'>
                     {this.props.amount}
                 </div>
                 <div className='card-small' style={this.borderStyle()}>
                     <div className='card-small-inner' style={this.divStyle()}>
                     </div>
+                </div>
+            </div>
+        );
+    }
+}
+
+
+class BigCard extends Card {
+    divStyle() {
+        return {backgroundImage: 'url(' + staticRoot + '/card_images/' + urls[this.props.index] + '.jpg)'}
+    }
+    render() {
+        return (
+            <div className='card-big' style={this.borderStyle()}>
+                <div className='card-big-inner' style={this.divStyle()}>
                 </div>
             </div>
         );
@@ -36,7 +51,7 @@ class CardStack extends React.Component {
         }
         var className = 'card-stack ' + this.props.classes;
         return <div className={className}>
-            <div className='stack-label'>{this.props.stackName}</div>
+            <div className='stack-label noselect'>{this.props.stackName}</div>
             {output}
         </div>
     }
@@ -63,8 +78,8 @@ class Board extends React.Component {
                 <CardStack cards={cardStacks[11]} classes='others bot' stackName='ASIDE'/>
                 <CardStack cards={cardStacks[12]} classes='supply' stackName='SUPPLY'/>
                 <CardStack cards={cardStacks[13]} classes='trash' stackName='TRASH'/>
-                <div className='label top'>{players[0]}</div>
-                <div className='label bot'>{players[1]}</div>
+                <div className='label top noselect'>{players[0]}</div>
+                <div className='label bot noselect'>{players[1]}</div>
             </div>
         );
     }
@@ -72,9 +87,33 @@ class Board extends React.Component {
 
 
 class StoryLabel extends React.Component{
+    constructor(props){
+        super(props);
+
+        this.innerColor = this.innerColor.bind(this);
+        this.borderColor = this.borderColor.bind(this);
+    }
+    innerColor(){
+        if (this.props.index.includes('p')) {
+            var playerCol = ['B54F4F', '4644A6']
+            return playerCol[parseInt(this.props.index.slice(1))];
+        } else {
+            return interiors[this.props.index];
+        }
+    }
+
+    borderColor(){
+        if (this.props.index.includes('p')) {
+            var playerCol = ['3F1D1D', '1D1C38']
+            return playerCol[parseInt(this.props.index.slice(1))];
+        } else {
+            return borders[this.props.index];
+        }
+    }
+
     isDark(){
-        var color = interiors[this.props.index];
-        var sum = 0;
+        let color = this.innerColor();
+        let sum = 0;
         for (var i = 0; i < 5; i += 2){
             sum += parseInt(color.slice(i, i + 2), 16);
         }
@@ -83,8 +122,8 @@ class StoryLabel extends React.Component{
 
     render(){
         var style = {
-                     'background': '#' + interiors[this.props.index],
-                     'borderColor': '#' + borders[this.props.index],
+                     'background': '#' + this.innerColor(),
+                     'borderColor': '#' + this.borderColor(),
                      'color': '#' + (this.isDark() ? 'FFF' : '000')
                     };
         return <div className='story-label' style={style}> {this.props.text} </div>;
@@ -105,6 +144,7 @@ class StoryLine extends React.Component {
         indent = (parseInt(indent) < 7 ? parseInt(indent) : 7);
         let style = {'width': (90 - indent * 5).toString() + '%'};
         let raw = this.props.line.split('>')[1].split('|');
+
         let output = [raw.shift()];
         let i = 0;
         while (raw.length > 0){
@@ -113,7 +153,10 @@ class StoryLine extends React.Component {
             i++ ;
         }
 
-        let className = 'story-line' + (this.props.num == this.props.index ? ' highlight' : '');
+        let className = 'story-line' 
+        if (this.props.num == this.props.index){
+            className += ' highlight';
+        }
         return(
             <div className={className} style={style} onClick={this.clickEvent}>
                 {output}
@@ -148,28 +191,28 @@ function BaseContainer(props){
                     <img src={staticRoot + "/hud-icons/points.png"} />
                 </div>
                 <div className='label-row'>
-                    <div className='single-label'> {data[0]} </div>
-                    <div className='single-label'> {data[1]} </div>
-                    <div className='single-label'> {data[2]} </div>
+                    <div className='single-label noselect'> {data[0]} </div>
+                    <div className='single-label noselect'> {data[1]} </div>
+                    <div className='single-label noselect'> {data[2]} </div>
                     <div className='double-label'>
-                        <div className='top-label'>{data[3]}</div>
-                        <div className='bot-label'>{data[4]}</div>
+                        <div className='top-label noselect'>{data[3]}</div>
+                        <div className='bot-label noselect'>{data[4]}</div>
                     </div>
                     <div className='double-label'>
-                        <div className='top-label'>{data[5]}</div>
-                        <div className='bot-label'>{data[6]}</div>
+                        <div className='top-label noselect'>{data[5]}</div>
+                        <div className='bot-label noselect'>{data[6]}</div>
                     </div>
                     <div className='double-label'>
-                        <div className='top-label'>{data[7]}</div>
-                        <div className='bot-label'>{data[8]}</div>
+                        <div className='top-label noselect'>{data[7]}</div>
+                        <div className='bot-label noselect'>{data[8]}</div>
                     </div>
                     <div className='double-label'>
-                        <div className='top-label'>{data[9]}</div>
-                        <div className='bot-label'>{data[10]}</div>
+                        <div className='top-label noselect'>{data[9]}</div>
+                        <div className='bot-label noselect'>{data[10]}</div>
                     </div>
                     <div className='double-label'>
-                        <div className='top-label'>{data[11]}</div>
-                        <div className='bot-label'>{data[12]}</div>
+                        <div className='top-label noselect'>{data[11]}</div>
+                        <div className='bot-label noselect'>{data[12]}</div>
                     </div>
                 </div>
             </div>
@@ -206,13 +249,13 @@ class ControlButton extends React.Component {
 class Container extends React.Component{
     constructor(props) {
         super(props);
-        this.state = {index: 0};
+        this.state = {index: 0, showKingdom: false};
         this.changeIndex=this.changeIndex.bind(this);
         this.buttonShift=this.buttonShift.bind(this);
     }
     changeIndex(i){
         this.setState({index: i});
-        let ypos = document.querySelectorAll('.story-line')[i].offsetTop - 20;
+        let ypos = document.querySelectorAll('.story-line')[i].offsetTop - window.innerHeight / 3;
         document.querySelector('.story-container').scrollTo({
             top: ypos, 
             behavior: "smooth"
@@ -275,5 +318,79 @@ class Container extends React.Component{
     }
 }
 
+
+class Kingdom extends React.Component{
+    constructor(props) {
+        super(props);
+        this.hoverAction = this.hoverAction.bind(this);
+        this.clickAction = this.clickAction.bind(this);
+        this.leaveAction = this.leaveAction.bind(this);
+    }
+    hoverAction(){
+        this.props.moveTab('kingdom', 1);
+    }
+    leaveAction(){
+        this.props.moveTab('kingdom', 3);
+    }
+    clickAction(){
+        this.props.moveTab('kingdom', 2);
+    }
+    render() {
+        let rows = kingdom.split('~');
+        let output = [];
+        for (var row of rows){
+            let rowDat = [];
+            if (row.length > 0) {
+                rowDat.push(row.split('|').map((i, n) => <BigCard index={parseInt(i)} key={n} />));
+            }
+            output.push(<div className='kingdom-container'> {rowDat} </div>);
+        }
+        let classes = 'bottom-tab';
+        if (this.props.hover){
+                classes += ' hovered';
+        }
+        if (this.props.show){
+                classes += ' active';
+        }
+        return  <div className={classes}>
+                    <img className='kingdom-tab-icon' onClick={this.clickAction} onMouseOver={this.hoverAction} onMouseLeave={this.leaveAction} src={ staticRoot + "/hud-icons/kingdom.png" } />
+                    <div className='kingdom-tab' onClick={this.clickAction}>
+                        {output}
+                    </div>
+                </div>
+    }
+}
+
+
+class BottomTabs extends React.Component{
+    constructor(props) {
+        super(props);
+        this.state = {'kingdomShow': false, 'kingdomHover': false};
+        this.moveTab = this.moveTab.bind(this);
+    }
+    moveTab(tab, action) {
+        var updater = {};
+        switch (action){
+            case 1:
+                updater[tab + 'Hover'] = true;
+            break;
+            case 2:
+                updater[tab + 'Show'] = !this.state[tab + 'Show'];
+            break;
+            case 3:
+                updater[tab + 'Hover'] = false;
+            break
+        }
+        this.setState(updater);
+    }
+    render() {
+        return <React.Fragment>
+            <Kingdom moveTab={this.moveTab} show={this.state['kingdomShow']} hover={this.state['kingdomHover']} />
+        </React.Fragment>;
+    }
+}
+
 const mainContainer = document.querySelector('.content');
 ReactDOM.render(<Container />, mainContainer);
+const bottomContainer = document.querySelector('.bottom-tabs');
+ReactDOM.render(<BottomTabs />, bottomContainer);

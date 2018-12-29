@@ -11,8 +11,8 @@ def get_passables():
     return colors, borders, urls
 
 
-def get_turn_owners(moves):
-    return [move.player for move in moves]
+def get_turn_owners(states):
+    return [state.activePlayer for state in states]
 
 
 def get_points(moves):
@@ -24,6 +24,19 @@ def get_points(moves):
         if move.indent == 0:
             stepPoints.append(i)
     return stepPoints, turnPoints
+
+
+def get_kingdom(supply):
+    output = [[], [], []]
+    for card in supply:
+        if supply[card] > 1 and Cards[card].supply_type != -1:
+            output[Cards[card].supply_type].append(card)
+
+    for n in range(len(output)):
+        output[n].sort(key=lambda x: (Cards[x].cost, Cards[x].simple_name))
+        output[n] = [str(Cards[card].index) for card in output[n]]
+
+    return output
 
 
 def elaborate_card(number, card):
@@ -60,7 +73,7 @@ def elaborate_line(players, line, fancy):
     playerFields = ('player', 'playerb')
     cardFields = ('cards', 'cardsb')
     argumentFields = ('argument', 'argumentb', 'argumentc')
-    data = [[players[x] for x in line.players],
+    data = [['|{}|p{}|'.format(players[x], x) for x in line.players],
             [elaborate_cards(x, fancy) for x in line.items],
             line.arguments]
 

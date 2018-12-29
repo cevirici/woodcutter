@@ -50,4 +50,3 @@ def get_blocklengths(parsedLog):
         blockLengths.append(1)
 
     return blockLengths
-
