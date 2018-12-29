@@ -28,6 +28,18 @@ def get_points(moves):
 
 def get_kingdom(supply):
     output = [[], [], []]
+    pairs = {('DAME ANNA', 'DAME JOSEPHINE', 'DAME MOLLY', 'DAME NATALIE',
+              'DAME SYLVIA', 'SIR BAILEY', 'SIR DESTRY', 'SIR MARTIN',
+              'SIR MICHAEL', 'SIR VANDER'): 'KNIGHTS',
+             ('RUINED LIBRARY', 'RUINED VILLAGE', 'ABANDONED MINE',
+              'RUINED MARKET', 'SURVIVORS'): 'RUINS PILE',
+             ('HUMBLE CASTLE', 'CRUMBLING CASTLE', 'SMALL CASTLE',
+              'HAUNTED CASTLE', 'OPULENT CASTLE', 'SPRAWLING CASTLE',
+              'GRAND CASTLE', "KING'S CASTLE"): 'CASTLES'}
+    for pair in pairs:
+        if sum([supply[card] for card in pair]) > 1:
+            output[Cards[pairs[pair]].supply_type].append(pairs[pair])
+
     for card in supply:
         if supply[card] > 1 and Cards[card].supply_type != -1:
             output[Cards[card].supply_type].append(card)

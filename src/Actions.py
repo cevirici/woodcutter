@@ -642,6 +642,8 @@ def standard_plays(moves, i, blockLength, state):
                 'VAGRANT': [exc_revealTopdeck],
                 'WANDERING MINSTREL': [exc_revealDiscard, exc_revealTopdeck],
                 'ADVISOR': [exc_revealDiscard],
+                'BUTCHER': [Exception(check(['USE COFFER', 'USE COFFERS']),
+                                      empty)],
                 'DOCTOR': [exc_revealTrash, exc_revealDiscard,
                            exc_revealTopdeck],
                 'HERALD': [Exception(check(['PLAY']), move_play('DECKS'))],
