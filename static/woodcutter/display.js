@@ -212,6 +212,11 @@ class Container extends React.Component{
     }
     changeIndex(i){
         this.setState({index: i});
+        let ypos = document.querySelectorAll('.story-line')[i].offsetTop - 20;
+        document.querySelector('.story-container').scrollTo({
+            top: ypos, 
+            behavior: "smooth"
+        });
     }
     buttonShift(name){
         let n = boards.split('~').length;
