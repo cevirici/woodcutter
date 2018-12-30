@@ -24,6 +24,21 @@ class Card extends React.Component {
 }
 
 
+class MidCard extends Card {
+    divStyle() {
+        return {backgroundImage: 'url(' + staticRoot + '/card_images/' + urls[this.props.index] + '.jpg)'}
+    }
+    render() {
+        return (
+            <div className='card-mid' style={this.borderStyle()}>
+                <div className='card-mid-inner' style={this.divStyle()}>
+                </div>
+            </div>
+        );
+    }
+}
+
+
 class BigCard extends Card {
     divStyle() {
         return {backgroundImage: 'url(' + staticRoot + '/card_images/' + urls[this.props.index] + '.jpg)'}
@@ -354,7 +369,11 @@ class Kingdom extends React.Component{
         for (var row of rows){
             let rowDat = [];
             if (row.length > 0) {
-                rowDat.push(row.split('|').map((i, n) => <BigCard index={parseInt(i)} key={n} />));
+                if (output.length == 0){
+                    rowDat.push(row.split('|').map((i, n) => <BigCard index={parseInt(i)} key={n} />));
+                } else {
+                    rowDat.push(row.split('|').map((i, n) => <MidCard index={parseInt(i)} key={n} />));
+                }
             }
             output.push(<div className='kingdom-container' key={i}> {rowDat} </div>);
             i++ ;
