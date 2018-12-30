@@ -279,13 +279,13 @@ ff,Dungeon,Dungeons,a Dungeon,3,0,dda561,4f472d,a
 116,Port,Ports,a Port,4,0,c4c0b4,586c6e,a
 117,Quest,Quests,a Quest,0,2,a9a39d,685456,e
 118,Ranger,Rangers,a Ranger,4,0,c4c0b4,8c7236,a
-119,Raid,Raids,a Raid,5,0,a9a39d,4f4347,e
+119,Raid,Raids,a Raid,5,2,a9a39d,4f4347,e
 11a,Ratcatcher,Ratcatchers,a Ratcatcher,2,0,c5af85,655d4f,a
 11b,Raze,Razes,a Raze,2,0,c4c0b4,6b5949,a
 11c,Relic,Relics,a Relic,5,0,d8c280,616959,t
 11d,Royal Carriage,Royal Carriages,a Royal Carriage,5,0,c5af85,9a7450,a
 11e,Save,Saves,a Save,1,2,a9a39d,814d3b,e
-11f,Scouting Party,Scouting Parties,a Scouting Party,2,0,a9a39d,97875b,e
+11f,Scouting Party,Scouting Parties,a Scouting Party,2,2,a9a39d,97875b,e
 120,Seaway,Seaways,a Seaway,5,2,a9a39d,7195a3,e
 121,Soldier,Soldiers,a Soldier,3,1,c2bfba,a58e74,ar
 122,Storyteller,Storytellers,a Storyteller,5,0,c4c0b4,ad735f,a
@@ -343,7 +343,7 @@ ff,Dungeon,Dungeons,a Dungeon,3,0,dda561,4f472d,a
 156,Engineer,Engineers,an Engineer,0d4,0,c4c0b4,733719,a
 157,Farmers' Market,Farmers' Markets,a Farmers' Market,3,0,c4c0b4,867642,a
 158,Forum,Forums,a Forum,5,0,c4c0b4,bc9256,a
-159,Fountain,Fountains,a Fountain,0,0,65ab6f,7c5a34,l
+159,Fountain,Fountains,a Fountain,0,2,65ab6f,7c5a34,l
 15a,Groundskeeper,Groundskeepers,a Groundskeeper,5,0,c4c0b4,978957,a
 15b,Keep,Keeps,a Keep,0,2,65ab6f,6f4f7d,l
 15c,Labyrinth,Labyrinths,a Labyrinth,0,2,65ab6f,5e884c,l
@@ -458,7 +458,7 @@ ff,Dungeon,Dungeons,a Dungeon,3,0,dda561,4f472d,a
 1c9,Prince,Princes,a Prince,8,0,c4c0b4,a4863c,a
 1ca,Sauna,Saunas,a Sauna,5,0,c4c0b4,9f8d7b,a
 1cb,Stash,Stashes,a Stash,5,0,d8c280,c5ba99,t
-1cc,Summon,Summons,a Summon,5,0,a9a39d,c19b59,e
+1cc,Summon,Summons,a Summon,5,2,a9a39d,c19b59,e
 1cd,Walled Village,Walled Villages,a Walled Village,4,0,c4c0b4,6eaa70,a
 1ce,Black Market Deck,Black Market Decks,a Black Market Deck,0,0,666666,666666,
 1cf,Dismantle,Dismantles,a Dismantle,4,0,c4c0b4,8DAEB6,a

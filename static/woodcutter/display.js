@@ -142,7 +142,7 @@ class StoryLine extends React.Component {
     render(){
         let indent = this.props.line.split('>')[0];
         indent = (parseInt(indent) < 7 ? parseInt(indent) : 7);
-        let style = {'width': (90 - indent * 5).toString() + '%'};
+        let style = {'padding-left': (5 + indent * 5).toString() + '%'};
         let raw = this.props.line.split('>')[1].split('|');
 
         let output = [raw.shift()];
@@ -158,8 +158,10 @@ class StoryLine extends React.Component {
             className += ' highlight';
         }
         return(
-            <div className={className} style={style} onClick={this.clickEvent}>
-                {output}
+            <div className='story-line-container'>
+                <div className={className} style={style} onClick={this.clickEvent}>
+                    {output}
+                </div>
             </div>
         );
     }

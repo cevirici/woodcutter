@@ -83,7 +83,8 @@ class GameState:
                             *[str(x) for x in self.coffers],
                             *[str(x) for x in self.villagers],
                             *[str(x) for x in self.vps],
-                            *[str(x) for x in self.score]])
+                            *[str(x) for x in self.score],
+                            str(self.phase)])
         return outstr
 
     def __str__(self):

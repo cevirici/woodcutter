@@ -38,7 +38,6 @@ body {
 
 
 .story-container{
-    height: 100%;
     grid-row: 1 / 4;
     grid-column: 2 / 3;
     overflow: auto;
@@ -47,7 +46,6 @@ body {
 .story-container::-webkit-scrollbar {
     display: none;
 }
-
 
 
 .story{
@@ -246,8 +244,14 @@ body {
 }
 
 
+.story-line-container{
+    width: 100%;
+}
+
+
 .story-line{
-    padding: 0.3vh 0px 0.3vh 10px;
+    width: 100%;
+    padding: 0.3vh 0px;
     vertical-align: middle;
     display: flex;
     flex-flow: row wrap;
