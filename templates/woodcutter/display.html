@@ -9,8 +9,8 @@
     <script>var staticRoot = "{% static 'woodcutter' %}"; var story = "{{ story | safe }}"; var boards = "{{ boards | safe }}"; var titlestring = "{{ titlestring }}"; var players = {{ players | safe }}; var stepPoints = {{ stepPoints | safe }}; var turnPoints = {{ turnPoints | safe }}; var urls = {{ urls | safe }}; var borders = {{ borders | safe }}; var interiors = {{ interiors | safe }}; var turnOwners = {{ turnOwners }}; var kingdom = '{{ kingdom }}';</script>
     <style>
         @font-face {
-        font-family: "Bahnschrift";
-        src: url("{% static 'woodcutter/fonts/Bahnschrift.ttf' %}");
+        font-family: Bahnschrift;
+        src: url({% static 'woodcutter/fonts/Bahnschrift.ttf' %});
         }
     </style>
 {% endblock %}
