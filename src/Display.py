@@ -32,7 +32,7 @@ def get_kingdom(supply):
               'DAME SYLVIA', 'SIR BAILEY', 'SIR DESTRY', 'SIR MARTIN',
               'SIR MICHAEL', 'SIR VANDER'): 'KNIGHTS',
              ('RUINED LIBRARY', 'RUINED VILLAGE', 'ABANDONED MINE',
-              'RUINED MARKET', 'SURVIVORS'): 'RUINS PILE',
+              'RUINED MARKET', 'SURVIVORS'): 'RUINS',
              ('HUMBLE CASTLE', 'CRUMBLING CASTLE', 'SMALL CASTLE',
               'HAUNTED CASTLE', 'OPULENT CASTLE', 'SPRAWLING CASTLE',
               'GRAND CASTLE', "KING'S CASTLE"): 'CASTLES'}
