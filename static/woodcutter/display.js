@@ -245,6 +245,57 @@ function BaseContainer(props){
 }
 
 
+class LegendEntry extends React.Component {
+    constructor(props){
+        super(props);
+        this.clickEvent = this.clickEvent.bind(this);
+    }
+    clickEvent(){
+        this.props.changeIndex(this.props.point);
+    }
+    render() {
+        let style = {'flexGrow': this.props.length};
+        let endTag = (this.props.owner == 0 ? ' first' : ' second')
+        if (this.props.highlighted){
+            endTag += ' highlight'
+        }
+        return <div className={'legend-entry' + endTag} style={style} onClick={this.clickEvent}>{this.props.label}</div>;
+    }
+}
+
+
+class StoryLegend extends React.Component {
+    render(){
+        var turnLengths = [...Array(turnPoints.length - 1).keys()].map(x => turnPoints[x + 1] - turnPoints[x]);
+        turnLengths.push(boards.split('~').length - turnPoints.slice(-1)[0]);
+        var turnLabels = [];
+        var owners = [];
+        var aliases = players.map(x => x.slice(0, 1));
+        if (aliases[0] == aliases[1]){
+            aliases = players.map(x => x.slice(0, 2));
+        }
+
+        let i = 0;
+        let last = 1;
+        for (let turn of turnPoints){
+            if (last != 0 && turnOwners[turn + 1] == 0){
+                i++ ;
+            }
+            turnLabels.push(aliases[turnOwners[turn + 1]] + i.toString());
+            last = turnOwners[turn + 1];
+            owners.push(last);
+        }
+
+        let output = [];
+        let highlighted = turnPoints.filter(point => point <= this.props.index).length - 1;
+        for (i = 0; i < turnLabels.length; i++){
+            output.push(<LegendEntry key={i} point={turnPoints[i]} length={turnLengths[i]} label={turnLabels[i]} owner={owners[i]} 
+                                     highlighted={i==highlighted} changeIndex={this.props.changeIndex}/>);
+        }
+        return <div className='story-legend'> {output} </div>
+    }
+}
+
 
 class Story extends React.Component {
     render(){
@@ -332,6 +383,7 @@ class Container extends React.Component{
     render(){
         return (
             <React.Fragment>
+                <StoryLegend index={this.state.index} changeIndex={this.changeIndex}/>
                 <div className='title-container'>{ titlestring }</div>
                 <BaseContainer buttonShift={this.buttonShift} index={this.state.index} />
                 <div className='board-container'>

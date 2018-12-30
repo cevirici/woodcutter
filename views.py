@@ -153,7 +153,7 @@ def error_list(request):
     errorLogs = []
     for rawLog in rawLogs:
         players = rawLog.players.split('~')
-        title = 'Game #{}: {} - {}'.format(rawLog.game_id, players[0], players[1])
+        title = 'Game #{}: {} - {}'.format(rawLog.game_id, *players)
 
         errorLogs.append([title, rawLog.game_id])
 
