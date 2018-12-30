@@ -296,7 +296,7 @@ body {
 
 
 .info{
-    width: 40%;
+    width: 50%;
 }
 
 
@@ -313,13 +313,13 @@ body {
 
 
 .icon-row > img{
-    width: 6vh;
-    height: 6vh;
+    width: 8vh;
+    height: 8vh;
 }
 
 
 .single-label, .top-label, .bot-label{
-    width: 6vh;
+    width: 8vh;
     text-align: center;
     color: #666;
     font: 3vh Bahnschrift;
