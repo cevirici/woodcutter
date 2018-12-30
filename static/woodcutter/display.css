@@ -9,12 +9,6 @@ body {
 }
 
 
-@font-face {
-font-family: "Bahnschrift";
-src: url("woodcutter/fonts/Bahnschrift.ttf");
-}
-
-
 .content {
     width: 100%;
     height: 100vh;
