@@ -401,7 +401,8 @@ def buy_action(moves, i, blockLength, state):
         state.phase = 2
         state.buys -= len(move.items[0])
 
-    costs = [move.items[0][card] * get_cost(card, move.player, state)
+    costs = [[move.items[0][card] * i for i in
+              get_cost(card, move.player, state)]
              for card in move.items[0]]
     cost = [sum([x[i] for x in costs if len(x) > i]) for i in range(2)]
     state.coins -= cost[0]
