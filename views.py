@@ -129,6 +129,7 @@ def display(request, game_id):
     turnOwners = get_turn_owners(gameStates)
     colors, borders, urls = get_passables()
     stepPoints, turnPoints = get_points(gameMoves)
+    phases = ''.join([str(x) for x in get_phases(gameStates)])
     kingdom = '~'.join(['|'.join(x) for x in get_kingdom(supply)])
 
     context = {'story': story,
@@ -141,6 +142,7 @@ def display(request, game_id):
                'interiors': colors,
                'borders': borders,
                'urls': urls,
+               'phases': phases,
                'kingdom': kingdom}
 
     return render(request, 'woodcutter/display.html', context)

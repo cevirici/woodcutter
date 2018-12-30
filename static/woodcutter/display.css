@@ -13,7 +13,7 @@ body {
     width: 100%;
     height: 100vh;
     display: grid;
-    grid-template-columns: 75% 25%;
+    grid-template-columns: 74% 2% 25%;
     grid-template-rows: 5% 75% 20%;
     overflow: hidden;
 }
@@ -39,8 +39,9 @@ body {
 
 .story-container{
     grid-row: 1 / 4;
-    grid-column: 2 / 3;
-    overflow: auto;
+    grid-column: 3 / 4;
+    overflow-x: hidden;
+    overflow-y: auto;
     scrollbar-color: transparent transparent;
 }
 .story-container::-webkit-scrollbar {
@@ -49,6 +50,7 @@ body {
 
 
 .story{
+    width: 100%;
     display: flex;
     flex-direction: column;
     align-items: flex-end;
@@ -250,7 +252,6 @@ body {
 
 
 .story-line{
-    width: 100%;
     padding: 0.3vh 0px;
     vertical-align: middle;
     display: flex;
@@ -260,13 +261,33 @@ body {
     font: 1.5vh Segoe UI;
 }
 .story-line:hover{
-    background-color: #092940;
+    background-color: #70691A;
 }
 
 .story-line.highlight{
-    background-color: #0D394B;
+    background-color: #AE9E2E;
 }
 
+
+.phase-start{
+    background-color: #2B2B38;
+}
+
+.phase-action{
+    background-color: #20202C;
+}
+
+.phase-buy{
+    background-color: #1D1D28;
+}
+
+.phase-night{
+    background-color: #292828;
+}
+
+.phase-cleanup{
+    background-color: #16161F;
+}
 
 /**** Controls ****/
 

@@ -26,6 +26,10 @@ def get_points(moves):
     return stepPoints, turnPoints
 
 
+def get_phases(states):
+    return [state.phase for state in states]
+
+
 def get_kingdom(supply):
     output = [[], [], []]
     pairs = {('DAME ANNA', 'DAME JOSEPHINE', 'DAME MOLLY', 'DAME NATALIE',

@@ -142,7 +142,8 @@ class StoryLine extends React.Component {
     render(){
         let indent = this.props.line.split('>')[0];
         indent = (parseInt(indent) < 7 ? parseInt(indent) : 7);
-        let style = {'padding-left': (5 + indent * 5).toString() + '%'};
+        let style = {'paddingLeft': (5 + indent * 5).toString() + '%',
+                     'width': (95 - indent * 5).toString() + '%'};
         let raw = this.props.line.split('>')[1].split('|');
 
         let output = [raw.shift()];
@@ -156,6 +157,13 @@ class StoryLine extends React.Component {
         let className = 'story-line' 
         if (this.props.num == this.props.index){
             className += ' highlight';
+        }
+        switch (this.props.phase) {
+            case '0': className += ' phase-start'; break;
+            case '1': className += ' phase-action'; break;
+            case '2': className += ' phase-buy'; break;
+            case '3': className += ' phase-night'; break;
+            case '4': className += ' phase-cleanup'; break;
         }
         return(
             <div className='story-line-container'>
@@ -225,7 +233,9 @@ function BaseContainer(props){
 
 class Story extends React.Component {
     render(){
-        var lines = story.split('~').map((x, n) => <StoryLine line={x} key={n} num={n} changeIndex={this.props.changeIndex} index={this.props.index}/>);
+        var lines = story.split('~').map((x, n) => <StoryLine line={x} key={n} num={n}
+                                                    phase={phases[n + 1]}
+                                                    changeIndex={this.props.changeIndex} index={this.props.index}/>);
         return <div className='story'>
             {lines}
         </div>;
