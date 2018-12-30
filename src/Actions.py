@@ -399,9 +399,11 @@ def buy_action(moves, i, blockLength, state):
 
     if move.indent == 0:
         state.phase = 2
-        state.buys -= 1
+        state.buys -= len(move.items[0])
 
-    cost = get_cost(target, move.player, state)
+    costs = [move.items[0][card] * get_cost(card, move.player, state)
+             for card in move.items[0]]
+    cost = [sum([x[i] for x in costs if len(x) > i]) for i in range(2)]
     state.coins -= cost[0]
     if len(cost) > 1:
         state.debt[move.player] += cost[1]
