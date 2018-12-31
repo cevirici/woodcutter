@@ -378,7 +378,7 @@ def standard_gains(source, destination='DISCARDS'):
                     'MANDARIN': [checkMove(['TOPDECK'], 'INPLAYS', 'DECKS')],
                     'VILLA': [Exception(check(['PUT INHAND']), villa_phase)],
                     'BLESSED VILLAGE': [Exception(check(['SET ASIDE']),
-                                                  empty)]
+                                                  empty, priority=2)]
                     }
 
         if target.primary in triggers:
