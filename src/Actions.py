@@ -1345,8 +1345,10 @@ Preds['GAIN VILLAGER'].action = get_villager
 
 def use_villager(moves, i, blockLength, state):
     move = moves[i]
+    if move.indent == 0:
+        state.phase = 1
     state.villagers[move.player] -= int(move.arguments[0])
-    state.actions -= int(move.arguments[0])
+    state.actions += int(move.arguments[0])
 
 
 Preds['USE VILLAGERS'].action = use_villager
