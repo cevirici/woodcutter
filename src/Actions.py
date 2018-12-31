@@ -127,6 +127,9 @@ def new_turn_action(moves, i, blockLength, state):
             if life > 0:
                 life -= 1
             newDurations.append((stack, life))
+            for card in stack:
+                for amt in range(stack[card]):
+                    self.orderedPlays.append(card)
     state.durations[moves[i].player] = newDurations
     state.linkedPlays = []
     state.amuletSilvers = 0
@@ -486,7 +489,7 @@ def get_stayout_duration(moves, i, state):
         return 1
 
     elif target in ['CHAMPION', 'HIRELING']:
-        return 999
+        return -1
 
     elif target in ['HAVEN', 'GEAR']:
         j = i + 1
