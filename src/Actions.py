@@ -160,7 +160,8 @@ def turn_start_action(moves, i, blockLength, state):
         state.exceptions.add(Exception(check(['PLAY']),
                                        move_play('DECKS'),
                                        lifespan=2,
-                                       indents=[moves[i].indent]))
+                                       indents=[moves[i].indent],
+                                       priority=2))
 
     state.phase = 0
     exceptions = [checkMove(['PUT INHAND'], 'OTHERS', 'HANDS'),
@@ -416,6 +417,7 @@ def buy_action(moves, i, blockLength, state):
         state.debt[move.player] += cost[1]
 
     triggers = {'MINT': [exc_inplayTrash],
+                'NOBLE BRIGAND': [exc_revealDiscard, exc_revealTrash],
                 'DOCTOR': [exc_revealTrash, exc_revealDiscard,
                            exc_revealTopdeck],
                 'HERALD': [exc_harbinger],
@@ -621,7 +623,7 @@ def standard_plays(moves, i, blockLength, state):
                 'LOAN': [exc_revealDiscard, exc_revealTrash],
                 'RABBLE': [exc_revealDiscard, exc_revealTopdeck],
                 'VENTURE': [exc_revealDiscard,
-                            Exception(check(['PLAY']), move_play('DECKS'))],
+                            Exception(check(playPreds), move_play('DECKS'))],
                 'BAG OF GOLD': [gainTo('SUPPLY', 'DECKS')],
                 'FARMING VILLAGE': [exc_revealDiscard],
                 'FORTUNE TELLER': [exc_revealDiscard, exc_revealTopdeck],
@@ -707,7 +709,10 @@ def standard_plays(moves, i, blockLength, state):
                 'OVERLORD': [Exception(check(['PLAY']), standard_plays)],
                 'CHANGELING': [exc_inplayTrash],
                 'SACRED GROVE': [Exception(check(['RECEIVE']),
-                                           standard_boonhex(True))],
+                                           standard_boonhex(True)),
+                                 Exception(check(['DISCARD'],
+                                                 ["THE SUN'S GIFT"]), empty,
+                                           priority=2)],
                 'CRYPT': [checkMove(['SET ASIDE'], 'INPLAYS', 'OTHERS')],
                 'MONASTERY': [Exception(check(['TRASH']), monastery_trash)],
                 'NECROMANCER': [Exception(check(['PLAY']), standard_plays)],
@@ -979,7 +984,7 @@ def draw_action(moves, i, blockLength, state):
     player = move.player
     # Cleanup
     if state.phase == 4:
-        if move.player == player:
+        if state.activePlayer == player:
             cleanable = state['INPLAYS'][player]
             for stack, life in state.durations[player]:
                 if life != 0:
@@ -1188,7 +1193,7 @@ def standard_boonhex(grove=False):
                     'WAR': [exc_revealDiscard, exc_revealTrash],
                     "THE MOON'S GIFT": [checkMove(['TOPDECK'], 'DISCARDS',
                                                   'DECKS')],
-                    "THE SKY'S GIFT": [exc_revealDiscard, exc_revealTopdeck]
+                    "THE SUN'S GIFT": [exc_revealDiscard, exc_revealTopdeck]
                     }
         if target in triggers:
             for exc in triggers[target]:
