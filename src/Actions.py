@@ -962,12 +962,19 @@ def play_coin_action(moves, i, blockLength, state):
     play_action(moves, i, blockLength, state)
 
 
+def throne_generic(moves, i, blockLength, state):
+    if moves[i].items[1].primary == 'CITADEL':
+        if moves[i].indent == 0:
+            state.phase = 1
+    standard_plays(moves, i, blockLength, state)
+
+
 Preds['PLAY'].action = play_action
 Preds['PLAY COIN'].action = play_coin_action
 Preds['THRONE'].action = standard_plays
 Preds['KING'].action = standard_plays
 Preds['THRONE COIN'].action = standard_plays
-Preds['THRONE GENERIC'].action = standard_plays
+Preds['THRONE GENERIC'].action = throne_generic
 
 
 def topdeck_action(moves, i, blockLength, state):
