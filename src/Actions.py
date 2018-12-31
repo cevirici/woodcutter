@@ -447,6 +447,7 @@ def buy_action(moves, i, blockLength, state):
             newExc = deepcopy(exc)
             newExc.lifespan = blockLength
             newExc.indents = [moves[i].indent + 1]
+            newExc.persistent = True
             state.exceptions.add(newExc)
 
     if target == 'SAVE':
