@@ -122,15 +122,15 @@ def new_turn_action(moves, i, blockLength, state):
     state.buys = 1
 
     newDurations = []
+    state.orderedPlays = []
     for stack, life in state.durations[moves[i].player]:
         if life != 0:
             if life > 0:
                 life -= 1
             newDurations.append((stack, life))
 
-    state.orderedPlays = []
     for card in state['INPLAYS'][moves[i].player]:
-        for amt in range(stack[card]):
+        for amt in range(state['INPLAYS'][moves[i].player][card]):
             state.orderedPlays.append(card)
     state.durations[moves[i].player] = newDurations
     state.linkedPlays = []
