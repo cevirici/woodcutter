@@ -693,7 +693,7 @@ def standard_plays(moves, i, blockLength, state):
                 'GIANT': [exc_revealDiscard, exc_revealTrash],
                 'GUIDE': [checkMove(['PUT ONTO'], 'INPLAYS', 'TAVERN')],
                 'MAGPIE': [exc_revealTopdeck],
-                'MISER': [checkMove(['PUT ONTO'], 'INPLAYS', 'TAVERN')],
+                'MISER': [checkMove(['PUT ONTO'], 'HANDS', 'TAVERN')],
                 'RATCATCHER': [checkMove(['PUT ONTO'], 'INPLAYS', 'TAVERN')],
                 'RAZE': [checkMove(['TRASH'], 'INPLAYS', 'TRASH', ['RAZE'])],
                 'ROYAL CARRIAGE': [checkMove(['PUT ONTO'],
