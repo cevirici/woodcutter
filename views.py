@@ -103,7 +103,7 @@ def detailed(request, game_id):
     i = 0
     for line, state in zip(story, gameStates[1:]):
         output.append('Decision {}'.format(str(i)))
-        output.append(line + '<br>' + repr(state))
+        output.append(line + '<br>' + str(state))
         i += 1
     return HttpResponse('<br>'.join(output))
 

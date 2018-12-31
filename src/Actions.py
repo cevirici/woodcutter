@@ -389,7 +389,7 @@ def get_cost(card, player, state):
                 reductions += state['INPLAYS'][player][inplay] * 2
 
     actualCost = deepcopy(Cards[card].cost)
-    actualCost[0] = max(0, actualCost[0])
+    actualCost[0] = max(0, actualCost[0] - reductions)
     return actualCost
 
 
@@ -730,7 +730,7 @@ def standard_plays(moves, i, blockLength, state):
                 state.exceptions.add(newExc)
                 break
 
-    elif target in ['BRIGE', 'INVENTOR']:
+    elif target in ['BRIDGE', 'INVENTOR']:
         state.bridges += 1
 
     elif target in ['THRONE ROOM', "KING'S COURT", 'DISCIPLE', 'CROWN']:
