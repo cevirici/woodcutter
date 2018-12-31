@@ -169,6 +169,7 @@ def turn_start_action(moves, i, blockLength, state):
                   Exception(check(['REVEAL']), start_piazza)]
     for exc in exceptions:
         newExc = deepcopy(exc)
+        newExc.persistent = True
         newExc.lifespan = blockLength
         newExc.indent = [moves[i].indent + 1]
         state.exceptions.add(newExc)
@@ -213,16 +214,20 @@ Preds['END BUYPHASE'].action = end_buys_action
 def donate_action(moves, i, blockLength, state):
     def moveEverything(moves, i, blockLength, state):
         move = moves[i]
-        state.move(move.player, 'DECKS', 'HANDS',
-                   state['DECKS'][move.player])
-        state.move(move.player, 'DISCARDS', 'HANDS',
-                   state['DISCARDS'][move.player])
+        discards = state['DISCARDS'][move.player]
+        if discards > move.items[0] and move.items[0] > discards:
+            state.move(move.player, 'DISCARDS', 'HANDS',
+                       state['DISCARDS'][move.player])
+        else:
+            state.move(move.player, 'DECKS', 'HANDS',
+                       state['DECKS'][move.player])
 
     def shuffleBack(moves, i, blockLength, state):
         state.move(moves[i].player, 'HANDS', 'DECKS',
                    state['HANDS'][moves[i].player])
 
-    putExc = Exception(check(['PUT INHAND']), moveEverything)
+    putExc = Exception(check(['PUT INHAND']), moveEverything,
+                       persistent=True)
     shuffleExc = Exception(check(['SHUFFLE INTO']), shuffleBack)
     for exc in [putExc, shuffleExc]:
         newExc = deepcopy(exc)
@@ -457,6 +462,9 @@ Preds['TRASH'].action = standard_trash('HANDS')
 
 def discard_action(moves, i, blockLength, state):
     move = moves[i]
+    for c in 'bs':
+        if c in Cards[move.items[0].primary].types:
+            return
     state.move(move.player, 'HANDS', 'DISCARDS', move.items[0])
 
 
@@ -603,7 +611,12 @@ def standard_plays(moves, i, blockLength, state):
                           Exception(check(['PLAY']), move_play('OTHERS'),
                                     persistent=True),
                           checkMove(['DISCARD'], 'OTHERS', 'DISCARDS')],
-                'SCRYING POOL': [exc_revealTopdeck, exc_revealDiscard],
+                'SCRYING POOL': [Exception(check(['TOPDECK']),
+                                           moveFunct('DECKS', 'DECKS'),
+                                           persistent=True),
+                                 Exception(check(['DISCARD']),
+                                           moveFunct('DECKS', 'DISCARDS'),
+                                           persistent=True)],
                 'COUNTING HOUSE': [exc_settlers],
                 'LOAN': [exc_revealDiscard, exc_revealTrash],
                 'RABBLE': [exc_revealDiscard, exc_revealTopdeck],
@@ -613,17 +626,27 @@ def standard_plays(moves, i, blockLength, state):
                 'FARMING VILLAGE': [exc_revealDiscard],
                 'FORTUNE TELLER': [exc_revealDiscard, exc_revealTopdeck],
                 'HARVEST': [exc_revealDiscard],
-                'HORN OF PLENTY': [exc_revealTrash],
+                'HORN OF PLENTY': [exc_inplayTrash],
                 'HUNTING PARTY': [exc_revealDiscard],
                 'JESTER': [exc_revealDiscard],
                 'TOURNAMENT': [gainTo('SUPPLY', 'DECKS')],
                 'CARTOGRAPHER': [exc_revealTopdeck, exc_revealDiscard],
                 'DEVELOP': [gainTo('SUPPLY', 'DECKS')],
-                'DUCHESS': [exc_revealTopdeck, exc_revealDiscard],
+                'DUCHESS': [Exception(check(['TOPDECK']),
+                                      moveFunct('DECKS', 'DECKS'),
+                                      persistent=True),
+                            Exception(check(['DISCARD']),
+                                      moveFunct('DECKS', 'DISCARDS'),
+                                      persistent=True)],
                 'ILL-GOTTEN GAINS': [gainTo('SUPPLY', 'HANDS')],
                 'JACK OF ALL TRADES': [exc_revealTopdeck, exc_revealDiscard],
                 'NOBLE BRIGAND': [exc_revealTrash, exc_revealDiscard],
-                'ORACLE': [exc_revealTopdeck, exc_revealDiscard],
+                'ORACLE': [Exception(check(['TOPDECK']),
+                                     moveFunct('DECKS', 'DECKS'),
+                                     persistent=True),
+                           Exception(check(['DISCARD']),
+                                     moveFunct('DECKS', 'DISCARDS'),
+                                     persistent=True)],
                 'ARMORY': [gainTo('SUPPLY', 'DECKS')],
                 'BAND OF MISFITS': [Exception(check(['PLAY']),
                                               standard_plays)],
@@ -696,6 +719,8 @@ def standard_plays(moves, i, blockLength, state):
                 'WISH': [gainTo('SUPPLY', 'HANDS')],
                 'ZOMBIE MASON': [exc_revealTrash],
                 'ZOMBIE SPY': [exc_revealDiscard, exc_revealTopdeck],
+                'BLACK MARKET': [checkMove(['BOTTOMDECK'], 'SUPPLY',
+                                           'SUPPLY')],
                 'ENVOY': [exc_revealDiscard],
                 'PRINCE': [checkMove(['SET ASIDE'], 'HANDS', 'OTHERS')],
                 'ACTING TROUPE': [exc_inplayTrash],
@@ -718,16 +743,18 @@ def standard_plays(moves, i, blockLength, state):
     if target == 'REPLACE':
         for secondary in moves[i + 1: i + blockLength]:
             if secondary.pred == 'GAIN':
+                subject = secondary.items[0]
+
                 def replace_topdeck(moves, i, blockLength, state):
-                    block = Cardstack({target.primary: 1})
-                    state.move(moves[i].player, get_gain_dest(target.primary),
+                    block = Cardstack({subject.primary: 1})
+                    state.move(moves[i].player, get_gain_dest(subject.primary),
                                'DECKS', block)
 
                 newExc = Exception(check(['TOPDECK'],
-                                         ['CARD', move.items[0].primary]),
+                                         ['CARD', subject.primary]),
                                    replace_topdeck)
                 newExc.lifespan = blockLength
-                newExc.indents = [secondary.indent + 1]
+                newExc.indents = [secondary.indent]
                 state.exceptions.add(newExc)
                 break
 
@@ -1173,7 +1200,7 @@ def standard_boonhex(grove=False):
                     elif not grove and (secondary.pred == 'DISCARD' and
                                         secondary.items[0].primary == target):
                         break
-                newExc.lifespan = life
+                newExc.lifespan = life - 1
                 newExc.indents = [moves[i].indent]
                 newExc.persistent = True
                 state.exceptions.add(newExc)

@@ -94,7 +94,7 @@ Phase: {}<br>\
 C: {} A: {} B: {}<br>\
 vp: {}<br> co: {}<br> vi: {}<br> db: {}<br>\
 Score: {}<br>'
-        outstr = basestr.format(str(self.valid), self.activePlayer, self.phase,
+        outstr = basestr.format(str(self.valid), self.activePlayer, len(self.exceptions),
                                 self.coins, self.actions, self.buys,
                                 ','.join([str(x) for x in self.vps]),
                                 ','.join([str(x) for x in self.coffers]),
@@ -135,7 +135,8 @@ Score: {}<br>'
         if src == 'INPLAYS':
             for card in items:
                 for i in range(items[card]):
-                    self.orderedPlays.remove(card)
+                    if card in self.orderedPlays:
+                        self.orderedPlays.remove(card)
 
         if dest == 'INPLAYS':
             for card in items:
