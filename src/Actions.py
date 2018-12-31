@@ -165,6 +165,7 @@ def turn_start_action(moves, i, blockLength, state):
 
     state.phase = 0
     exceptions = [checkMove(['PUT INHAND'], 'OTHERS', 'HANDS'),
+                  checkMove(['INHAND GENERIC'], 'OTHERS', 'HANDS'),
                   Exception(check(['GAIN']), start_gain),
                   Exception(check(['PLAY']), move_play('OTHERS')),
                   Exception(check(['REVEAL']), start_piazza)]
@@ -274,21 +275,21 @@ def standard_gains(source, destination='DISCARDS'):
 
         def cargo_check(move):
             return move.pred == 'SET ASIDE WITH' and \
-                len(move.items) > 1 and \
-                move.items[1].primary == 'CARGO SHIP'
+                move.arguments[0] == 'Cargo Ship'
 
         def cargo_move(moves, i, blockLength, state):
             state.move(moves[i].player, destination, 'OTHERS',
                        moves[i].items[0])
-            twinned = sum([stack['CARGO SHIP'] for plays, stack, dur in
-                           state.durations])
+            twinned = sum([block[1]['CARGO SHIP'] for block in
+                           state.durations[moves[i].player]])
             soloShips = state.cargoShips - twinned
             block = [Cardstack({'CARGO SHIP': 1}), 1]
             if state.cargoCount < soloShips:
                 state.durations[moves[i].player].append(block)
             else:
-                twinCapacity = sum([len(plays) for plays, stack, dur in
-                                    state.durations if dur])
+                twinCapacity = sum([len(block[0]) for block in
+                                    state.durations[moves[i].player]
+                                    if block[2]])
                 if twinCapacity + soloShips == state.cargoCount:
                     for j in range(len(state.linkedPlays)):
                         plays, cards, ship = state.linkedPlays[j]
