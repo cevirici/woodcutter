@@ -308,6 +308,10 @@ def standard_gains(source, destination='DISCARDS'):
 
             state.cargoCount += 1
 
+        def innovation_check(move):
+            return move.pred == 'SET ASIDE' and \
+                'b' not in Cards[move.items[0].primary].types
+
         def innovation_action(moves, i, blockLength, state):
             target = moves[i].items[0].primary
             endpoint = get_gain_dest(target) if \
@@ -350,8 +354,7 @@ def standard_gains(source, destination='DISCARDS'):
 
         # Cargo Ship
         standardExceptions = [Exception(cargo_check, cargo_move),
-                              Exception(check(['SET ASIDE']),
-                                        innovation_action),
+                              Exception(innovation_check, innovation_action),
                               Exception(check(['RETURN']),
                                         changeling_return)]
         for exc in standardExceptions:
@@ -376,9 +379,7 @@ def standard_gains(source, destination='DISCARDS'):
                                            fg_react)],
                     'INN': [Exception(check(['SHUFFLE']), empty)],
                     'MANDARIN': [checkMove(['TOPDECK'], 'INPLAYS', 'DECKS')],
-                    'VILLA': [Exception(check(['PUT INHAND']), villa_phase)],
-                    'BLESSED VILLAGE': [Exception(check(['SET ASIDE']),
-                                                  empty, priority=2)]
+                    'VILLA': [Exception(check(['PUT INHAND']), villa_phase)]
                     }
 
         if target.primary in triggers:
