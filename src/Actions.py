@@ -27,8 +27,9 @@ def check(predList, targetList=[]):
                 return False
 
         if targetList:
-            if len([t for t in targetList if (t in move.items[0])]) == 0:
-                return False
+            if move.items:
+                if len([t for t in targetList if (t in move.items[0])]) == 0:
+                    return False
         return True
 
     return out_function
