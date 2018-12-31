@@ -129,7 +129,7 @@ def new_turn_action(moves, i, blockLength, state):
             newDurations.append((stack, life))
             for card in stack:
                 for amt in range(stack[card]):
-                    self.orderedPlays.append(card)
+                    state.orderedPlays.append(card)
     state.durations[moves[i].player] = newDurations
     state.linkedPlays = []
     state.amuletSilvers = 0
