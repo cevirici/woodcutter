@@ -719,6 +719,7 @@ def standard_plays(moves, i, blockLength, state):
                                         standard_trash('SUPPLY'))],
                 'SMALL CASTLE': [Exception(check(['TRASH']),
                                            smallcastle_trash)],
+                'ARCHIVE': [chevkMove(['SET ASIDE'], 'DECKS', 'OTHERS')],
                 "FARMERS' MARKET": [exc_inplayTrash],
                 'OVERLORD': [Exception(check(['PLAY']), standard_plays)],
                 'CHANGELING': [exc_inplayTrash],
