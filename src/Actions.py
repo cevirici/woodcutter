@@ -1436,7 +1436,7 @@ def enchant_action(moves, i, blocklength, state):
 
         for block in state.durations[move[i].player]:
             if moves[i].items[0].primary in block[0]:
-                state.durations[move[i].player].remove(block)
+                state.durations[moves[i].player].remove(block)
                 break
 
     state.exceptions.add(enchantedExc)
