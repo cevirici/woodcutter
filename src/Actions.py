@@ -901,7 +901,7 @@ def standard_plays(moves, i, blockLength, state):
                 break
         state.exceptions.add(Exception(check(['TRASH']),
                                        moveFunct('INPLAYS', 'TRASH'),
-                                       lifespan=life,
+                                       lifespan=life + 1,
                                        indents=[0]))
 
     if 'k' in Cards[target].types:
