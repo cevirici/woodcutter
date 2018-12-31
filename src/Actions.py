@@ -314,6 +314,12 @@ def standard_gains(source, destination='DISCARDS'):
                                            lifespan=2,
                                            indents=[moves[i].indent]))
 
+        def changeling_return(moves, i, blockLength, state):
+            target = moves[i].items[0].primary
+            endpoint = get_gain_dest(target) if \
+                destination == 'DISCARDS' else destination
+            state.move(moves[i].player, endpoint, 'SUPPLY', moves[i].items[0])
+
         # If default, check for exceptional gain destinations
         if destination == 'DISCARDS':
             for card in target:
@@ -339,14 +345,16 @@ def standard_gains(source, destination='DISCARDS'):
                 break
 
         # Cargo Ship
-        state.exceptions.add(Exception(cargo_check,
-                                       cargo_move,
-                                       lifespan=blockLength,
-                                       indents=[move.indent + 1]))
-        state.exceptions.add(Exception(check(['SET ASIDE']),
-                                       innovation_action,
-                                       lifespan=blockLength,
-                                       indents=[move.indent + 1]))
+        standardExceptions = [Exception(cargo_check, cargo_move),
+                              Exception(check(['SET ASIDE']),
+                                        innovation_action),
+                              Exception(check(['RETURN']),
+                                        changeling_return)]
+        for exc in standardExceptions:
+            newExc = deepcopy(exc)
+            newExc.lifespan = blockLength
+            newExc.indents = [moves[i].indent + 1]
+            state.exceptions.add(newExc)
 
         def fg_react(moves, i, blockLength, state):
             newExc = deepcopy(checkMove(['GAIN'], 'SUPPLY', 'DECKS',
