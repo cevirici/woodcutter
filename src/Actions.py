@@ -1248,7 +1248,8 @@ def receive_action(moves, i, blockLength, state):
     target = move.items[0].primary
 
     if target in ['TREASURE HUNTER', 'WARRIOR', 'HERO', 'CHAMPION',
-                  'SOLDIER', 'FUGITIVE', 'DISCIPLE', 'TEACHER', 'CHANGELING']:
+                  'SOLDIER', 'FUGITIVE', 'DISCIPLE', 'TEACHER', 'CHANGELING',
+                  'BAT']:
         state.move(moves[i].player, 'SUPPLY', 'DISCARDS', move.items[0])
     elif 'b' in Cards[target].types:
         standard_boonhex()(moves, i, blockLength, state)
