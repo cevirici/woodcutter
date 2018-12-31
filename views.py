@@ -111,6 +111,7 @@ def detailed(request, game_id):
 def display(request, game_id):
     log = get_object_or_404(GameLog, game_id=game_id)
     players = log.players.split('~')
+    players = ['UNKNOWN PLAYER' if x == '' else x for x in players]
 
     gameMoves, supply = unpack(log.log, log.supply)
     blockLengths = get_blocklengths(gameMoves)
