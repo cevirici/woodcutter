@@ -94,7 +94,8 @@ Phase: {}<br>\
 C: {} A: {} B: {}<br>\
 vp: {}<br> co: {}<br> vi: {}<br> db: {}<br>\
 Score: {}<br>'
-        outstr = basestr.format(str(self.valid), self.activePlayer, len(self.exceptions),
+        outstr = basestr.format(str(self.valid), self.activePlayer,
+                                len(self.exceptions),
                                 self.coins, self.actions, self.buys,
                                 ','.join([str(x) for x in self.vps]),
                                 ','.join([str(x) for x in self.coffers]),
@@ -120,10 +121,12 @@ Score: {}<br>'
         if src in GameState.soloZones:
             if not self[src] > items:
                 self.valid = False
+                print(src)
             self[src] -= items
         else:
             if not self[src][player] > items:
                 self.valid = False
+                print(src)
             self[src][player] -= items
 
         if dest in GameState.soloZones:

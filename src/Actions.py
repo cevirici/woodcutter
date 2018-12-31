@@ -1064,7 +1064,7 @@ Preds['INHAND GENERIC'].action = inhand_generic_action
 
 def set_aside_action(moves, i, blockLength, state):
     move = moves[i]
-    if 'b' not in move.items[0].primary:
+    if 'b' not in Cards[move.items[0].primary].types:
         state.move(move.player, 'INPLAYS', 'OTHERS', move.items[0])
 
 
