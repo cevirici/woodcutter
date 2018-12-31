@@ -302,10 +302,10 @@ class LegendEntry extends React.Component {
 class StoryLegend extends React.Component {
     render(){
         let output = [];
+        var turnLabels = [];
         if (turnPoints.length > 0){
             var turnLengths = [...Array(turnPoints.length - 1).keys()].map(x => turnPoints[x + 1] - turnPoints[x]);
             turnLengths.push(boards.split('~').length - turnPoints.slice(-1)[0]);
-            var turnLabels = [];
             var owners = [];
             var aliases = players.map(x => x.slice(0, 1));
             if (aliases[0] == aliases[1]){
