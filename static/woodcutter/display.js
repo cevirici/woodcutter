@@ -325,7 +325,7 @@ class StoryLegend extends React.Component {
 
             let highlighted = turnPoints.filter(point => point <= this.props.index).length - 1;
         }
-        for (i = 0; i < turnLabels.length; i++){
+        for (let i = 0; i < turnLabels.length; i++){
             output.push(<LegendEntry key={i} point={turnPoints[i]} length={turnLengths[i]} label={turnLabels[i]} owner={owners[i]} 
                                      highlighted={i==highlighted} changeIndex={this.props.changeIndex}/>);
         }
