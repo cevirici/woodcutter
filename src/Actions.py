@@ -486,7 +486,7 @@ def get_stayout_duration(moves, i, state):
         return 1
 
     elif target in ['CHAMPION', 'HIRELING']:
-        return -1
+        return 999
 
     elif target in ['HAVEN', 'GEAR']:
         j = i + 1
