@@ -53,7 +53,7 @@ class GameState:
         self.bridges = 0
         self.phase = 0  # Start, Action, Buy, Night, Cleanup
 
-        self.exceptions = set()
+        self.exceptions = []
         self.durations = [[], []]
         self.linkedPlays = []  # list: plays, cards, currentDurations
 

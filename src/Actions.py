@@ -168,6 +168,10 @@ def turn_start_action(moves, i, blockLength, state):
                                        indents=[moves[i].indent],
                                        priority=2))
 
+    def testo(moves, i, blockLength, state):
+        print(moves[i].indent)
+        state.move(moves[i].player, 'OTHERS', 'HANDS', moves[i].items[0])
+
     state.phase = 0
     exceptions = [checkMove(['PUT INHAND'], 'OTHERS', 'HANDS'),
                   checkMove(['INHAND GENERIC'], 'OTHERS', 'HANDS'),
@@ -178,7 +182,7 @@ def turn_start_action(moves, i, blockLength, state):
         newExc = deepcopy(exc)
         newExc.persistent = True
         newExc.lifespan = blockLength
-        newExc.indent = [moves[i].indent + 1]
+        newExc.indents = [moves[i].indent + 1]
         state.exceptions.add(newExc)
 
     # Cobbler / Amulet stuff
@@ -193,7 +197,7 @@ def turn_start_action(moves, i, blockLength, state):
                 secondary.items[0].primary == 'AMULET':
             amuletPlays -= 1
         elif secondary.pred == 'TRASH' and \
-                secondary.indent == moves[i].indent + 1:
+                secondary.indent == 1:
             amuletPlays -= 1
         elif secondary.pred == 'CALL':
             index += 1
@@ -211,7 +215,7 @@ def end_buys_action(moves, i, blockLength, state):
     for exc in exceptions:
         newExc = deepcopy(exc)
         newExc.lifespan = blockLength
-        newExc.indent = [moves[i].indent + 1]
+        newExc.indents = [moves[i].indent + 1]
         state.exceptions.add(newExc)
 
 
@@ -633,8 +637,7 @@ def standard_plays(moves, i, blockLength, state):
                                            persistent=True),
                                  Exception(check(['DISCARD']),
                                            moveFunct('DECKS', 'DISCARDS'),
-                                           persistent=True),
-                                 checkMove(['PUT INHAND'], 'DECKS', 'HANDS')],
+                                           persistent=True)],
                 'COUNTING HOUSE': [exc_settlers],
                 'LOAN': [exc_revealDiscard, exc_revealTrash],
                 'RABBLE': [exc_revealDiscard, exc_revealTopdeck],
