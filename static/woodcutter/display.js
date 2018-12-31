@@ -9,17 +9,26 @@ class Card extends React.Component {
     }
 
     render() {
-        return (
-            <div className='card-container'>
-                <div className='card-label noselect'>
-                    {this.props.amount}
+        if (this.props.amount > 0){
+            return (
+                <div className='card-container'>
+                    <div className='card-label noselect'>
+                        {this.props.amount}
+                    </div>
+                    <div className='card-small' style={this.borderStyle()}>
+                        <div className='card-small-inner' style={this.divStyle()}>
+                        </div>
+                    </div>
                 </div>
+            );
+        } else {
+            return (
                 <div className='card-small' style={this.borderStyle()}>
                     <div className='card-small-inner' style={this.divStyle()}>
                     </div>
                 </div>
-            </div>
-        );
+            );
+        }
     }
 }
 
@@ -73,9 +82,22 @@ class CardStack extends React.Component {
 }
 
 
+function EmptyStack(props) {
+    var output = '';
+    if (props.cards){
+        var output = props.cards.split('|').map((n, i) => <Card amount={0} index={parseInt(n)} key={i}/>);
+    }
+    return <div className='empties'>
+            <div className='stack-label noselect'>EMPTY</div>
+        {output}
+    </div>
+}
+
+
 class Board extends React.Component {
     render(){
         var boardString = boards.split('~')[this.props.index + 1].split('/')[0];
+        var emptyString = empties.split('~')[this.props.index + 1];
         var cardStacks = boardString.split('|');
         var inPlays = (turnOwners[this.props.index] == 0 ? cardStacks[4] : cardStacks[5]);
         return(
@@ -93,6 +115,7 @@ class Board extends React.Component {
                 <CardStack cards={cardStacks[11]} classes='others bot' stackName='ASIDE'/>
                 <CardStack cards={cardStacks[12]} classes='supply' stackName='SUPPLY'/>
                 <CardStack cards={cardStacks[13]} classes='trash' stackName='TRASH'/>
+                <EmptyStack cards={emptyString} />
                 <div className='label top noselect'>{players[0]}</div>
                 <div className='label bot noselect'>{players[1]}</div>
             </div>

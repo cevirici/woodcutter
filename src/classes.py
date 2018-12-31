@@ -60,6 +60,7 @@ class GameState:
         self.amuletSilvers = 0
         self.cargoShips = 0
         self.cargoCount = 0
+        self.orderedPlays = []
 
         self.valid = True
 
@@ -161,3 +162,30 @@ Score: {}<br>'
         zoneStrings = [[repr(part) for part in self.boardState[zone]]
                        for zone in gSZones]
         return zoneStrings
+
+    def empty_piles(self, supply):
+        pairs = {'ENCAMPMENT': ['ENCAMPMENT', 'PLUNDER'],
+                 'PATRICIAN': ['PATRICIAN', 'EMPORIUM'],
+                 'SETTLERS': ['SETTLERS', 'BUSTLING VILLAGE'],
+                 'CATAPULT': ['CATAPULT', 'ROCKS'],
+                 'GLADIATOR': ['GLADIATOR', 'FORTUNE'],
+                 'KNIGHTS': ['DAME ANNA', 'DAME JOSEPHINE', 'DAME MOLLY',
+                             'DAME NATALIE', 'DAME SYLVIA', 'SIR BAILEY',
+                             'SIR DESTRY', 'SIR MARTIN', 'SIR MICHAEL',
+                             'SIR VANDER'],
+                 'RUINS': ['RUINED LIBRARY', 'RUINED VILLAGE',
+                           'ABANDONED MINE', 'RUINED MARKET', 'SURVIVORS'],
+                 'SAUNA': ['SAUNA', 'AVANTO'],
+                 'CASTLES': ['HUMBLE CASTLE', 'CRUMBLING CASTLE',
+                             'SMALL CASTLE', 'HAUNTED CASTLE',
+                             'OPULENT CASTLE', 'SPRAWLING CASTLE',
+                             'GRAND CASTLE', "KING'S CASTLE"]}
+        output = []
+        for card in supply:
+            if card in pairs:
+                if sum([self['SUPPLY'][subcard]
+                        for subcard in pairs[card]]) == 0:
+                    output.append(card)
+            elif self['SUPPLY'][card] == 0:
+                output.append(card)
+        return '|'.join([str(Cards[card].index) for card in output])

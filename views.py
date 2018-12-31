@@ -130,7 +130,11 @@ def display(request, game_id):
     colors, borders, urls = get_passables()
     stepPoints, turnPoints = get_points(gameMoves)
     phases = ''.join([str(x) for x in get_phases(gameStates)])
-    kingdom = '~'.join(['|'.join(x) for x in get_kingdom(supply)])
+    kingdomRaw = [[str(Cards[card].index) for card in row]
+                  for row in get_kingdom(supply)]
+    kingdom = '~'.join(['|'.join(x) for x in kingdomRaw])
+    empties = '~'.join([state.empty_piles(get_kingdom(supply)[0])
+                        for state in gameStates])
 
     context = {'story': story,
                'boards': boards,
@@ -143,7 +147,8 @@ def display(request, game_id):
                'borders': borders,
                'urls': urls,
                'phases': phases,
-               'kingdom': kingdom}
+               'kingdom': kingdom,
+               'empties': empties}
 
     return render(request, 'woodcutter/display.html', context)
 

@@ -51,7 +51,6 @@ def get_kingdom(supply):
 
     for n in range(len(output)):
         output[n].sort(key=lambda x: (Cards[x].cost, Cards[x].simple_name))
-        output[n] = [str(Cards[card].index) for card in output[n]]
 
     return output
 
