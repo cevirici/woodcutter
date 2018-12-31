@@ -355,7 +355,7 @@ ff,Dungeon,Dungeons,a Dungeon,3,0,dda561,4f472d,a
 162,Overlord,Overlords,an Overlord,0d8,0,c4c0b4,9a8a90,a
 163,Palace,Palaces,a Palace,0,2,65ab6f,c07442,l
 164,Ritual,Rituals,a Ritual,4,2,a9a39d,7a5224,e
-165,Royal Blacksmith,Royal Blacksmiths,a Royal Blacksmith,8,0,c4c0b4,69452b,a
+165,Royal Blacksmith,Royal Blacksmiths,a Royal Blacksmith,0d8,0,c4c0b4,69452b,a
 166,Sacrifice,Sacrifices,a Sacrifice,4,0,c4c0b4,9b675f,a
 167,Salt the Earth,Salt the Earths,a Salt the Earth,4,2,a9a39d,7b8383,e
 168,Tax,Taxes,a Tax,2,2,a9a39d,a0745a,e
