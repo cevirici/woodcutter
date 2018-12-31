@@ -744,6 +744,7 @@ def standard_plays(moves, i, blockLength, state):
                 'MAGIC LAMP': [exc_inplayTrash],
                 'GHOST': [exc_revealDiscard,
                           checkMove(['SET ASIDE'], 'DECKS', 'OTHERS')],
+                "WILL-O'-WISP": [exc_revealTopdeck],
                 'WISH': [gainTo('SUPPLY', 'HANDS')],
                 'ZOMBIE MASON': [exc_revealTrash],
                 'ZOMBIE SPY': [exc_revealDiscard, exc_revealTopdeck],
