@@ -897,11 +897,11 @@ def standard_plays(moves, i, blockLength, state):
 
     elif target == 'IMPROVE':
         for life in range(1, len(moves) - i):
-            if moves[life].pred == 'NEW TURN':
+            if moves[life + i].pred == 'NEW TURN':
                 break
         state.exceptions.add(Exception(check(['TRASH']),
                                        moveFunct('INPLAYS', 'TRASH'),
-                                       lifespan=life + 1,
+                                       lifespan=life,
                                        indents=[0]))
 
     if 'k' in Cards[target].types:
