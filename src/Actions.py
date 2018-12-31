@@ -169,7 +169,6 @@ def turn_start_action(moves, i, blockLength, state):
                                        priority=2))
 
     def testo(moves, i, blockLength, state):
-        print(moves[i].indent)
         state.move(moves[i].player, 'OTHERS', 'HANDS', moves[i].items[0])
 
     state.phase = 0
@@ -1180,7 +1179,6 @@ def shuffle_action(moves, i, blockLength, state):
                 cleanable -= stack
         state.move(player, 'INPLAYS', 'DISCARDS', cleanable)
         state.move(player, 'HANDS', 'DISCARDS', state['HANDS'][player])
-
     state.move(player, 'DISCARDS', 'DECKS', state['DISCARDS'][player])
 
 
@@ -1209,6 +1207,16 @@ def return_action(moves, i, blockLength, state):
 Preds['RETURN'].action = return_action
 
 
+def famine_action(moves, i, blockLength, state):
+    for life in range(1, len(moves) - i):
+        if moves[life + i].pred == 'DISCARD' and\
+                moves[life + i].items[0].primary == 'FAMINE':
+            break
+    newExc = Exception(check(['SHUFFLE']), empty,
+                       indents=[moves[i].indent], lifespan=life)
+    state.exceptions.add(newExc)
+
+
 def standard_boonhex(grove=False):
     def out_function(moves, i, blockLength, state):
         move = moves[i]
@@ -1217,7 +1225,7 @@ def standard_boonhex(grove=False):
         triggers = {'BAD OMENS': [checkMove(['TOPDECK'], 'DISCARDS', 'DECKS')],
                     'FAMINE': [exc_revealDiscard,
                                checkMove(['SHUFFLE INTO'], 'DECKS', 'DECKS'),
-                               Exception(check(['SHUFFLE']), empty)],
+                               Exception(check(['REVEAL']), famine_action)],
                     'GREED': [gainTo('SUPPLY', 'DECKS')],
                     'LOCUSTS': [exc_revealTrash],
                     'PLAGUE': [gainTo('SUPPLY', 'HANDS')],

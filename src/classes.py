@@ -121,12 +121,10 @@ Score: {}<br>'
         if src in GameState.soloZones:
             if not self[src] > items:
                 self.valid = False
-                print(src)
             self[src] -= items
         else:
             if not self[src][player] > items:
                 self.valid = False
-                print(src)
             self[src][player] -= items
 
         if dest in GameState.soloZones:
