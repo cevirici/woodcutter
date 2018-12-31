@@ -171,7 +171,8 @@ body {
 }
 
 .card-stack.inplays{
-    flex-flow: row;
+    padding-left: 10px;
+    flex-flow: row wrap;
     justify-content: flex-start;
     align-items: center;
 }
@@ -216,6 +217,7 @@ body {
 .card-small {
     width: 4.6vh;
     height: 3.3vh;
+    margin-left: 3px;
     padding: 6px 0px 4px 0px;
     box-shadow: 0.3vh 0.3vh 0.3vh rgba(0, 0, 0, .6);
 }

@@ -40,7 +40,10 @@ class Cardstack:
         return t
 
     def __gt__(self, other):
-        return not(len(other - self) >= 0)
+        for card in other:
+            if other[card] > self[card]:
+                return False
+        return True
 
     def __str__(self):
         return '<br>'.join(['{}:{}'.format(self.cards[i], str(i))

@@ -90,11 +90,11 @@ class GameState:
     def __str__(self):
         basestr = '{}<br>\
 Player: {}<br>\
-Bridges: {}<br>\
+Phase: {}<br>\
 C: {} A: {} B: {}<br>\
 vp: {}<br> co: {}<br> vi: {}<br> db: {}<br>\
 Score: {}<br>'
-        outstr = basestr.format(str(self.valid), self.activePlayer, self.bridges,
+        outstr = basestr.format(str(self.valid), self.activePlayer, self.phase,
                                 self.coins, self.actions, self.buys,
                                 ','.join([str(x) for x in self.vps]),
                                 ','.join([str(x) for x in self.coffers]),
@@ -118,11 +118,11 @@ Score: {}<br>'
     def move(self, player, src, dest, items):
         items = items.strip()
         if src in GameState.soloZones:
-            if items > self[src]:
+            if not self[src] > items:
                 self.valid = False
             self[src] -= items
         else:
-            if items > self[src][player]:
+            if not self[src][player] > items:
                 self.valid = False
             self[src][player] -= items
 
@@ -130,6 +130,17 @@ Score: {}<br>'
             self[dest] += items
         else:
             self[dest][player] += items
+
+        # Edit orderedinplays
+        if src == 'INPLAYS':
+            for card in items:
+                for i in range(items[card]):
+                    self.orderedPlays.remove(card)
+
+        if dest == 'INPLAYS':
+            for card in items:
+                for i in range(items[card]):
+                    self.orderedPlays.append(card)
 
     def add(self, dest, items, player=0):
         if dest in GameState.soloZones:

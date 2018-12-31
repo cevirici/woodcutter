@@ -148,7 +148,8 @@ def display(request, game_id):
                'urls': urls,
                'phases': phases,
                'kingdom': kingdom,
-               'empties': empties}
+               'empties': empties,
+               'inplays': '~'.join(get_inplays(gameStates))}
 
     return render(request, 'woodcutter/display.html', context)
 

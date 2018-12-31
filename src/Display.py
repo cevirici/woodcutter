@@ -55,6 +55,11 @@ def get_kingdom(supply):
     return output
 
 
+def get_inplays(states):
+    return ['|'.join([str(Cards[card].index) for card in state.orderedPlays])
+            for state in states]
+
+
 def elaborate_card(number, card):
     if number == 1:
         return card.phrase_name

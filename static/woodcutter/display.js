@@ -82,6 +82,18 @@ class CardStack extends React.Component {
 }
 
 
+function InplayStack(props) {
+    var output = '';
+    if (props.cards){
+        var output = props.cards.split('|').map((n, i) => <Card amount={0} index={parseInt(n)} key={i}/>);
+    }
+    return <div className='card-stack inplays'>
+            <div className='stack-label noselect'>IN PLAY</div>
+        {output}
+    </div>
+}
+
+
 function EmptyStack(props) {
     var output = '';
     if (props.cards){
@@ -99,14 +111,14 @@ class Board extends React.Component {
         var boardString = boards.split('~')[this.props.index + 1].split('/')[0];
         var emptyString = empties.split('~')[this.props.index + 1];
         var cardStacks = boardString.split('|');
-        var inPlays = (turnOwners[this.props.index] == 0 ? cardStacks[4] : cardStacks[5]);
+        var inPlays = inplays.split('~')[this.props.index + 1];
         return(
             <div className='board'>
                 <CardStack cards={cardStacks[0]} classes='decks top' stackName='DECK'/>
                 <CardStack cards={cardStacks[1]} classes='decks bot' stackName='DECK'/>
                 <CardStack cards={cardStacks[2]} classes='hands top' stackName='HAND'/>
                 <CardStack cards={cardStacks[3]} classes='hands bot' stackName='HAND'/>
-                <CardStack cards={inPlays} classes='inplays' stackName='IN PLAY'/>
+                <InplayStack cards={inPlays} classes='inplays' stackName='IN PLAY'/>
                 <CardStack cards={cardStacks[6]} classes='discards top' stackName='DISCARD'/>
                 <CardStack cards={cardStacks[7]} classes='discards bot' stackName='DISCARD'/>
                 <CardStack cards={cardStacks[8]} classes='tavern top' stackName='TAVERN'/>
@@ -282,7 +294,7 @@ class LegendEntry extends React.Component {
         if (this.props.highlighted){
             endTag += ' highlight'
         }
-        return <div className={'legend-entry' + endTag} style={style} onClick={this.clickEvent}>{this.props.label}</div>;
+        return <div className={'legend-entry noselect' + endTag} style={style} onClick={this.clickEvent}>{this.props.label}</div>;
     }
 }
 
