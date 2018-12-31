@@ -376,7 +376,9 @@ def standard_gains(source, destination='DISCARDS'):
                                            fg_react)],
                     'INN': [Exception(check(['SHUFFLE']), empty)],
                     'MANDARIN': [checkMove(['TOPDECK'], 'INPLAYS', 'DECKS')],
-                    'VILLA': [Exception(check(['PUT INHAND']), villa_phase)]
+                    'VILLA': [Exception(check(['PUT INHAND']), villa_phase)],
+                    'BLESSED VILLAGE': [Exception(check(['SET ASIDE']),
+                                                  empty)]
                     }
 
         if target.primary in triggers:
