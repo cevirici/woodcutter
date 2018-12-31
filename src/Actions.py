@@ -859,11 +859,11 @@ def standard_plays(moves, i, blockLength, state):
                            moves[i].items[0])
             exceptions = [Exception(check(['TRASH']),
                                     set_phase(engineer_trash),
-                                    indents=[0],
+                                    indents=[0, 1],
                                     lifespan=blockLength + 1),
                           Exception(check(['GAIN']),
                                     set_phase(standard_gains('SUPPLY')),
-                                    indents=[0],
+                                    indents=[0, 1],
                                     lifespan=blockLength + 2)]
         else:
             exceptions = [deepcopy(exc_inplayTrash)]
