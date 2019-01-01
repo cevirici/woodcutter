@@ -352,7 +352,6 @@ def standard_gains(source, destination='DISCARDS'):
                 blockLength = secondary - i
                 break
 
-
         # If default, check for exceptional gain destinations
         if destination == 'DISCARDS':
             for card in target:
@@ -537,7 +536,16 @@ def get_stayout_duration(moves, i, state):
                 return 0
             j += 1
         return 1
-    elif target in ['ARCHIVE', 'CRYPT', 'RESEARCH']:
+    elif target == 'RESEARCH':
+        j = i + 1
+        while j < len(moves) and moves[j].indent > moves[i].indent:
+            secondary = moves[j]
+            if secondary.indent == move.indent + 1 and \
+                    secondary.pred == 'SET ASIDE':
+                return 1
+            j += 1
+        return 0
+    elif target in ['ARCHIVE', 'CRYPT']:
         j = i + 1
         while j < len(moves) and moves[j].indent > moves[i].indent:
             secondary = moves[j]
