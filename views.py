@@ -109,7 +109,7 @@ def detailed(request, game_id):
     return HttpResponse('<br>'.join(output))
 
 
-def display(request, game_id):
+def display(request, game_id, logIndex=0):
     log = get_object_or_404(GameLog, game_id=game_id)
     players = log.players.split('~')
     players = ['UNKNOWN PLAYER' if x == '' else x for x in players]
@@ -138,7 +138,8 @@ def display(request, game_id):
     empties = '~'.join([state.empty_piles(get_kingdom(supply)[0])
                         for state in gameStates])
 
-    context = {'story': story,
+    context = {'logIndex': logIndex,
+               'story': story,
                'boards': boards,
                'titlestring': titleString,
                'players': players,

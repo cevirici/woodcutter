@@ -364,13 +364,21 @@ class ControlButton extends React.Component {
 class Container extends React.Component{
     constructor(props) {
         super(props);
-        this.state = {index: 0, showKingdom: false};
+        let index = (logIndex >= boards.split('~').length - 1 ? boards.split('~').length - 2 : logIndex);
+        this.state = {index: index, showKingdom: false};
         this.changeIndex=this.changeIndex.bind(this);
         this.buttonShift=this.buttonShift.bind(this);
     }
     changeIndex(i){
         this.setState({index: i});
         let ypos = document.querySelectorAll('.story-line')[i].offsetTop - window.innerHeight / 3;
+        document.querySelector('.story-container').scrollTo({
+            top: ypos, 
+            behavior: "smooth"
+        });
+    }
+    componentDidMount() {
+        let ypos = document.querySelectorAll('.story-line')[this.state.index].offsetTop - window.innerHeight / 3;
         document.querySelector('.story-container').scrollTo({
             top: ypos, 
             behavior: "smooth"
