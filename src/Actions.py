@@ -596,10 +596,6 @@ def standard_plays(moves, i, blockLength, state):
             return move.pred == 'DISCARD' and move.player != knightPlayer
         return out_function
 
-    move = moves[i]
-    target = move.items[0].primary
-    if target == 'ESTATE':
-        target = state.inherited[move.player]
     triggers = {'ARTISAN': [gainTo('SUPPLY', 'HANDS')],
                 'BANDIT': [exc_revealTrash, exc_revealDiscard],
                 'BUREAUCRAT': [gainTo('SUPPLY', 'DECKS')],
@@ -755,191 +751,198 @@ def standard_plays(moves, i, blockLength, state):
                 'RESEARCH': [checkMove(['SET ASIDE'], 'DECKS', 'OTHERS')],
                 }
 
-    if target in triggers:
-        for exc in triggers[target]:
-            newExc = deepcopy(exc)
-            newExc.lifespan = blockLength
-            newExc.indents = [moves[i].indent + 1]
-            state.exceptions.add(newExc)
+    move = moves[i]
+    for target in move.items[0]:
+        if target == 'ESTATE':
+            target = state.inherited[move.player]
 
-    if target == 'REPLACE':
-        for secondary in moves[i + 1: i + blockLength]:
-            if secondary.pred == 'GAIN':
-                subject = secondary.items[0]
-
-                def replace_topdeck(moves, i, blockLength, state):
-                    block = Cardstack({subject.primary: 1})
-                    state.move(moves[i].player, get_gain_dest(subject.primary),
-                               'DECKS', block)
-
-                newExc = Exception(check(['TOPDECK'],
-                                         ['CARD', subject.primary]),
-                                   replace_topdeck)
+        if target in triggers:
+            for exc in triggers[target]:
+                newExc = deepcopy(exc)
                 newExc.lifespan = blockLength
-                newExc.indents = [secondary.indent]
+                newExc.indents = [moves[i].indent + 1]
                 state.exceptions.add(newExc)
-                break
 
-    elif target in ['BRIDGE', 'INVENTOR']:
-        state.bridges += 1
+        if target == 'REPLACE':
+            for secondary in moves[i + 1: i + blockLength]:
+                if secondary.pred == 'GAIN':
+                    subject = secondary.items[0]
 
-    elif target in ['THRONE ROOM', "KING'S COURT", 'DISCIPLE', 'CROWN']:
-        plays = []
-        for j in range(i + 1, i + blockLength):
-            if moves[j].indent == moves[i].indent + 1 and \
-                    moves[j].pred in playPreds:
-                subject = moves[j].items[0].primary
-                plays.append(j)
-        if plays:
-            state.linkedPlays.append([plays, Cardstack({target: 1,
-                                                        subject: 1}), None])
+                    def replace_topdeck(moves, i, blockLength, state):
+                        block = Cardstack({subject.primary: 1})
+                        state.move(moves[i].player,
+                                   get_gain_dest(subject.primary),
+                                   'DECKS', block)
 
-    elif target == 'SCEPTER':
-        if i + 1 < len(moves) and moves[i + 1].pred == 'PLAY':
-            stayout = get_stayout_duration(moves, i + 1, state)
-            subject = moves[i + 1].items[0].primary
-            if stayout:
-                # Look for something already going
-                for j in range(len(state.linkedPlays)):
-                    plays, cards, current = state.linkedPlays[j]
-                    if current:
-                        state.durations[moves[i].player].remove(current)
-                        newDur = [cards, 1]
-                        plays.append(i + 1)
-                        cards['SCEPTER'] += 1
-                        state.linkedPlays[j][2] = newDur
-                        state.durations[moves[i].player].append(newDur)
-                        return
-                # Look for something minimal (not in linkedPlays)
-                for j in range(0, i):
-                    secondary = moves[j]
-                    if check(['PLAY'], [subject])(secondary):
-                        if len([x for x in state.linkedPlays
-                                if j in x[0]]) == 0:
-                            block = Cardstack({secondary: 1, 'SCEPTER': 1})
-                            newDur = [block, 1]
-                            state.linkedPlays.append([[j, i + 1], block,
-                                                      newDur])
+                    newExc = Exception(check(['TOPDECK'],
+                                             ['CARD', subject.primary]),
+                                       replace_topdeck)
+                    newExc.lifespan = blockLength
+                    newExc.indents = [secondary.indent]
+                    state.exceptions.add(newExc)
+                    break
+
+        elif target in ['BRIDGE', 'INVENTOR']:
+            state.bridges += 1
+
+        elif target in ['THRONE ROOM', "KING'S COURT", 'DISCIPLE', 'CROWN']:
+            plays = []
+            for j in range(i + 1, i + blockLength):
+                if moves[j].indent == moves[i].indent + 1 and \
+                        moves[j].pred in playPreds:
+                    subject = moves[j].items[0].primary
+                    plays.append(j)
+            if plays:
+                block = [plays, Cardstack({target: 1, subject: 1}), None]
+                state.linkedPlays.append(block)
+
+        elif target == 'SCEPTER':
+            if i + 1 < len(moves) and moves[i + 1].pred == 'PLAY':
+                stayout = get_stayout_duration(moves, i + 1, state)
+                subject = moves[i + 1].items[0].primary
+                if stayout:
+                    # Look for something already going
+                    for j in range(len(state.linkedPlays)):
+                        plays, cards, current = state.linkedPlays[j]
+                        if current:
+                            state.durations[moves[i].player].remove(current)
+                            newDur = [cards, 1]
+                            plays.append(i + 1)
+                            cards['SCEPTER'] += 1
+                            state.linkedPlays[j][2] = newDur
                             state.durations[moves[i].player].append(newDur)
                             return
-                # Look for minimal in linkedPlays
-                state.linkedPlays.sort(key=lambda x: len(x[1]))
-                plays, cards, current = state.linkedPlays[0]
-                state.durations[moves[i].player].remove(current)
-                newDur = [cards, 1]
-                plays.append(i + 1)
-                cards['SCEPTER'] += 1
-                state.linkedPlays[0][2] = newDur
-                state.durations[moves[i].player].append(newDur)
-                return
-            else:
-                # Look for something not already going
-                for j in range(len(state.linkedPlays)):
-                    plays, cards, current = state.linkedPlays[j]
-                    if not current:
-                        plays.append(i + 1)
-                        cards['SCEPTER'] += 1
-                        return
-                # Look for something minimal (not in linkedPlays)
-                for j in range(0, i):
-                    secondary = moves[j]
-                    if check(['PLAY'], [subject])(secondary):
-                        if len([x for x in state.linkedPlays
-                                if j in x[0]]) == 0:
-                            block = Cardstack({secondary: 1, 'SCEPTER': 1})
-                            state.linkedPlays.append([[j, i + 1], block, None])
+                    # Look for something minimal (not in linkedPlays)
+                    for j in range(0, i):
+                        secondary = moves[j]
+                        if check(['PLAY'], [subject])(secondary):
+                            if len([x for x in state.linkedPlays
+                                    if j in x[0]]) == 0:
+                                block = Cardstack({secondary: 1, 'SCEPTER': 1})
+                                newDur = [block, 1]
+                                state.linkedPlays.append([[j, i + 1], block,
+                                                          newDur])
+                                state.durations[moves[i].player].append(newDur)
+                                return
+                    # Look for minimal in linkedPlays
+                    state.linkedPlays.sort(key=lambda x: len(x[1]))
+                    plays, cards, current = state.linkedPlays[0]
+                    state.durations[moves[i].player].remove(current)
+                    newDur = [cards, 1]
+                    plays.append(i + 1)
+                    cards['SCEPTER'] += 1
+                    state.linkedPlays[0][2] = newDur
+                    state.durations[moves[i].player].append(newDur)
+                    return
+                else:
+                    # Look for something not already going
+                    for j in range(len(state.linkedPlays)):
+                        plays, cards, current = state.linkedPlays[j]
+                        if not current:
+                            plays.append(i + 1)
+                            cards['SCEPTER'] += 1
                             return
-                # Look for minimal in linkedPlays
-                state.linkedPlays.sort(key=lambda x: len(x[1]))
-                plays, cards, current = state.linkedPlays[0]
-                state.durations[moves[i].player].remove(current)
-                newDur = [cards, 1]
-                plays.append(i + 1)
-                cards['SCEPTER'] += 1
-                state.linkedPlays[0][2] = newDur
-                state.durations[moves[i].player].append(newDur)
-                return
+                    # Look for something minimal (not in linkedPlays)
+                    for j in range(0, i):
+                        secondary = moves[j]
+                        if check(['PLAY'], [subject])(secondary):
+                            if len([x for x in state.linkedPlays
+                                    if j in x[0]]) == 0:
+                                block = Cardstack({secondary: 1, 'SCEPTER': 1})
+                                state.linkedPlays.append([[j, i + 1], block,
+                                                          None])
+                                return
+                    # Look for minimal in linkedPlays
+                    state.linkedPlays.sort(key=lambda x: len(x[1]))
+                    plays, cards, current = state.linkedPlays[0]
+                    state.durations[moves[i].player].remove(current)
+                    newDur = [cards, 1]
+                    plays.append(i + 1)
+                    cards['SCEPTER'] += 1
+                    state.linkedPlays[0][2] = newDur
+                    state.durations[moves[i].player].append(newDur)
+                    return
 
-    elif target == 'STORYTELLER':
-        state.coins = 0
+        elif target == 'STORYTELLER':
+            state.coins = 0
 
-    elif target == 'ENGINEER':
-        if move.indent == 0:
-            def engineer_trash(moves, i, blockLength, state):
-                state.move(moves[i].player, 'INPLAYS', 'TRASH',
-                           moves[i].items[0])
-            exceptions = [Exception(check(['TRASH']),
-                                    set_phase(engineer_trash),
-                                    indents=[0, 1],
-                                    lifespan=blockLength + 1),
-                          Exception(check(['GAIN']),
-                                    set_phase(standard_gains('SUPPLY')),
-                                    indents=[0, 1],
-                                    lifespan=blockLength + 2)]
-        else:
-            exceptions = [deepcopy(exc_inplayTrash)]
-            exceptions[0].indents = [move.indent + 1]
-            exceptions[0].lifespan = blockLength
-        for exc in exceptions:
-            state.exceptions.add(exc)
+        elif target == 'ENGINEER':
+            if move.indent == 0:
+                def engineer_trash(moves, i, blockLength, state):
+                    state.move(moves[i].player, 'INPLAYS', 'TRASH',
+                               moves[i].items[0])
+                exceptions = [Exception(check(['TRASH']),
+                                        set_phase(engineer_trash),
+                                        indents=[0, 1],
+                                        lifespan=blockLength + 1),
+                              Exception(check(['GAIN']),
+                                        set_phase(standard_gains('SUPPLY')),
+                                        indents=[0, 1],
+                                        lifespan=blockLength + 2)]
+            else:
+                exceptions = [deepcopy(exc_inplayTrash)]
+                exceptions[0].indents = [move.indent + 1]
+                exceptions[0].lifespan = blockLength
+            for exc in exceptions:
+                state.exceptions.add(exc)
 
-    elif target == 'PIXIE':
-        exceptions = [Exception(check(['TRASH'], ['PIXIE']),
-                                moveFunct('INPLAYS', 'TRASH'),
-                                priority=2),
-                      Exception(check(['TAKES']), standard_boonhex())]
-        for exc in exceptions:
-            exc.indents = [move.indent + 1]
-            exc.lifespan = blockLength
-            state.exceptions.add(exc)
+        elif target == 'PIXIE':
+            exceptions = [Exception(check(['TRASH'], ['PIXIE']),
+                                    moveFunct('INPLAYS', 'TRASH'),
+                                    priority=2),
+                          Exception(check(['TAKES']), standard_boonhex())]
+            for exc in exceptions:
+                exc.indents = [move.indent + 1]
+                exc.lifespan = blockLength
+                state.exceptions.add(exc)
 
-    elif target == 'CARGO SHIP':
-        state.cargoShips += 1
+        elif target == 'CARGO SHIP':
+            state.cargoShips += 1
 
-    elif target == 'IMPROVE':
-        for life in range(1, len(moves) - i):
-            if moves[life + i].pred == 'NEW TURN':
-                break
-        state.exceptions.add(Exception(check(['TRASH']),
-                                       moveFunct('INPLAYS', 'TRASH'),
-                                       lifespan=life + 1,
-                                       indents=[0]))
+        elif target == 'IMPROVE':
+            for life in range(1, len(moves) - i):
+                if moves[life + i].pred == 'NEW TURN':
+                    break
+            state.exceptions.add(Exception(check(['TRASH']),
+                                           moveFunct('INPLAYS', 'TRASH'),
+                                           lifespan=life + 1,
+                                           indents=[0]))
 
-    if 'k' in Cards[target].types:
-        for newExc in [Exception(knight_selfTrash(target),
-                                 moveFunct('INPLAYS', 'TRASH')),
-                       exc_revealDiscard,
-                       Exception(knight_oppTrash(move.player),
-                                 moveFunct('DECKS', 'TRASH'))]:
-            newExc.lifespan = blockLength
-            newExc.indents = [moves[i].indent + 1]
-            state.exceptions.add(newExc)
+        if 'k' in Cards[target].types:
+            for newExc in [Exception(knight_selfTrash(target),
+                                     moveFunct('INPLAYS', 'TRASH')),
+                           exc_revealDiscard,
+                           Exception(knight_oppTrash(move.player),
+                                     moveFunct('DECKS', 'TRASH'))]:
+                newExc.lifespan = blockLength
+                newExc.indents = [moves[i].indent + 1]
+                state.exceptions.add(newExc)
 
-        if target == 'SIR MICHAEL':
-            newExc = Exception(michael_discard(move.player),
-                               moveFunct('HANDS', 'DISCARDS'),
-                               blockLength, [moves[i].indent + 1], 2)
-            state.exceptions.add(newExc)
+            if target == 'SIR MICHAEL':
+                newExc = Exception(michael_discard(move.player),
+                                   moveFunct('HANDS', 'DISCARDS'),
+                                   blockLength, [moves[i].indent + 1], 2)
+                state.exceptions.add(newExc)
 
-    stayout = get_stayout_duration(moves, i, state)
-    inside = False
-    if stayout:
-        for index, data in enumerate(state.linkedPlays):
-            plays, cards, current = data
-            if i in plays:
-                if current is None or stayout > current[1]:
-                    if current:
-                        state.durations[move.player].remove(current)
-                    newDur = [cards, stayout]
-                    state.durations[move.player].append(newDur)
-                    state.linkedPlays[index][2] = newDur
-                inside = True
-                break
+        stayout = get_stayout_duration(moves, i, state)
+        inside = False
+        if stayout:
+            for index, data in enumerate(state.linkedPlays):
+                plays, cards, current = data
+                if i in plays:
+                    if current is None or stayout > current[1]:
+                        if current:
+                            state.durations[move.player].remove(current)
+                        newDur = [cards, stayout]
+                        state.durations[move.player].append(newDur)
+                        state.linkedPlays[index][2] = newDur
+                    inside = True
+                    break
 
-        if not inside:
-            newDur = [Cardstack({target: 1}), stayout]
-            state.linkedPlays.append([[i], Cardstack({target: 1}), newDur])
-            state.durations[move.player].append(newDur)
+            if not inside:
+                newDur = [Cardstack({target: 1}), stayout]
+                state.linkedPlays.append([[i], Cardstack({target: 1}), newDur])
+                state.durations[move.player].append(newDur)
 
 
 def play_action(moves, i, blockLength, state):
