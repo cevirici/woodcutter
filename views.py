@@ -79,8 +79,9 @@ def plaintext(request, game_id):
     players = log.players.split('~')
 
     parsedLog, supply = unpack(log.log, log.supply)
+    kingdom = '|'.join(['|'.join(row) for row in get_kingdom(supply)])
     story = elaborate_story(players, parsedLog)
-    return HttpResponse('<br>'.join(story))
+    return HttpResponse(kingdom + '<br>' + '<br>'.join(story))
 
 
 def detailed(request, game_id):
