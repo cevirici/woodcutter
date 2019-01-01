@@ -9,6 +9,12 @@ playPreds = ('PLAY', 'PLAY COIN', 'THRONE', 'THRONE GENERIC',
 # -- Standard Exceptions -- #
 
 
+def persistent(exc):
+    newExc = deepcopy(exc)
+    newExc.persistent = True
+    return newExc
+
+
 def always(move):
     return True
 
@@ -654,7 +660,7 @@ def standard_plays(moves, i, blockLength, state):
                 'JESTER': [exc_revealDiscard],
                 'TOURNAMENT': [gainTo('SUPPLY', 'DECKS')],
                 'CARTOGRAPHER': [exc_revealTopdeck, exc_revealDiscard],
-                'DEVELOP': [gainTo('SUPPLY', 'DECKS')],
+                'DEVELOP': [persistent(gainTo('SUPPLY', 'DECKS'))],
                 'DUCHESS': [Exception(check(['TOPDECK']),
                                       moveFunct('DECKS', 'DECKS'),
                                       persistent=True),
