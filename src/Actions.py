@@ -333,6 +333,26 @@ def standard_gains(source, destination='DISCARDS'):
                 destination == 'DISCARDS' else destination
             state.move(moves[i].player, endpoint, 'SUPPLY', moves[i].items[0])
 
+        def fg_react(moves, i, blockLength, state):
+            newExc = deepcopy(checkMove(['GAIN'], 'SUPPLY', 'DECKS',
+                                        ['GOLD']))
+            newExc.lifespan = blockLength + 1
+            newExc.indents = [moves[i].indent]
+            state.exceptions.add(newExc)
+
+        def villa_phase(moves, i, blockLength, state):
+            state.move(moves[i].player, destination, 'HANDS',
+                       moves[i].items[0])
+            state.phase = 1
+
+        # Check for the Changeling lose track message
+        for secondary in range(i + 1, len(moves)):
+            if moves[secondary].indent == moves[i].indent and\
+                    moves[secondary].pred != 'LOSETRACK GENERIC':
+                blockLength = secondary - i
+                break
+
+
         # If default, check for exceptional gain destinations
         if destination == 'DISCARDS':
             for card in target:
@@ -367,18 +387,6 @@ def standard_gains(source, destination='DISCARDS'):
             newExc.lifespan = blockLength
             newExc.indents = [moves[i].indent + 1]
             state.exceptions.add(newExc)
-
-        def fg_react(moves, i, blockLength, state):
-            newExc = deepcopy(checkMove(['GAIN'], 'SUPPLY', 'DECKS',
-                                        ['GOLD']))
-            newExc.lifespan = blockLength + 1
-            newExc.indents = [moves[i].indent]
-            state.exceptions.add(newExc)
-
-        def villa_phase(moves, i, blockLength, state):
-            state.move(moves[i].player, destination, 'HANDS',
-                       moves[i].items[0])
-            state.phase = 1
 
         triggers = {'PROVINCE': [Exception(check(['TRASH'], ["FOOL'S GOLD"]),
                                            fg_react)],
