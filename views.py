@@ -125,34 +125,31 @@ def display(request, game_id, logIndex=0):
     log.valid = gameStates[-1].valid
     log.save()
 
-    story = '~'.join(elaborate_story(players, gameMoves, True))
-    boards = '~'.join([repr(x) for x in gameStates])
     titleString = 'Game {}: {} vs. {}'.format(str(game_id), *players)
-    turnOwners = get_turn_owners(gameStates)
     colors, borders, urls = get_passables()
     stepPoints, turnPoints = get_points(gameMoves)
-    phases = ''.join([str(x) for x in get_phases(gameStates)])
-    kingdomRaw = [[str(Cards[card].index) for card in row]
-                  for row in get_kingdom(supply)]
-    kingdom = '~'.join(['|'.join(x) for x in kingdomRaw])
-    empties = '~'.join([state.empty_piles(get_kingdom(supply)[0])
-                        for state in gameStates])
+    kingdomRaw = get_kingdom(supply)
+    kingdomStr = [[str(Cards[card].index) for card in row]
+                  for row in kingdomRaw]
 
     context = {'logIndex': logIndex,
-               'story': story,
-               'boards': boards,
+               'story': '~'.join(elaborate_story(players, gameMoves, True)),
+               'boards': '~'.join([repr(x) for x in gameStates]),
                'titlestring': titleString,
                'players': players,
-               'turnOwners': turnOwners,
+               'turnOwners': get_turn_owners(gameStates),
                'stepPoints': stepPoints,
                'turnPoints': turnPoints,
                'interiors': colors,
                'borders': borders,
                'urls': urls,
-               'phases': phases,
-               'kingdom': kingdom,
-               'empties': empties,
-               'inplays': '~'.join(get_inplays(gameStates))}
+               'phases': ''.join([str(x) for x in get_phases(gameStates)]),
+               'kingdom': '~'.join(['|'.join(x) for x in kingdomStr]),
+               'empties': '~'.join([state.empty_piles(kingdomRaw[0])
+                                    for state in gameStates]),
+               'inplays': '~'.join(get_inplays(gameStates)),
+               'scores': '~'.join(['|'.join(get_vps(state, kingdomRaw[2]))
+                                   for state in gameStates])}
 
     return render(request, 'woodcutter/display.html', context)
 

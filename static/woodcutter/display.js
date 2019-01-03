@@ -229,6 +229,7 @@ class StoryLine extends React.Component {
 function BaseContainer(props){
     let boardString = boards.split('~')[props.index + 1].split('/')[1];
     let data = boardString.split('|');
+    let scoreData = scores.split('~')[props.index + 1].split('|');
     return  (
         <div className='base-container'>
             <div className='controls'>
@@ -271,8 +272,8 @@ function BaseContainer(props){
                         <div className='bot-label noselect'>{data[10]}</div>
                     </div>
                     <div className='double-label'>
-                        <div className='top-label noselect'>{data[11]}</div>
-                        <div className='bot-label noselect'>{data[12]}</div>
+                        <div className='top-label noselect'>{scoreData[11]}</div>
+                        <div className='bot-label noselect'>{scoreData[12]}</div>
                     </div>
                 </div>
             </div>

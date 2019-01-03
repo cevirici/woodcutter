@@ -83,8 +83,7 @@ class GameState:
                             *[str(x) for x in self.debt],
                             *[str(x) for x in self.coffers],
                             *[str(x) for x in self.villagers],
-                            *[str(x) for x in self.vps],
-                            *[str(x) for x in self.score]])
+                            *[str(x) for x in self.vps]])
         return outstr
 
     def __str__(self):
@@ -160,16 +159,6 @@ Score: {}<br>'
                 outlist += self[zone]
 
         return outlist
-
-    @property
-    def score(self):
-        output = []
-        for player in range(len(self['DECKS'])):
-            playerDeck = self.crunch(GameState.playerZones, [player])
-            output.append(sum([Cards[card].worth(self, player) *
-                               playerDeck[card]
-                               for card in playerDeck]))
-        return output
 
     def export(self):
         zoneStrings = [[repr(part) for part in self.boardState[zone]]
