@@ -85,7 +85,8 @@ def orchard_worth(state, player):
     estates = 4 if state.inherited[player] != 'NOTHING' and\
         playerDeck['ESTATE'] >= 3 else 0
     return len([item for item in playerDeck if
-                'a' in Cards[item].types and player[item] >= 3]) * 4 + estates
+                'a' in Cards[item].types and
+                playerDeck[item] >= 3]) * 4 + estates
 
 
 def palace_worth(state, player):

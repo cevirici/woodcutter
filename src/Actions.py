@@ -439,10 +439,12 @@ def buy_action(moves, i, blockLength, state):
 
     if move.indent == 0:
         state.phase = 2
-        state.buys -= len(move.items[0])
+        state.buys -= sum([move.items[0][card]
+                           if 'p' not in Cards[card].types else 1
+                           for card in move.items[0]])
 
-    costs = [[move.items[0][card] * i for i in
-              get_cost(card, move.player, state)]
+    costs = [[(move.items[0][card] if 'p' not in Cards[card].types else 1) *
+              i for i in get_cost(card, move.player, state)]
              for card in move.items[0]]
     cost = [sum([x[i] for x in costs if len(x) > i]) for i in range(2)]
     state.coins -= cost[0]
