@@ -50,3 +50,15 @@ def get_blocklengths(parsedLog):
         blockLengths.append(1)
 
     return blockLengths
+
+
+def get_vps(state, kingdom):
+    output = []
+    landmarks = [card for card in kingdom if 'l' in Cards[card].types]
+    for player in range(len(state['DECKS'])):
+        playerDeck = state.crunch(GameState.playerZones, [player])
+        entities = playerDeck.cardList() + landmarks
+        output.append(sum([Cards[card].worth(state, player) * playerDeck[card]
+                           for card in entities]))
+
+    return output
