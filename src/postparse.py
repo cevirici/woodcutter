@@ -61,4 +61,4 @@ def get_vps(state, kingdom):
         output.append(sum([Cards[card].worth(state, player) * playerDeck[card]
                            for card in entities]))
 
-    return output
+    return [str(x) for x in output]
