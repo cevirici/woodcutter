@@ -223,10 +223,11 @@ body {
 }
 
 
-.card-small-inner {
+.card-small-inner, .card-mid-inner, .card-big-inner {
     width: 100%;
     height: 100%;
     background-size: cover;
+    background-position: center;
 }
 
 
@@ -462,26 +463,12 @@ body {
 }
 
 
-.card-mid-inner {
-    width: 100%;
-    height: 100%;
-    background-size: cover;
-}
-
-
 .card-big {
     width: 14.3vh;
     height: 10.5vh;
     padding: 12px 0px 8px 0px;
     margin: 15px;
     box-shadow: 0.3vh 0.3vh 0.3vh rgba(0, 0, 0, .6);
-}
-
-
-.card-big-inner {
-    width: 100%;
-    height: 100%;
-    background-size: cover;
 }
 
 
