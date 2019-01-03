@@ -272,8 +272,8 @@ function BaseContainer(props){
                         <div className='bot-label noselect'>{data[10]}</div>
                     </div>
                     <div className='double-label'>
-                        <div className='top-label noselect'>{scoreData[11]}</div>
-                        <div className='bot-label noselect'>{scoreData[12]}</div>
+                        <div className='top-label noselect'>{scoreData[0]}</div>
+                        <div className='bot-label noselect'>{scoreData[1]}</div>
                     </div>
                 </div>
             </div>
