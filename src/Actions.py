@@ -482,8 +482,8 @@ def buy_action(moves, i, blockLength, state):
                 'SCOUTING PARTY': [exc_revealDiscard, exc_revealTopdeck],
                 'ANNEX': [Exception(check(['SHUFFLE']), empty)],
                 'SALT THE EARTH': [exc_supplyTrash],
-                'SUMMON': [checkMove(['SET ASIDE'], 'SUPPLY', 'OTHERS'),
-                           Exception(check(['GAIN']), empty)]
+                'SUMMON': [checkMove(['SET ASIDE'], get_gain_dest(target),
+                           'OTHERS')]
                 }
 
     if target in triggers:
