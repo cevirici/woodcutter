@@ -1012,9 +1012,12 @@ def standard_plays(moves, i, blockLength, state):
                 state.exceptions.add(newExc)
 
             if target == 'SIR MICHAEL':
+                for life in range(1, blockLength):
+                    if moves[i + life].pred == 'REVEAL':
+                        break
                 newExc = Exception(michael_discard(move.player),
                                    moveFunct('HANDS', 'DISCARDS'),
-                                   blockLength, [moves[i].indent + 1], 2)
+                                   blockLength, [moves[i].indent + 1], life)
                 state.exceptions.add(newExc)
 
         stayout = get_stayout_duration(moves, i, state)
