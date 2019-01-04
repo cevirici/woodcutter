@@ -240,6 +240,7 @@ def turn_start_action(moves, i, blockLength, state):
                     plays = [secondary, index]
                     block = [plays, Cardstack({target: 1, 'GHOST': 1}), None]
                     state.linkedPlays.append(block)
+                    break
 
                 elif secondary.indent == throneMove.indent - 1:
                     break
@@ -1076,6 +1077,26 @@ def throne_generic(moves, i, blockLength, state):
     if moves[i].items[1].primary == 'CITADEL':
         if moves[i].indent == 0:
             state.phase = 1
+
+    target = moves[i].items[0].primary
+    for index in range(i - 1, 0, -1):
+        secondary = moves[index]
+        if secondary.pred == 'PLAY' and \
+                secondary.items[0].primary == target:
+            existingBlock = False
+            for block in state.linkedPlays:
+                if index in block[0]:
+                    block[0].append(i)
+                    existingBlock = True
+                    break
+
+            if not existingBlock:
+                block = [[i, index], Cardstack({target: 1}), None]
+                state.linkedPlays.append(block)
+            break
+
+        elif secondary.indent == moves[i].indent - 1:
+            break
     standard_plays(moves, i, blockLength, state)
 
 
