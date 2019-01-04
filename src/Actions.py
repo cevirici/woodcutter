@@ -1525,12 +1525,8 @@ def enchant_action(moves, i, blocklength, state):
     if get_stayout_duration(moves, i - 1, state):
         for j in range(len(state.linkedPlays)):
             if i - 1 in state.linkedPlays[j][0]:
+                state.durations[moves[i].player].remove(state.linkedPlays[2])
                 state.linkedPlays[j][2] = None
-                break
-
-        for block in state.durations[moves[i].player]:
-            if moves[i].items[0].primary in block[0]:
-                state.durations[moves[i].player].remove(block)
                 break
 
     state.exceptions.add(enchantedExc)
