@@ -299,15 +299,14 @@ def standard_gains(source, destination='DISCARDS'):
             state.move(moves[i].player, destination, 'OTHERS',
                        moves[i].items[0])
             twinned = sum([block[1]['CARGO SHIP'] for block in
-                           state.durations[moves[i].player]])
+                           state.linkedPlays])
             soloShips = state.cargoShips - twinned
             block = [Cardstack({'CARGO SHIP': 1}), 1]
             if state.cargoCount < soloShips:
                 state.durations[moves[i].player].append(block)
             else:
                 twinCapacity = sum([len(block[0]) for block in
-                                    state.durations[moves[i].player]
-                                    if block[2]])
+                                    state.linkedPlays if block[2]])
                 if twinCapacity + soloShips == state.cargoCount:
                     for j in range(len(state.linkedPlays)):
                         plays, cards, ship = state.linkedPlays[j]
