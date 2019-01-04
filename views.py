@@ -29,7 +29,7 @@ def logSearch(request):
 
 
 def random(request):
-    logs = GameLog.objects.all()
+    logs = GameLog.objects.filter(valid=True)
     i = randint(0, len(logs) - 1)
     gameIndex = logs[i].game_id
     return HttpResponseRedirect(reverse('woodcutter:display',
@@ -223,35 +223,6 @@ def find_logs(request):
         outputLogs[i] = '<br>' + outputLogs[i]
     outputLogString = ','.join(outputLogs)
     return HttpResponse(outputLogString)
-
-
-@csrf_exempt
-def edit_log(request):
-    gameid = request.POST['gameid']
-    lineNumber = int(request.POST['lineNumber'])
-    rawinput = request.POST['input']
-
-    log = get_object_or_404(GameLog, game_id=gameid)
-    logStrings = log.log.split('~')
-    players = log.players.split('~')
-
-    newIndent = len(re.match('^>*', rawinput).group(0))
-    rawinput = rawinput[newIndent:]
-    newLine = parse_line_contents(rawinput)
-    newLine.indent = newIndent
-    newLine.pred = standardPreds.index(newLine.pred)
-    newLine.player = players.index(newLine.player)
-    returnData = '~'.join(elaborate_line(players, newLine))
-    returnData += '~{}'.format(newLine.indent)
-
-    newLine.pred = '{:0>2}'.format(hex(newLine.pred)[2:])
-    newLine.player = hex(newLine.player + 1)[2:]
-
-    logStrings[lineNumber] = str(newLine)
-
-    log.log = '~'.join(logStrings)
-    log.save()
-    return HttpResponse(returnData)
 
 
 def error_404(request):

@@ -8,7 +8,6 @@ urlpatterns = [
     path('input', views.inputFields, name='inputform'),
     path('submit', views.submit, name='submit'),
     path('errorlist', views.logSearch, name='errorlist'),
-    path('editlog', views.edit_log, name='editlog'),
     path('random', views.random, name='random'),
     path('logsearch', views.logSearch, name='searchPage'),
     path('findlogs', views.find_logs, name='findlogs'),
