@@ -200,7 +200,8 @@ def turn_start_action(moves, i, blockLength, state):
                   Exception(check(['GAIN']), start_gain),
                   Exception(check(['PLAY']), move_play('OTHERS')),
                   Exception(check(['REVEAL']), start_piazza),
-                  Exception(boon_check, boon_action, priority=0)]
+                  Exception(boon_check, boon_action, priority=0),
+                  Exception(check(['THRONE']), ghost_throne)]
     for exc in exceptions:
         newExc = deepcopy(exc)
         newExc.persistent = True
@@ -227,6 +228,22 @@ def turn_start_action(moves, i, blockLength, state):
         index += 1
 
     state.amuletSilvers = amuletPlays
+
+    # Ghost linkages
+    for throneIndex in range(i + 1, i + blockLength):
+        throneMove = moves[throneIndex]
+        if throneMove.pred == 'THRONE':
+            target = throneMove.items[0].primary
+            for index in range(throneIndex - 1, i, -1):
+                secondary = moves[index]
+                if secondary.pred == 'PLAY' and \
+                        secondary.items[0].primary == target:
+                    plays = [secondary, index]
+                    block = [plays, Cardstack({target: 1, 'GHOST': 1}), None]
+                    state.linkedPlays.append(block)
+
+                elif secondary.indent == throneMove.indent - 1:
+                    break
 
 
 Preds['TURN START'].action = turn_start_action
@@ -548,7 +565,8 @@ def get_stayout_duration(moves, i, state):
     if target in ['CARAVAN', 'FISHING VILLAGE', 'LIGHTHOUSE', 'MERCHANT SHIP',
                   'WHARF', 'AMULET', 'BRIDGE TROLL', 'CARAVAN GUARD',
                   'DUNGEON', 'HAUNTED WOODS', 'SWAMP HAG', 'ENCHANTRESS',
-                  'COBBLER', 'DEN OF SIN', 'GHOST TOWN' 'GUARDIAN', 'RAIDER']:
+                  'COBBLER', 'DEN OF SIN', 'GHOST TOWN' 'GUARDIAN', 'RAIDER',
+                  'GHOST']:
         return 1
 
     elif target in ['CHAMPION', 'HIRELING']:
