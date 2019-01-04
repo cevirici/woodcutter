@@ -66,6 +66,8 @@ def get_vps(state, kingdom):
                      if Cards[card].worth(state, player) != 0])
         if state.vps[player] != 0:
             entries.append([state.vps[player], 1, 0])
+
+        entries.sort(key=lambda x: x[2])
         output.append(entries)
 
     return ['/'.join(['|'.join([str(x) for x in entry])
