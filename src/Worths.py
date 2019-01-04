@@ -65,7 +65,7 @@ def keep_worth(state, player):
     playerDeck = state.crunch(GameState.playerZones, [player])
     otherDeck = state.crunch(GameState.playerZones, [1 - player])
 
-    return 5 * len([card for card in playerDeck if 't' in Cards[card] and
+    return 5 * len([card for card in playerDeck if 't' in Cards[card].types and
                     playerDeck[card] >= otherDeck[card]])
 
 
