@@ -998,7 +998,7 @@ def standard_plays(moves, i, blockLength, state):
                     hasPlayed = 2
                     break
             if hasPlayed == 1:
-                bugExc = Exception(check(['PLAY'], target),
+                bugExc = Exception(check(['PLAY'], [target]),
                                    set_phase(move_play('DISCARDS')),
                                    indents=[move.indent],
                                    lifespan=blockLength + 1)
