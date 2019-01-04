@@ -999,7 +999,8 @@ def standard_plays(moves, i, blockLength, state):
             if hasPlayed == 1:
                 bugExc = Exception(check(['PLAY']),
                                    set_phase(move_play('DISCARDS')),
-                                   indents=[0], lifespan=blockLength + 1)
+                                   indents=[move.indent],
+                                   lifespan=blockLength + 1)
                 state.exceptions.add(bugExc)
 
         if 'k' in Cards[target].types:
