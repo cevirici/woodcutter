@@ -443,7 +443,7 @@ body {
 .row {
     height: 6vh;
     grid-column: 1 / 2;
-    overflow: scroll;
+    overflow-x: scroll;
     scrollbar-color: transparent transparent;
 }
 
