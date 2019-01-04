@@ -483,7 +483,7 @@ def buy_action(moves, i, blockLength, state):
                 'ANNEX': [Exception(check(['SHUFFLE']), empty)],
                 'SALT THE EARTH': [exc_supplyTrash],
                 'SUMMON': [checkMove(['SET ASIDE'], get_gain_dest(target),
-                           'OTHERS')]
+                                     'OTHERS')]
                 }
 
     if target in triggers:
@@ -780,7 +780,8 @@ def standard_plays(moves, i, blockLength, state):
                                                  ["THE SUN'S GIFT"]), empty,
                                            priority=2)],
                 'CRYPT': [checkMove(['SET ASIDE'], 'INPLAYS', 'OTHERS')],
-                'MONASTERY': [Exception(check(['TRASH']), monastery_trash)],
+                'MONASTERY': [persistent(Exception(check(['TRASH']),
+                                                   monastery_trash))],
                 'NECROMANCER': [Exception(check(['PLAY']), standard_plays)],
                 'NIGHT WATCHMAN': [exc_revealDiscard, exc_revealTopdeck],
                 'TRAGIC HERO': [exc_inplayTrash],
