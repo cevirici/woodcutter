@@ -953,7 +953,8 @@ def standard_plays(moves, i, blockLength, state):
         elif target == 'VASSAL':
             for secondary in moves[i + 1: i + blockLength]:
                 if secondary.pred == 'DISCARD':
-                    bugExc = Exception(check(['PLAY']), move_play('DISCARDS'),
+                    bugExc = Exception(check(['PLAY']),
+                                       set_phase(move_play('DISCARDS')),
                                        indents=[0], lifespan=blockLength + 1)
                     state.exceptions.add(bugExc)
                     break
