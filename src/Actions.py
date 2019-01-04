@@ -961,13 +961,16 @@ def standard_plays(moves, i, blockLength, state):
             state.exceptions.add(bugExc)
 
         elif target == 'VASSAL':
+            hasPlayed = False
             for secondary in moves[i + 1: i + blockLength]:
-                if secondary.pred == 'DISCARD':
-                    bugExc = Exception(check(['PLAY']),
-                                       set_phase(move_play('DISCARDS')),
-                                       indents=[0], lifespan=blockLength + 1)
-                    state.exceptions.add(bugExc)
+                if secondary.pred == 'PLAY':
+                    hasPlayed = True
                     break
+            if not hasPlayed:
+                bugExc = Exception(check(['PLAY']),
+                                   set_phase(move_play('DISCARDS')),
+                                   indents=[0], lifespan=blockLength + 1)
+                state.exceptions.add(bugExc)
 
         if 'k' in Cards[target].types:
             for newExc in [Exception(knight_selfTrash(target),
