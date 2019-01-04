@@ -179,12 +179,28 @@ def turn_start_action(moves, i, blockLength, state):
     def testo(moves, i, blockLength, state):
         state.move(moves[i].player, 'OTHERS', 'HANDS', moves[i].items[0])
 
+    def boon_check(move):
+        return move.pred == 'TAKES' and \
+            'b' in Cards[move.items[0].primary].types
+
+    def boon_action(moves, i, blockLength, state):
+        for life in range(1, len(moves) - i):
+            secondary = moves[i + life]
+            if secondary.pred == 'DISCARD' and secondary.items[0].primary() ==\
+                    moves[i].items[0].primary():
+                break
+        state.exceptions.add(Exception(check(['GAIN']),
+                                       standard_gains('SUPPLY'),
+                                       lifespan=life,
+                                       priority=2))
+
     state.phase = 0
     exceptions = [checkMove(['PUT INHAND'], 'OTHERS', 'HANDS'),
                   checkMove(['INHAND GENERIC'], 'OTHERS', 'HANDS'),
-                  Exception(check(['GAIN']), start_gain, priority=0.5),
+                  Exception(check(['GAIN']), start_gain),
                   Exception(check(['PLAY']), move_play('OTHERS')),
-                  Exception(check(['REVEAL']), start_piazza)]
+                  Exception(check(['REVEAL']), start_piazza),
+                  Exception(boon_check, boon_action, priority=0)]
     for exc in exceptions:
         newExc = deepcopy(exc)
         newExc.persistent = True
