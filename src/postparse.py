@@ -63,6 +63,8 @@ def get_vps(state, kingdom):
                    if Cards[card].worth(state, player) > 0]
         entries += ([[1, Cards[card].worth(state, player),
                       Cards[card].index] for card in landmarks])
+        if state.vps[player] > 0:
+            entries.append([state.vps[player], 1, 0])
         output.append(entries)
 
     return ['/'.join(['|'.join([str(x) for x in entry])

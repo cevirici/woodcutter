@@ -1,4 +1,4 @@
-0,Argument,Argument,Argument,0,0,666666,666666,
+0,VP Chips,VP Chips,VP Chips,0,0,05830E,2AC415,,1
 1,nothing,other cards,nothing,0,-1,666666,666666,
 2,card,cards,a card,0,-1,666666,1528b7,
 3,Curse,Curses,a Curse,0,-1,b571b3,a2b8b8,,-1
