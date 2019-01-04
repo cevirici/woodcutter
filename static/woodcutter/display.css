@@ -450,6 +450,9 @@ body {
     scrollbar-color: transparent transparent;
     scrollbar-width: none;
 }
+.row::-webkit-scrollbar {
+    display: none;
+}
 
 .totals {
     height: 6vh;
