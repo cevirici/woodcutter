@@ -166,8 +166,6 @@ Score: {}<br>'
         return zoneStrings
 
     def empty_piles(self, supply):
-        supply += ['COPPER', 'SILVER', 'GOLD', 'ESTATE', 'DUCHY', 'PROVINCE',
-                   'CURSE']
         pairs = {'ENCAMPMENT': ['ENCAMPMENT', 'PLUNDER'],
                  'PATRICIAN': ['PATRICIAN', 'EMPORIUM'],
                  'SETTLERS': ['SETTLERS', 'BUSTLING VILLAGE'],
