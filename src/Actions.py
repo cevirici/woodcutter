@@ -200,8 +200,7 @@ def turn_start_action(moves, i, blockLength, state):
                   Exception(check(['GAIN']), start_gain),
                   Exception(check(['PLAY']), move_play('OTHERS')),
                   Exception(check(['REVEAL']), start_piazza),
-                  Exception(boon_check, boon_action, priority=0),
-                  Exception(check(['THRONE']), ghost_throne)]
+                  Exception(boon_check, boon_action, priority=0)]
     for exc in exceptions:
         newExc = deepcopy(exc)
         newExc.persistent = True
