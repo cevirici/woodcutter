@@ -993,11 +993,12 @@ def standard_plays(moves, i, blockLength, state):
             for secondary in moves[i + 1: i + blockLength]:
                 if secondary.pred == 'DISCARD':
                     hasPlayed = 1
+                    target = secondary.items[0].primary
                 elif secondary.pred == 'PLAY':
                     hasPlayed = 2
                     break
             if hasPlayed == 1:
-                bugExc = Exception(check(['PLAY']),
+                bugExc = Exception(check(['PLAY'], target),
                                    set_phase(move_play('DISCARDS')),
                                    indents=[move.indent],
                                    lifespan=blockLength + 1)
