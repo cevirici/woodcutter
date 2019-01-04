@@ -422,7 +422,7 @@ body {
 }
 
 
-.icon-row, .label-row, .row{
+.icon-row, .label-row{
     display: flex;
     justify-content: space-around;
     align-items: center;
@@ -441,6 +441,9 @@ body {
 
 
 .row {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
     height: 6vh;
     grid-column: 1 / 2;
     overflow-x: scroll;
