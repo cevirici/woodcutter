@@ -334,7 +334,8 @@ def standard_gains(source, destination='DISCARDS'):
 
         def innovation_check(move):
             return move.pred == 'SET ASIDE' and \
-                'b' not in Cards[move.items[0].primary].types
+                'b' not in Cards[move.items[0].primary].types and\
+                move.items[0].primary == target
 
         def innovation_action(moves, i, blockLength, state):
             target = moves[i].items[0].primary
