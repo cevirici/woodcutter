@@ -439,6 +439,15 @@ def standard_gains(source, destination='DISCARDS'):
                 newExc.indents = [moves[i].indent + 1]
                 state.exceptions.add(newExc)
 
+        if 'ROCKS' in moves[i].items[0]:
+            if state.phase == 2:
+                newExc = gainTo('SUPPLY', 'DECKS')
+            else:
+                newExc = gainTo('SUPPLY', 'HANDS')
+            newExc.lifespan = blockLength
+            newExc.indents = [moves[i].indent + 1]
+            state.exceptions.add(newExc)
+
     return out_function
 
 
