@@ -148,7 +148,7 @@ def display(request, game_id, logIndex=0):
                'empties': '~'.join([state.empty_piles(kingdomRaw[0])
                                     for state in gameStates]),
                'inplays': '~'.join(get_inplays(gameStates)),
-               'scores': '~'.join(['|'.join(get_vps(state, kingdomRaw[2]))
+               'scores': '~'.join([' '.join(get_vps(state, kingdomRaw[2]))
                                    for state in gameStates])}
 
     return render(request, 'woodcutter/display.html', context)
