@@ -188,6 +188,6 @@ Score: {}<br>'
                 if sum([self['SUPPLY'][subcard]
                         for subcard in pairs[card]]) == 0:
                     output.append(card)
-            elif self['SUPPLY'][card] == 0:
+            elif self['SUPPLY'][card] in [-1, 0]:
                 output.append(card)
         return '|'.join([str(Cards[card].index) for card in output])
