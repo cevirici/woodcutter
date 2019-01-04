@@ -128,7 +128,7 @@ def display(request, game_id, logIndex=0):
     titleString = 'Game {}: {} vs. {}'.format(str(game_id), *players)
     colors, borders, urls = get_passables()
     stepPoints, turnPoints = get_points(gameMoves)
-    kingdomRaw, baseKingdom = get_kingdom(supply)
+    kingdomRaw = get_kingdom(supply)
     kingdomStr = [[str(Cards[card].index) for card in row]
                   for row in kingdomRaw]
 
