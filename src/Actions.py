@@ -950,6 +950,14 @@ def standard_plays(moves, i, blockLength, state):
                                lifespan=blockLength + 1)
             state.exceptions.add(bugExc)
 
+        elif target == 'VASSAL':
+            for secondary in moves[i + 1: i + blockLength]:
+                if secondary.pred == 'DISCARD':
+                    bugExc = Exception(check(['PLAY']), move_play('DISCARDS'),
+                                       indents=[0], lifespan=blockLength + 1)
+                    state.exceptions.add(bugExc)
+                    break
+
         if 'k' in Cards[target].types:
             for newExc in [Exception(knight_selfTrash(target),
                                      moveFunct('INPLAYS', 'TRASH')),
