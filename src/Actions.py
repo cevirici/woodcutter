@@ -281,6 +281,8 @@ def standard_gains(source, destination='DISCARDS'):
         if move.indent == 0:
             state.phase = 2
 
+        blockEnd = i + blockLength
+
         def move_target(endpoint):
             def out_function(moves, i, blockLength, state):
                 source = get_gain_dest(target.primary) if \
@@ -326,7 +328,7 @@ def standard_gains(source, destination='DISCARDS'):
             state.move(moves[i].player, endpoint, 'OTHERS', moves[i].items[0])
             state.exceptions.add(Exception(check(['PLAY']),
                                            move_play('OTHERS'),
-                                           lifespan=2,
+                                           lifespan=blockEnd - i,
                                            indents=[moves[i].indent]))
 
         def changeling_return(moves, i, blockLength, state):
