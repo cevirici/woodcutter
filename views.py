@@ -145,7 +145,7 @@ def display(request, game_id, logIndex=0):
                'urls': urls,
                'phases': ''.join([str(x) for x in get_phases(gameStates)]),
                'kingdom': '~'.join(['|'.join(x) for x in kingdomStr]),
-               'empties': '~'.join([state.empty_piles(kingdomRaw[0])
+               'empties': '~'.join([state.empty_piles(supply)
                                     for state in gameStates]),
                'inplays': '~'.join(get_inplays(gameStates)),
                'scores': '~'.join([' '.join(get_vps(state, kingdomRaw[2]))
