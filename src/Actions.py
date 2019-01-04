@@ -636,6 +636,9 @@ def standard_plays(moves, i, blockLength, state):
             return move.pred == 'DISCARD' and move.player != knightPlayer
         return out_function
 
+    def settler_bug_check(move):
+        return move.indent == 0 and move.pred == 'PUT INHAND'
+
     triggers = {'ARTISAN': [gainTo('SUPPLY', 'HANDS')],
                 'BANDIT': [exc_revealTrash, exc_revealDiscard],
                 'BUREAUCRAT': [gainTo('SUPPLY', 'DECKS')],
@@ -939,6 +942,13 @@ def standard_plays(moves, i, blockLength, state):
 
         elif target == 'CARGO SHIP':
             state.cargoShips += 1
+
+        elif target == 'SETTLERS':
+            bugExc = Exception(settler_bug_check,
+                               moveFunct('DISCARDS', 'HANDS'),
+                               indents=[0],
+                               lifespan=blockLength + 1)
+            state.exceptions.add(bugExc)
 
         if 'k' in Cards[target].types:
             for newExc in [Exception(knight_selfTrash(target),
