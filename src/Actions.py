@@ -334,7 +334,8 @@ def standard_gains(source, destination='DISCARDS'):
             target = moves[i].items[0].primary
             endpoint = get_gain_dest(target) if \
                 destination == 'DISCARDS' else destination
-            state.move(moves[i].player, endpoint, 'SUPPLY', moves[i].items[0])
+            if 's' not in Cards[target].types:
+                state.move(moves[i].player, endpoint, 'SUPPLY', moves[i].items[0])
 
         def fg_react(moves, i, blockLength, state):
             newExc = deepcopy(checkMove(['GAIN'], 'SUPPLY', 'DECKS',
@@ -1198,7 +1199,9 @@ Preds['SHUFFLE'].action = shuffle_action
 
 def return_to_action(moves, i, blockLength, state):
     move = moves[i]
-    if move.items[0].primary == 'ENCAMPMENT':
+    if move.items[0].primary == 'ENCAMPMENT' or \
+            (state.inherited[move.player] == 'ENCAMPMENT' and
+             move.items[0].primary == 'ESTATE'):
         state.move(moves[i].player, 'OTHERS', 'SUPPLY', move.items[0])
     else:
         state.move(moves[i].player, 'INPLAYS', 'SUPPLY', move.items[0])
