@@ -537,6 +537,14 @@ def get_stayout_duration(moves, i, state):
     target = move.items[0].primary
     if target == 'ESTATE':
         target = state.inherited[move.player]
+
+    # Check for enchanted
+    for secondary in moves[i + 1:]:
+        if secondary.pred == 'ENCHANTED':
+            return 0
+        if secondary.indent == 0:
+            break
+
     if target in ['CARAVAN', 'FISHING VILLAGE', 'LIGHTHOUSE', 'MERCHANT SHIP',
                   'WHARF', 'AMULET', 'BRIDGE TROLL', 'CARAVAN GUARD',
                   'DUNGEON', 'HAUNTED WOODS', 'SWAMP HAG', 'ENCHANTRESS',
@@ -1521,13 +1529,6 @@ def enchant_action(moves, i, blocklength, state):
 
     enchantedExc = Exception(always, default_action, end - i + 1,
                              [moves[i].indent], 2, True)
-    # Undo durations staying out
-    if get_stayout_duration(moves, i - 1, state):
-        for j in range(len(state.linkedPlays)):
-            if i - 1 in state.linkedPlays[j][0]:
-                state.durations[moves[i].player].remove(state.linkedPlays[2])
-                state.linkedPlays[j][2] = None
-                break
 
     state.exceptions.add(enchantedExc)
 
