@@ -62,7 +62,8 @@ def get_vps(state, kingdom):
                     Cards[card].index] for card in playerDeck
                    if Cards[card].worth(state, player) != 0]
         entries += ([[1, Cards[card].worth(state, player),
-                      Cards[card].index] for card in landmarks])
+                      Cards[card].index] for card in landmarks
+                     if Cards[card].worth(state, player) != 0])
         if state.vps[player] != 0:
             entries.append([state.vps[player], 1, 0])
         output.append(entries)
