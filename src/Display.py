@@ -32,6 +32,7 @@ def get_phases(states):
 
 def get_kingdom(supply):
     output = [[], [], []]
+    baseKingdom = []
     pairs = {('DAME ANNA', 'DAME JOSEPHINE', 'DAME MOLLY', 'DAME NATALIE',
               'DAME SYLVIA', 'SIR BAILEY', 'SIR DESTRY', 'SIR MARTIN',
               'SIR MICHAEL', 'SIR VANDER'): 'KNIGHTS',
@@ -48,11 +49,13 @@ def get_kingdom(supply):
         if (supply[card] > 1 and Cards[card].supply_type != -1) or \
                 Cards[card].supply_type == 2:
             output[Cards[card].supply_type].append(card)
+        elif (Cards[card].supply_type == -1):
+            baseKingdom.append(card)
 
     for n in range(len(output)):
         output[n].sort(key=lambda x: (Cards[x].cost, Cards[x].simple_name))
 
-    return output
+    return output, baseKingdom
 
 
 def get_inplays(states):

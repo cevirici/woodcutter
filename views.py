@@ -128,7 +128,8 @@ def display(request, game_id, logIndex=0):
     titleString = 'Game {}: {} vs. {}'.format(str(game_id), *players)
     colors, borders, urls = get_passables()
     stepPoints, turnPoints = get_points(gameMoves)
-    kingdomRaw = get_kingdom(supply)
+    kingdomRaw, baseKingdom = get_kingdom(supply)
+    fullKingdom = baseKingdom + kingdomRaw[0]
     kingdomStr = [[str(Cards[card].index) for card in row]
                   for row in kingdomRaw]
 
@@ -145,7 +146,7 @@ def display(request, game_id, logIndex=0):
                'urls': urls,
                'phases': ''.join([str(x) for x in get_phases(gameStates)]),
                'kingdom': '~'.join(['|'.join(x) for x in kingdomStr]),
-               'empties': '~'.join([state.empty_piles(supply)
+               'empties': '~'.join([state.empty_piles(fullKingdom)
                                     for state in gameStates]),
                'inplays': '~'.join(get_inplays(gameStates)),
                'scores': '~'.join([' '.join(get_vps(state, kingdomRaw[2]))
