@@ -1236,7 +1236,7 @@ Preds['SHUFFLE INTO'].action = moveFunct('DISCARDS', 'DECKS')
 def shuffle_action(moves, i, blockLength, state):
     player = moves[i].player
     # Cleanup
-    if state.phase == 4:
+    if state.phase == 4 and player == state.activePlayer:
         cleanable = state['INPLAYS'][player]
         for stack, life in state.durations[player]:
             if life != 0:
