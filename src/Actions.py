@@ -85,6 +85,8 @@ def standard_trash(source):
                 moves[i + blockLength].items[0].primary in \
                 ['MADMAN', 'MERCENARY']:
             state.move(move.player, 'INPLAYS', 'TRASH', move.items[0])
+        elif move.indent == 0 and state.phase == 4:
+            state.move(move.player, 'INPLAYS', 'TRASH', move.items[0])
         else:
             state.move(move.player, source, 'TRASH', move.items[0])
 
@@ -917,15 +919,6 @@ def standard_plays(moves, i, blockLength, state):
 
         elif target == 'CARGO SHIP':
             state.cargoShips += 1
-
-        elif target == 'IMPROVE':
-            for life in range(1, len(moves) - i):
-                if moves[life + i].pred == 'NEW TURN':
-                    break
-            state.exceptions.add(Exception(check(['TRASH']),
-                                           moveFunct('INPLAYS', 'TRASH'),
-                                           lifespan=life + 1,
-                                           indents=[0]))
 
         if 'k' in Cards[target].types:
             for newExc in [Exception(knight_selfTrash(target),
