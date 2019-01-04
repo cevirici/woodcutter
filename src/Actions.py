@@ -182,7 +182,7 @@ def turn_start_action(moves, i, blockLength, state):
     state.phase = 0
     exceptions = [checkMove(['PUT INHAND'], 'OTHERS', 'HANDS'),
                   checkMove(['INHAND GENERIC'], 'OTHERS', 'HANDS'),
-                  Exception(check(['GAIN']), start_gain),
+                  Exception(check(['GAIN']), start_gain, priority=0.5),
                   Exception(check(['PLAY']), move_play('OTHERS')),
                   Exception(check(['REVEAL']), start_piazza)]
     for exc in exceptions:
@@ -335,7 +335,8 @@ def standard_gains(source, destination='DISCARDS'):
             endpoint = get_gain_dest(target) if \
                 destination == 'DISCARDS' else destination
             if 's' not in Cards[target].types:
-                state.move(moves[i].player, endpoint, 'SUPPLY', moves[i].items[0])
+                state.move(moves[i].player, endpoint, 'SUPPLY',
+                           moves[i].items[0])
 
         def fg_react(moves, i, blockLength, state):
             newExc = deepcopy(checkMove(['GAIN'], 'SUPPLY', 'DECKS',
