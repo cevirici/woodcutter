@@ -180,14 +180,14 @@ def turn_start_action(moves, i, blockLength, state):
         state.move(moves[i].player, 'OTHERS', 'HANDS', moves[i].items[0])
 
     def boon_check(move):
-        return move.pred == 'TAKES' and \
+        return move.pred == 'RECEIVE' and \
             'b' in Cards[move.items[0].primary].types
 
     def boon_action(moves, i, blockLength, state):
         for life in range(1, len(moves) - i):
             secondary = moves[i + life]
-            if secondary.pred == 'DISCARD' and secondary.items[0].primary() ==\
-                    moves[i].items[0].primary():
+            if secondary.pred == 'DISCARD' and secondary.items[0].primary ==\
+                    moves[i].items[0].primary or secondary.indent == 0:
                 break
         state.exceptions.add(Exception(check(['GAIN']),
                                        standard_gains('SUPPLY'),
