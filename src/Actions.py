@@ -1377,7 +1377,7 @@ Preds['REPAY DEBT PARTIAL'].action = repay_debt
 
 def gain_coin(moves, i, blockLength, state):
     move = moves[i]
-    state.coins += int(move.arguments[0])
+    state.coins += int(move.arguments[0]) if move.arguments else 1
 
 
 Preds['COINS GENERIC'].action = gain_coin
@@ -1396,22 +1396,24 @@ Preds['LOSE COIN'].action = lose_coin
 
 def get_buy(moves, i, blockLength, state):
     move = moves[i]
-    state.buys += int(move.arguments[0])
+    state.buys += int(move.arguments[0]) if move.arguments else 1
 
 
 Preds['BUYS GENERIC'].action = get_buy
 Preds['BUY GENERIC'].action = get_buy
+Preds['BUY TOKEN'].action = get_buy
 Preds['GET BUYS'].action = get_buy
 Preds['GET BUY'].action = get_buy
 
 
 def get_action(moves, i, blockLength, state):
     move = moves[i]
-    state.actions += int(move.arguments[0])
+    state.actions += int(move.arguments[0]) if move.arguments else 1
 
 
 Preds['ACTIONS GENERIC'].action = get_action
 Preds['ACTION GENERIC'].action = get_action
+Preds['ACTION TOKEN'].action = get_action
 Preds['ACTIONS'].action = get_action
 Preds['ACTION'].action = get_action
 
