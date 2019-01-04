@@ -445,6 +445,7 @@ body {
     grid-column: 1 / 2;
     overflow-x: scroll;
     scrollbar-color: transparent transparent;
+    scrollbar-width: none;
 }
 
 .totals {
