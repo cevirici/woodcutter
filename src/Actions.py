@@ -1015,8 +1015,10 @@ def standard_plays(moves, i, blockLength, state):
                 state.exceptions.add(newExc)
 
             if target == 'SIR MICHAEL':
-                for life in range(1, blockLength):
-                    if moves[i + life].pred == 'REVEAL':
+                life = 1
+                for j in range(1, blockLength):
+                    if moves[i + j].pred == 'REVEAL':
+                        life = j
                         break
                 newExc = Exception(michael_discard(move.player),
                                    moveFunct('HANDS', 'DISCARDS'),
@@ -1326,9 +1328,11 @@ Preds['RETURN'].action = return_action
 
 
 def famine_action(moves, i, blockLength, state):
-    for life in range(1, len(moves) - i):
-        if moves[life + i].pred == 'DISCARD' and\
-                moves[life + i].items[0].primary == 'FAMINE':
+    life = 1
+    for j in range(1, len(moves) - i):
+        if moves[j + i].pred == 'DISCARD' and\
+                moves[j + i].items[0].primary == 'FAMINE':
+            life = j
             break
     newExc = Exception(check(['SHUFFLE']), empty,
                        indents=[moves[i].indent], lifespan=life)
@@ -1355,12 +1359,15 @@ def standard_boonhex(grove=False):
         if target in triggers:
             for exc in triggers[target]:
                 newExc = deepcopy(exc)
-                for life in range(1, len(moves) - i):
-                    secondary = moves[i + life - 1]
+                life = 1
+                for j in range(1, len(moves) - i):
+                    secondary = moves[i + j - 1]
                     if secondary.indent < move.indent:
+                        life = j
                         break
                     elif not grove and (secondary.pred == 'DISCARD' and
                                         secondary.items[0].primary == target):
+                        life = j
                         break
                 newExc.lifespan = life - 1
                 newExc.indents = [moves[i].indent]

@@ -651,7 +651,7 @@ class Table extends React.Component{
                     let column = data[turn];
                     let player = turnOwners[turnPoints[turn + 1]];
                     let active = turn == indexTurn
-                    output.push(<TableTurn data={column} label={turnLabels[turn]} player={player} active={active}/>);
+                    output.push(<TableTurn key={turn} data={column} label={turnLabels[turn]} player={player} active={active}/>);
                 }
             }
         }
@@ -667,7 +667,7 @@ class TableTurn extends React.Component{
     render() {
         let output = [];
         for (let i = 0; i < 2; i++){
-            output.push(<TableCol player={i} cards={this.props.data.split('/')[i]} />);
+            output.push(<TableCol key={i} player={i} cards={this.props.data.split('/')[i]} />);
         }
         let labelClass = 'table-turn-label' + (this.props.player == 0 ? ' first' : ' second');
         if (this.props.active){
@@ -686,10 +686,12 @@ class TableTurn extends React.Component{
 class TableCol extends React.Component{
     render() {
         let output = [];
+        let j = 0;
         for (let stack of this.props.cards.split('+')){
             let [amount, index] = stack.split(':')
             for (let i = 0; i < parseInt(amount); i++){
-                output.push(<MidCard size='table' amount={0} index={parseInt(index, 16)} />);
+                output.push(<MidCard key={j} size='table' amount={0} index={parseInt(index, 16)} />);
+                j++ ;
             }
         }
         let colClass = 'table-col' + (this.props.player == 0 ? ' first' : ' second')
