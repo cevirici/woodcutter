@@ -650,7 +650,7 @@ class Table extends React.Component{
                 if (turn < data.length){
                     let column = data[turn];
                     let player = turnOwners[turnPoints[turn + 1]];
-                    let active = turn == indexTurn
+                    let active = turn == indexTurn - 1;
                     output.push(<TableTurn key={turn} data={column} label={turnLabels[turn]} player={player} active={active}/>);
                 }
             }
