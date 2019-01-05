@@ -502,7 +502,10 @@ body {
 .bottom-tab{
     transition: all 0.5s ease-out;
     top: 100%;
+    width: 100vw;
+    position: absolute;
     transform: translateY(-6vh);
+    pointer-events: none;
 }
 
 .bottom-tab.hovered:not(.active){
@@ -510,13 +513,13 @@ body {
 }
 
 
-.bottom-tab.hovered > .kingdom-tab-icon{
-    filter: drop-shadow(0 0 5px #EFDE1D);
+.bottom-tab.active{
+    transform: translateY(-90vh);
 }
 
 
-.bottom-tab.active{
-    transform: translateY(-85vh);
+.kingdom-tab-icon, .table-tab-icon {
+    pointer-events: all;
 }
 
 
@@ -526,6 +529,11 @@ body {
     height: 8vh;
     background-size: 12vh 8vh;
     position: relative;
+}
+
+
+.bottom-tab.hovered > .kingdom-tab-icon{
+    filter: drop-shadow(0 0 5px #EFDE1D);
 }
 
 
@@ -570,37 +578,110 @@ body {
 /**** Table ****/
 
 .table{
-    width: 80%;
-    height: 100%;
-    position: absolute;
-    top: 0%;
-    display: none;
+    border: 1px solid #3E3B3F;
+    background: rgba(40, 41, 35, 0.8);
+    left: 5%%;
+    width: 60%;
+    height: 85vh;
+    display: flex;
+    position: relative;
+    justify-content: center;
+}
+
+
+.table-turn-container{
+    margin-top: 3%;
+    height: 90%;
+    display: flex;
+    flex-flow: column-reverse;
 }
 
 
 .table-turn{
+    height: 100%;
     display: flex;
     margin: 0px 3px;
 }
 
 
+.table-turn-label{
+    width: 100%;
+    height: 1.8vh;
+    padding-top: 4px;
+    color: #999;
+    font: 1.5vh Bahnschrift;
+    position: relative;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.table-turn-label.first{   
+    background: #210F0F;
+}
+
+.table-turn-label.second{
+    background: #111226;
+}
+
+.table-turn-label.active{
+    color: #FFF;
+    background: #70691A;
+}
+
+
 .table-col{
+    height: 100%;
     display: flex;
     flex-flow: column-reverse nowrap;
 }
 
-
-.card-table {
-    width: 2.3vh;
-    height: 1.6vh;
-    padding: 2px 0px 1px 0px;
-    margin: 2px 1px 1px 1px;
+.table-col.first{   
+    background: rgba(59, 24, 24, 0.4);
 }
 
+.table-col.second{
+    background: rgba(21, 23, 60, 0.4);
+}
+
+
+.card-table {
+    width: 2vh;
+    height: 1.4vh;
+    padding: 1px 0px 1px 0px;
+    margin: 1px 1px 1px 1px;
+}
+
+.card-table:nth-child(5n){
+    margin-top: 3px;
+}
 
 .card-table-inner {
     width: 100%;
     height: 100%;
     background-size: cover;
     background-position: center;
+}
+
+
+.table-tab-icon{
+    bottom: -5px;
+    left: 20%;
+    width: 12vh;
+    height: 8vh;
+    background-size: 12vh 8vh;
+    position: relative;
+}
+
+
+.bottom-tab.hovered > .table-tab-icon{
+    filter: drop-shadow(0 0 5px #EFDE1D);
+}
+
+
+.sad-message{
+    position: absolute;
+    color: #999;
+    font: 1.5vh Bahnschrift;
 }

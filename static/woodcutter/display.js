@@ -196,7 +196,19 @@ class Card extends React.Component {
 
 class MidCard extends Card {
     divStyle() {
-        return {backgroundImage: 'url(' + staticRoot + '/card_images/' + urls[this.props.index] + '.jpg)'}
+        let suffix;
+        switch(this.props.size){
+            case 'big':
+                suffix = '.jpg)';
+            break;
+            case 'mid':
+                suffix = '-mid.jpg)';
+            break;
+            case 'table':
+                suffix = '-tiny.jpg)';
+            break;
+        }
+        return {backgroundImage: 'url(' + staticRoot + '/card_images/' + urls[this.props.index] + suffix}
     }
     render() {
         return (
@@ -527,51 +539,59 @@ class ModeSwitch extends React.Component {
 // Bottoms
 
 class BottomTabs extends React.Component{
-    constructor(props) {
-        super(props);
-        this.state = {'kingdomShow': false, 'kingdomHover': false};
-        this.moveTab = this.moveTab.bind(this);
-    }
-    moveTab(tab, action) {
-        var updater = {};
-        switch (action){
-            case 1:
-                updater[tab + 'Hover'] = true;
-            break;
-            case 2:
-                updater[tab + 'Show'] = !this.state[tab + 'Show'];
-            break;
-            case 3:
-                updater[tab + 'Hover'] = false;
-            break
-        }
-        this.setState(updater);
-    }
     render() {
         return <div className='bottom-tabs'>
-            <Kingdom moveTab={this.moveTab} show={this.state['kingdomShow']} hover={this.state['kingdomHover']} />
-            <Table index={this.props.index}/>
+            <BottomTab inner='kingdom' />
+            <BottomTab inner='table' index={this.props.index}/>
         </div>;
     }
 }
 
 
-class Kingdom extends React.Component{
+class BottomTab extends React.Component{
     constructor(props) {
         super(props);
+        this.state = {hovered: false, showing: false}
         this.hoverAction = this.hoverAction.bind(this);
         this.clickAction = this.clickAction.bind(this);
         this.leaveAction = this.leaveAction.bind(this);
     }
     hoverAction(){
-        this.props.moveTab('kingdom', 1);
+        this.setState({hovered: true});
     }
     leaveAction(){
-        this.props.moveTab('kingdom', 3);
+        this.setState({hovered: false});
     }
     clickAction(){
-        this.props.moveTab('kingdom', 2);
+        this.setState({showing: !this.state.showing});
     }
+    render() {
+        let classes = 'bottom-tab';
+        let inner;
+        if (this.state.hovered){
+                classes += ' hovered';
+        }
+        if (this.state.showing){
+                classes += ' active';
+        }
+        switch (this.props.inner){
+            case 'kingdom':
+                inner = <Kingdom showing={this.state.showing} />;
+            break;
+            case 'table':
+                inner = <Table index={this.props.index} showing={this.state.showing}/>;
+            break;
+        }
+        return <div className={classes}>
+            <img className={this.props.inner + '-tab-icon'} onClick={this.clickAction} onMouseOver={this.hoverAction} onMouseLeave={this.leaveAction}
+             src={ staticRoot + "/hud-icons/" + this.props.inner + ".png" } />
+            {inner}
+        </div>
+    }
+}
+
+
+class Kingdom extends React.Component{
     render() {
         let rows = kingdom.split('~');
         let output = [];
@@ -588,19 +608,9 @@ class Kingdom extends React.Component{
             output.push(<div className='kingdom-container' key={i}> {rowDat} </div>);
             i++ ;
         }
-        let classes = 'bottom-tab';
-        if (this.props.hover){
-                classes += ' hovered';
-        }
-        if (this.props.show){
-                classes += ' active';
-        }
-        return  <div className={classes}>
-                    <img className='kingdom-tab-icon' onClick={this.clickAction} onMouseOver={this.hoverAction} onMouseLeave={this.leaveAction} src={ staticRoot + "/hud-icons/kingdom.png" } />
-                    <div className='kingdom-tab' onClick={this.clickAction}>
-                        {output}
-                    </div>
-                </div>
+        return <div className='kingdom-tab'>
+            {output}
+        </div>;
     }
 }
 
@@ -609,25 +619,46 @@ class Table extends React.Component{
     render() {
         let data = turnDecks.split('~');
         let output = [];
+        var turnLabels = [];
         let indexTurn = 0;
-        for (indexTurn = 0; indexTurn < turnPoints.length; indexTurn++){
-            if (turnPoints[indexTurn] > this.props.index){
-                break;
+        if (this.props.showing){
+            var aliases = players.map(x => x.slice(0, 1));
+            if (aliases[0] == aliases[1]){
+                aliases = players.map(x => x.slice(0, 2));
             }
-        }
 
-        let lowBound = indexTurn - 5;
-        lowBound = (lowBound > data.length - 11 ? data.length - 11 : lowBound);
-        lowBound = (lowBound < 0 ? 0 : lowBound);
-        for (let turn = lowBound; turn < lowBound + 10; turn++){
-            if (turn < data.length){
-                let column = data[turn];
-                output.push(<TableTurn data={column} />);
+            let i = 0;
+            let last = 1;
+            for (let turn of turnPoints){
+                if (last != 0 && turnOwners[turn + 1] == 0){
+                    i++ ;
+                }
+                turnLabels.push(aliases[turnOwners[turn + 1]] + i.toString());
+                last = turnOwners[turn + 1];
+            }
+
+            for (indexTurn = 0; indexTurn < turnPoints.length; indexTurn++){
+                if (turnPoints[indexTurn] > this.props.index){
+                    break;
+                }
+            }
+
+            let lowBound = indexTurn - 8;
+            lowBound = (lowBound > data.length - 17 ? data.length - 17 : lowBound);
+            lowBound = (lowBound < 0 ? 0 : lowBound);
+            for (let turn = lowBound; turn < lowBound + 16; turn++){
+                if (turn < data.length){
+                    let column = data[turn];
+                    let player = turnOwners[turnPoints[turn + 1]];
+                    let active = turn == indexTurn
+                    output.push(<TableTurn data={column} label={turnLabels[turn]} player={player} active={active}/>);
+                }
             }
         }
         return <div className='table'>
-            {output}
-        </div>;
+                <div className='sad-message'>This is under construction - it sucks now but it'll suck less eventually! </div>
+                {output}
+            </div>
     }
 }
 
@@ -638,8 +669,15 @@ class TableTurn extends React.Component{
         for (let i = 0; i < 2; i++){
             output.push(<TableCol player={i} cards={this.props.data.split('/')[i]} />);
         }
-        return <div className='table-turn'>
-            {output}
+        let labelClass = 'table-turn-label' + (this.props.player == 0 ? ' first' : ' second');
+        if (this.props.active){
+            labelClass += ' active';
+        }
+        return <div className='table-turn-container'>
+            <div className={labelClass}>{this.props.label}</div>
+            <div className='table-turn'>
+                {output}
+            </div>
         </div>;
     }
 }
@@ -654,8 +692,9 @@ class TableCol extends React.Component{
                 output.push(<MidCard size='table' amount={0} index={parseInt(index, 16)} />);
             }
         }
+        let colClass = 'table-col' + (this.props.player == 0 ? ' first' : ' second')
 
-        return <div className='table-col'>
+        return <div className={colClass}>
             {output}
         </div>;
     }
