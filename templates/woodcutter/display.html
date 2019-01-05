@@ -13,13 +13,10 @@
         }
     </style>
     <link rel="stylesheet" type="text/css" href="{% static 'woodcutter/display.css' %}">
-    <script>var logIndex = {{ logIndex }}; var staticRoot = "{% static 'woodcutter' %}"; var story = "{{ story | safe }}"; var boards = "{{ boards | safe }}"; var titlestring = "{{ titlestring }}"; var players = {{ players | safe }}; var stepPoints = {{ stepPoints | safe }}; var turnPoints = {{ turnPoints | safe }}; var urls = {{ urls | safe }}; var borders = {{ borders | safe }}; var interiors = {{ interiors | safe }}; var turnOwners = {{ turnOwners }}; var kingdom = '{{ kingdom }}'; var phases = '{{ phases }}'; var empties = '{{ empties }}'; var inplays = '{{ inplays }}'; var scores = '{{ scores }}';</script>
+    <script>var logIndex = {{ logIndex }}; var staticRoot = "{% static 'woodcutter' %}"; var story = "{{ story | safe }}"; var boards = "{{ boards | safe }}"; var titlestring = "{{ titlestring }}"; var players = {{ players | safe }}; var stepPoints = {{ stepPoints | safe }}; var turnPoints = {{ turnPoints | safe }}; var urls = {{ urls | safe }}; var borders = {{ borders | safe }}; var interiors = {{ interiors | safe }}; var turnOwners = {{ turnOwners }}; var kingdom = '{{ kingdom }}'; var phases = '{{ phases }}'; var empties = '{{ empties }}'; var inplays = '{{ inplays }}'; var scores = '{{ scores }}'; var turnDecks = '{{ turnDecks | safe }}';</script>
 {% endblock %}
 {% block content %}
     <div class='content'>
-    </div>
-    <div class='bottom-tabs'>
-    </div>
     </div>
     <script type='text/jsx' src="{% static 'woodcutter/display.js' %}"></script>
 {% endblock %}

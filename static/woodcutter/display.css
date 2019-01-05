@@ -494,6 +494,7 @@ body {
 /**** Bottom Tabs ****/
 
 .bottom-tabs{
+    top: 100%;
     position: absolute;
 }
 
@@ -563,4 +564,43 @@ body {
     width: 100vh;
     display: flex;
     flex-flow: wrap-reverse;
+}
+
+
+/**** Table ****/
+
+.table{
+    width: 80%;
+    height: 100%;
+    position: absolute;
+    top: 0%;
+    display: none;
+}
+
+
+.table-turn{
+    display: flex;
+    margin: 0px 3px;
+}
+
+
+.table-col{
+    display: flex;
+    flex-flow: column-reverse nowrap;
+}
+
+
+.card-table {
+    width: 2.3vh;
+    height: 1.6vh;
+    padding: 2px 0px 1px 0px;
+    margin: 2px 1px 1px 1px;
+}
+
+
+.card-table-inner {
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
 }

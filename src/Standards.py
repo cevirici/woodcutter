@@ -32,7 +32,8 @@ for line in cardFile:
     Cards[t[1].upper()] = c
     CardList.append(c)
 
-cardOrder = deepcopy(CardList)
+cardOrder = {CardList[i].simple_name.upper(): i
+             for i in range(len(CardList))}
 CardList.sort(key=lambda c: c.index)
 cardFile.close()
 

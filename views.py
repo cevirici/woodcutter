@@ -133,6 +133,9 @@ def display(request, game_id, logIndex=0):
         ['COPPER', 'SILVER', 'GOLD', 'ESTATE', 'DUCHY', 'PROVINCE', 'CURSE']
     kingdomStr = [[str(Cards[card].index) for card in row]
                   for row in kingdomRaw]
+    turnStates = [gameStates[i] for i in turnPoints]
+    turnDecks = ['/'.join([repr(state.crunch(GameState.playerZones, [player]))
+                           for player in range(2)]) for state in turnStates]
 
     context = {'logIndex': logIndex,
                'story': '~'.join(elaborate_story(players, gameMoves, True)),
@@ -151,7 +154,8 @@ def display(request, game_id, logIndex=0):
                                     for state in gameStates]),
                'inplays': '~'.join(get_inplays(gameStates)),
                'scores': '~'.join([' '.join(get_vps(state, kingdomRaw[2]))
-                                   for state in gameStates])}
+                                   for state in gameStates]),
+               'turnDecks': '~'.join(turnDecks)}
 
     return render(request, 'woodcutter/display.html', context)
 

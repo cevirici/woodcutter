@@ -50,8 +50,9 @@ class Cardstack:
                             for i in self.cards])
 
     def __repr__(self):
+        sortedCards = sorted(self.cards, key=lambda c: cardOrder[c])
         return '+'.join(['{}:{}'.format(self.cards[i], repr(Cards[i]))
-                         for i in self.cards])
+                         for i in sortedCards])
 
     def __len__(self):
         return sum([self[item] for item in self if item != 'NOTHING'])

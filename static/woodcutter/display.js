@@ -75,6 +75,7 @@ class Container extends React.Component{
                 <div className='story-container'>
                     <Story changeIndex={this.changeIndex} index={this.state.index}/>
                 </div>
+                <BottomTabs index={this.state.index} />
             </React.Fragment>
         );
     }
@@ -155,6 +156,8 @@ function EmptyStack(props) {
 }
 
 
+// Cards
+
 class Card extends React.Component {
     divStyle() {
         return {backgroundImage: 'url(' + staticRoot + '/card_images/' + urls[this.props.index] + '-mid.jpg)'}
@@ -197,29 +200,13 @@ class MidCard extends Card {
     }
     render() {
         return (
-            <div className='card-mid' style={this.borderStyle()}>
-                <div className='card-mid-inner' style={this.divStyle()}>
+            <div className={'card-' + this.props.size} style={this.borderStyle()}>
+                <div className={'card-' + this.props.size + '-inner'} style={this.divStyle()}>
                 </div>
             </div>
         );
     }
 }
-
-
-class BigCard extends Card {
-    divStyle() {
-        return {backgroundImage: 'url(' + staticRoot + '/card_images/' + urls[this.props.index] + '.jpg)'}
-    }
-    render() {
-        return (
-            <div className='card-big' style={this.borderStyle()}>
-                <div className='card-big-inner' style={this.divStyle()}>
-                </div>
-            </div>
-        );
-    }
-}
-
 
 // Story
 
@@ -561,9 +548,10 @@ class BottomTabs extends React.Component{
         this.setState(updater);
     }
     render() {
-        return <React.Fragment>
+        return <div className='bottom-tabs'>
             <Kingdom moveTab={this.moveTab} show={this.state['kingdomShow']} hover={this.state['kingdomHover']} />
-        </React.Fragment>;
+            <Table index={this.props.index}/>
+        </div>;
     }
 }
 
@@ -592,9 +580,9 @@ class Kingdom extends React.Component{
             let rowDat = [];
             if (row.length > 0) {
                 if (output.length == 0){
-                    rowDat.push(row.split('|').map((i, n) => <BigCard index={parseInt(i)} key={n} />));
+                    rowDat.push(row.split('|').map((i, n) => <MidCard size={'big'} index={parseInt(i)} key={n} />));
                 } else {
-                    rowDat.push(row.split('|').map((i, n) => <MidCard index={parseInt(i)} key={n} />));
+                    rowDat.push(row.split('|').map((i, n) => <MidCard size={'mid'} index={parseInt(i)} key={n} />));
                 }
             }
             output.push(<div className='kingdom-container' key={i}> {rowDat} </div>);
@@ -617,7 +605,63 @@ class Kingdom extends React.Component{
 }
 
 
+class Table extends React.Component{
+    render() {
+        let data = turnDecks.split('~');
+        let output = [];
+        let indexTurn = 0;
+        for (indexTurn = 0; indexTurn < turnPoints.length; indexTurn++){
+            if (turnPoints[indexTurn] > this.props.index){
+                break;
+            }
+        }
+
+        let lowBound = indexTurn - 5;
+        lowBound = (lowBound > data.length - 11 ? data.length - 11 : lowBound);
+        lowBound = (lowBound < 0 ? 0 : lowBound);
+        for (let turn = lowBound; turn < lowBound + 10; turn++){
+            if (turn < data.length){
+                let column = data[turn];
+                output.push(<TableTurn data={column} />);
+            }
+        }
+        return <div className='table'>
+            {output}
+        </div>;
+    }
+}
+
+
+class TableTurn extends React.Component{
+    render() {
+        let output = [];
+        for (let i = 0; i < 2; i++){
+            output.push(<TableCol player={i} cards={this.props.data.split('/')[i]} />);
+        }
+        return <div className='table-turn'>
+            {output}
+        </div>;
+    }
+}
+
+
+class TableCol extends React.Component{
+    render() {
+        let output = [];
+        for (let stack of this.props.cards.split('+')){
+            let [amount, index] = stack.split(':')
+            for (let i = 0; i < parseInt(amount); i++){
+                output.push(<MidCard size='table' amount={0} index={parseInt(index, 16)} />);
+            }
+        }
+
+        return <div className='table-col'>
+            {output}
+        </div>;
+    }
+}
+
+
+
 const mainContainer = document.querySelector('.content');
 ReactDOM.render(<Container />, mainContainer);
-const bottomContainer = document.querySelector('.bottom-tabs');
-ReactDOM.render(<BottomTabs />, bottomContainer);

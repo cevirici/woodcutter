@@ -119,9 +119,11 @@ def tower_worth(state, player):
                 return 0
             else:
                 return 1
+        else:
+            return 0
 
     playerDeck = state.crunch(GameState.playerZones, [player])
-    return sum([card_worth(card, state) * playerDec[card]
+    return sum([card_worth(card, state) * playerDeck[card]
                 for card in playerDeck])
 
 
