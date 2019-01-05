@@ -27,7 +27,7 @@ f~^(?P<player>.*) trashes (?P<cards>.*)\. \((?P<cardsb>.*)\)$~TRASH GENERIC
 19~^(?P<player>.*) draws (?P<cards>.*) \(from (?P<argument>.*)\)\.$~DRAW FROM
 1a~^(?P<player>.*) draws (?P<cards>.*) \((?P<cardsb>.*)\)\.$~DRAW GENERIC
 1b~^(?P<player>.*) draws (?P<cards>.*)\.$~DRAW
-1c~^(?P<player>.*) skips a draw \(because of (?P<cards>.*)\)$~PENALTY CARD
+1c~^(?P<player>.*) skips a draw \(because of (?P<cards>.*)\)\.$~PENALTY CARD
 1d~^(?P<player>.*) wishes for (?P<cards>.*) but reveals (?P<cardsb>.*)\.$~WISH FAIL
 1e~^(?P<player>.*) wishes for (?P<cards>.*) and finds it\.$~WISH SUCCESS
 1f~^(?P<player>.*) reveals (?P<cards>.*)\.$~REVEAL
