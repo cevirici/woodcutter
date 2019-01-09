@@ -744,12 +744,12 @@ body {
 
 
 .board-component.node.top {
-    background: #1B1D35;    
+    background: #371B1B; 
 }
 
 
 .board-component.node.bot {
-    background: #371B1B;    
+    background: #1B1D35;
 }
 
 
