@@ -84,7 +84,7 @@ class Card extends React.Component {
     constructor(props){
         super(props);
         this.containerRef = React.createRef();
-        this.state = {x: 0, y: 0};
+        this.hoverEvent = this.hoverEvent.bind(this);
     }
     divStyle() {
         let suffix;
@@ -108,20 +108,21 @@ class Card extends React.Component {
         return {background: '#' + borders[this.props.index]}
     }
 
-    componentDidMount() {
-        this.setState({x: this.containerRef.current.offsetLeft + this.containerRef.current.offsetWidth,
-                       y: this.containerRef.current.offsetTop});
+    hoverEvent() {
+        if (this.props.hover){
+            this.props.hover(this.containerRef.current.offsetLeft + this.containerRef.current.offsetWidth,
+                             this.containerRef.current.offsetTop)();
+        }
     }
 
     render() {
         let innerText = (this.props.inner ? <div className='inner-text'> {this.props.inner} </div> : '');
         let containerClass = 'card-container' + (this.props.size ?  ' ' + this.props.size : '');
-        let hoverFunct = (this.props.hover ? this.props.hover(this.state.x, this.state.y) : null);
         let innerClass = 'card-inner' + (this.props.pilable && parseInt(this.props.inner) < 3 ? ' low' : '');
         if (this.props.label) {
             containerClass += ' wide';
             return (
-                <div className={containerClass} ref={this.containerRef} onMouseLeave={this.props.dehover} onMouseOver={hoverFunct}>
+                <div className={containerClass} ref={this.containerRef} onMouseLeave={this.props.dehover} onMouseOver={this.hoverEvent}>
                     <div className='card-label noselect'> {this.props.label} </div>
                     <div className={'card'} style={this.borderStyle()}>
                         <div className={innerClass} style={this.divStyle()}>
@@ -132,7 +133,7 @@ class Card extends React.Component {
             );
         } else {
             return (
-                <div className={containerClass} ref={this.containerRef} onMouseLeave={this.props.dehover} onMouseOver={hoverFunct}>
+                <div className={containerClass} ref={this.containerRef} onMouseLeave={this.props.dehover} onMouseOver={this.hoverEvent}>
                     <div className={'card'} style={this.borderStyle()}>
                         <div className={innerClass} style={this.divStyle()}>
                         {innerText}
