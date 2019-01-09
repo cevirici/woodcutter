@@ -81,10 +81,10 @@ class GameState:
         outstr += '+'.join([str(Cards[x].index) for x in self.orderedPlays])
         outstr += '/'
         outstr += '|'.join([str(self.actions), str(self.buys), str(self.coins),
+                            *[str(x) for x in self.vps],
                             *[str(x) for x in self.debt],
                             *[str(x) for x in self.coffers],
-                            *[str(x) for x in self.villagers],
-                            *[str(x) for x in self.vps]])
+                            *[str(x) for x in self.villagers]])
         return outstr
 
     def __str__(self):
