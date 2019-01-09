@@ -707,7 +707,7 @@ body {
 
 .row > .info-label {
     width: 6vh;
-    height: 6vh;
+    height: 3vh;
     color: #CCC;
     font: 3vh Bahnschrift;
     display: flex;
