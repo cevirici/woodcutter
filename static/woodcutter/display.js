@@ -291,6 +291,29 @@ class BoardComponent extends React.Component {
             className += ' expanded';
         }
 
+        // Lastmove Highlighting
+        let lastMove = this.props.board[1][11].split('+');
+        let partMap = {'board-basic-supply': 'SUPPLY',
+                       'board-other-supply': 'SUPPLY',
+                       'board-kingdom': 'SUPPLY',
+                       'board-trash': 'TRASH',
+                       'board-inplays': 'INPLAYS',
+                       'board-deck top': 'DECKS0',
+                       'board-deck bot': 'DECKS1',
+                       'board-discard top': 'DISCARDS0',
+                       'board-discard bot': 'DISCARDS1',
+                       'board-hand top': 'HANDS0',
+                       'board-hand bot': 'HANDS1',
+                       'board-tavern top': 'TAVERN0',
+                       'board-tavern bot': 'TAVERN1',
+                       'board-other top': 'OTHERS0',
+                       'board-other bot': 'OTHERS1'}
+        if (partMap[this.props.structure[0]] == lastMove[0]) {
+            className += ' source';
+        }
+        if (partMap[this.props.structure[0]] == lastMove[1]) {
+            className += ' destination';
+        }
 
         let children = [];
         let childIndex;
@@ -300,6 +323,7 @@ class BoardComponent extends React.Component {
                            decision={this.props.decision} index={childIndex} activate={this.props.activate}
                            tooltip={this.props.tooltip} key={childIndex} board={this.props.board}/>);
         }
+
 
         // Labels
 

@@ -146,6 +146,7 @@ def new_turn_action(moves, i, blockLength, state):
     state.amuletSilvers = 0
     state.cargoShips = 0
     state.bridges = 0
+    state.lastMove = ['', '']
 
 
 Preds['NEW TURN'].action = new_turn_action

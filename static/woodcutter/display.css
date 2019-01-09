@@ -763,6 +763,21 @@ body {
 }
 
 
+.board-component.node.highlighted {
+    border-color: #F1E96B;
+}
+
+
+.board-component.source {
+    filter: drop-shadow(0 0 5px #1D67EF);
+}
+
+
+.board-component.destination {
+    filter: drop-shadow(0 0 5px #46D08A);
+}
+
+
 .board-component-label {
     width: 100%;
     opacity: 0.6;

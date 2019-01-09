@@ -61,6 +61,7 @@ class GameState:
         self.cargoShips = 0
         self.cargoCount = 0
         self.orderedPlays = []
+        self.lastMove = ['', '']
 
         self.valid = True
 
@@ -84,7 +85,8 @@ class GameState:
                             *[str(x) for x in self.vps],
                             *[str(x) for x in self.debt],
                             *[str(x) for x in self.coffers],
-                            *[str(x) for x in self.villagers]])
+                            *[str(x) for x in self.villagers],
+                            '+'.join(self.lastMove)])
         return outstr
 
     def __str__(self):
@@ -120,24 +122,30 @@ vp: {}<br> co: {}<br> vi: {}<br> db: {}<br>'
             if not self[src] > items:
                 self.valid = False
             self[src] -= items
+            self.lastMove[0] = src
         else:
             if not self[src][player] > items:
                 self.valid = False
             self[src][player] -= items
+            self.lastMove[0] = src + str(player)
 
         if dest in GameState.soloZones:
             self[dest] += items
+            self.lastMove[1] = dest
         else:
             self[dest][player] += items
+            self.lastMove[1] = dest + str(player)
 
         # Edit orderedinplays
         if src == 'INPLAYS' and player == self.activePlayer:
+            self.lastMove[0] = 'INPLAYS'
             for card in items:
                 for i in range(items[card]):
                     if card in self.orderedPlays:
                         self.orderedPlays.remove(card)
 
         if dest == 'INPLAYS' and player == self.activePlayer:
+            self.lastMove[1] = 'INPLAYS'
             for card in items:
                 for i in range(items[card]):
                     self.orderedPlays.append(card)
