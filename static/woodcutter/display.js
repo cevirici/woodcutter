@@ -525,7 +525,7 @@ class BoardComponent extends React.Component {
                 console.log(this.props.board);
                 if (this.props.board[1][12]){
                     var cards = this.props.board[1][12].split('+');
-                    inner = cards.map((entry, n)  => <Card size='small' index={parseInt(entry, 16)} key={n}/>);
+                    inner = cards.map((entry, n)  => <Card size='small' index={parseInt(entry)} key={n}/>);
                 }
 
                 content = (
@@ -539,7 +539,7 @@ class BoardComponent extends React.Component {
                 var inner = '';
                 if (this.props.board[1][13]){
                     var cards = this.props.board[1][13].split('+');
-                    inner = cards.map((entry, n)  => <Card size='small' index={parseInt(entry, 16)} key={n}/>);
+                    inner = cards.map((entry, n)  => <Card size='small' index={parseInt(entry)} key={n}/>);
                 }
 
                 content = (
