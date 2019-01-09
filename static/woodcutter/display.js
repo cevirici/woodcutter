@@ -253,8 +253,8 @@ class BoardComponent extends React.Component {
                 let subCards = pairs[card].filter(x => x in supply);
                 if (subCards.length == 1) {
                     inner.push(<Card size={size} index={subCards[0]} key={n}
-                                inner={supply[subCards[0]]} hover={clearHover}
-                                dehover={clearHover} pilable={pilable} />)
+                                inner={supply[subCards[0]]}
+                                dehover={clearHover} pilable={pilable} />);
                 } else {
                     let total = subCards.reduce((total, x) => {return total + supply[x];}, 0).toString();
                     if (pilable || total > 0) {
@@ -471,7 +471,6 @@ class BoardComponent extends React.Component {
                 for (let entry of supply) {
                     supplySize[parseInt(entry.split(':')[1], 16)] = parseInt(entry.split(':')[0])
                 }
-
                 inner = this.getInner(supplySize, kingdom[0], 'mid', true);
                 content = (
                     <div className='board-content' key={0}>
