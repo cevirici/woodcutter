@@ -522,7 +522,6 @@ class BoardComponent extends React.Component {
 
             case 'board-projects top':
                 var inner = '';
-                console.log(this.props.board);
                 if (this.props.board[1][12]){
                     var cards = this.props.board[1][12].split('+');
                     inner = cards.map((entry, n)  => <Card size='small' index={parseInt(entry)} key={n}/>);
