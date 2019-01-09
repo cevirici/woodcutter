@@ -117,13 +117,14 @@ class Card extends React.Component {
         let innerText = (this.props.inner ? <div className='inner-text'> {this.props.inner} </div> : '');
         let containerClass = 'card-container' + (this.props.size ?  ' ' + this.props.size : '');
         let hoverFunct = (this.props.hover ? this.props.hover(this.state.x, this.state.y) : null);
+        let innerClass = 'card-inner' + (this.props.pilable && parseInt(this.props.inner) < 3 ? ' low' : '');
         if (this.props.label) {
             containerClass += ' wide';
             return (
                 <div className={containerClass} ref={this.containerRef} onMouseLeave={this.props.dehover} onMouseOver={hoverFunct}>
                     <div className='card-label noselect'> {this.props.label} </div>
                     <div className={'card'} style={this.borderStyle()}>
-                        <div className={'card-inner'} style={this.divStyle()}>
+                        <div className={innerClass} style={this.divStyle()}>
                         {innerText}
                         </div>
                     </div>
@@ -133,7 +134,7 @@ class Card extends React.Component {
             return (
                 <div className={containerClass} ref={this.containerRef} onMouseLeave={this.props.dehover} onMouseOver={hoverFunct}>
                     <div className={'card'} style={this.borderStyle()}>
-                        <div className={'card-inner'} style={this.divStyle()}>
+                        <div className={innerClass} style={this.divStyle()}>
                         {innerText}
                         </div>
                     </div>
@@ -237,7 +238,7 @@ class BoardComponent extends React.Component {
         }
     }
 
-    getInner(supply, cardList, size) {
+    getInner(supply, cardList, size, pilable) {
         var inner = [];
         let clearHover = (e => {this.props.tooltip(0, 0, '')});
         for (let n in cardList) {
@@ -247,17 +248,22 @@ class BoardComponent extends React.Component {
                 if (subCards.length == 1) {
                     inner.push(<Card size={size} index={subCards[0]} key={n}
                                 inner={supply[subCards[0]]} hover={clearHover}
-                                dehover={clearHover} />)
+                                dehover={clearHover} pilable={pilable} />)
                 } else {
                     let total = subCards.reduce((total, x) => {return total + supply[x];}, 0).toString();
-                    let tooltipInner = subCards.map((x, i) => <Card size='small' index={x} key={i} inner={supply[x]} />);
-                    let hoverFunct = ((x, y) => (e => {this.props.tooltip(x, y, tooltipInner);}));
-                    inner.push(<Card size={size} index={card} key={n} inner={total} hover={hoverFunct} dehover={clearHover} />);
+                    if (pilable || total > 0) {
+                        let tooltipInner = subCards.map((x, i) => <Card size='small' index={x} key={i} inner={supply[x]} />);
+                        let hoverFunct = ((x, y) => (e => {this.props.tooltip(x, y, tooltipInner);}));
+                        inner.push(<Card size={size} index={card} key={n} inner={total}
+                                    hover={hoverFunct} dehover={clearHover} pilable={pilable} />);
+                    }
                 }
 
             } else {
-                inner.push(<Card size={size} index={card} key={n}
-                            inner={(parseInt(card) in supply ? supply[parseInt(card)] : '0')} />);
+                if (pilable || parseInt(card) in supply) {
+                    inner.push(<Card size={size} index={card} key={n} pilable={pilable}
+                                inner={(parseInt(card) in supply ? supply[parseInt(card)] : 0)} />);
+                }
             }
         }
         return inner
@@ -381,7 +387,7 @@ class BoardComponent extends React.Component {
                     supplySize[parseInt(entry.split(':')[1], 16)] = parseInt(entry.split(':')[0]);
                 }
 
-                inner = this.getInner(supplySize, kingdom[1], 'mid');
+                inner = this.getInner(supplySize, kingdom[1], 'mid', true);
 
                 content = (
                     <div className='board-content' key={0}>
@@ -397,7 +403,7 @@ class BoardComponent extends React.Component {
                     supplySize[parseInt(entry.split(':')[1], 16)] = parseInt(entry.split(':')[0])
                 }
 
-                inner = this.getInner(supplySize, kingdom[2], 'small');
+                inner = this.getInner(supplySize, kingdom[2], 'small', false);
 
                 content = (
                     <div className='board-content' key={0}>
@@ -430,7 +436,7 @@ class BoardComponent extends React.Component {
                     supplySize[parseInt(entry.split(':')[1], 16)] = parseInt(entry.split(':')[0])
                 }
 
-                inner = this.getInner(supplySize, kingdom[0], 'mid');
+                inner = this.getInner(supplySize, kingdom[0], 'mid', true);
                 content = (
                     <div className='board-content' key={0}>
                         {inner}

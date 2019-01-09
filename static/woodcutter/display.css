@@ -393,6 +393,12 @@ body {
 }
 
 
+.low > .inner-text {
+    background: rgba(60, 0, 0, .2);
+    color: #D94545;
+}
+
+
 .card-inner {
     width: 100%;
     height: 100%;
