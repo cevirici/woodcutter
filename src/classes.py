@@ -78,6 +78,7 @@ class GameState:
                     outstr += repr(part) + '|'
             else:
                 outstr += repr(self.boardState[zone]) + '|'
+        outstr += '+'.join([str(Cards[x].index) for x in self.orderedPlays])
         outstr += '/'
         outstr += '|'.join([str(self.actions), str(self.buys), str(self.coins),
                             *[str(x) for x in self.debt],
@@ -130,13 +131,13 @@ vp: {}<br> co: {}<br> vi: {}<br> db: {}<br>'
             self[dest][player] += items
 
         # Edit orderedinplays
-        if src == 'INPLAYS':
+        if src == 'INPLAYS' and player == self.activePlayer:
             for card in items:
                 for i in range(items[card]):
                     if card in self.orderedPlays:
                         self.orderedPlays.remove(card)
 
-        if dest == 'INPLAYS':
+        if dest == 'INPLAYS' and player == self.activePlayer:
             for card in items:
                 for i in range(items[card]):
                     self.orderedPlays.append(card)

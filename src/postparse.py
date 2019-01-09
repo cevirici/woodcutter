@@ -54,6 +54,7 @@ def get_blocklengths(parsedLog):
 
 def get_vps(state, kingdom):
     output = []
+    totals = []
     landmarks = [card for card in kingdom if 'l' in Cards[card].types]
     for player in range(len(state['DECKS'])):
         playerDeck = state.crunch(GameState.playerZones, [player])
@@ -69,7 +70,8 @@ def get_vps(state, kingdom):
 
         entries.sort(key=lambda x: x[2])
         output.append(entries)
+        totals.append(str(sum([entry[0] * entry[1] for entry in entries])))
 
     return ['/'.join(['|'.join([str(x) for x in entry])
                       for entry in playerLine])
-            for playerLine in output]
+            for playerLine in output], totals

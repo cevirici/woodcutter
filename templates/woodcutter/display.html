@@ -13,7 +13,25 @@
         }
     </style>
     <link rel="stylesheet" type="text/css" href="{% static 'woodcutter/display.css' %}">
-    <script>var logIndex = {{ logIndex }}; var staticRoot = "{% static 'woodcutter' %}"; var story = "{{ story | safe }}"; var boards = "{{ boards | safe }}"; var titlestring = "{{ titlestring }}"; var players = {{ players | safe }}; var stepPoints = {{ stepPoints | safe }}; var turnPoints = {{ turnPoints | safe }}; var urls = {{ urls | safe }}; var borders = {{ borders | safe }}; var interiors = {{ interiors | safe }}; var turnOwners = {{ turnOwners }}; var kingdom = '{{ kingdom }}'; var phases = '{{ phases }}'; var empties = '{{ empties }}'; var inplays = '{{ inplays }}'; var scores = '{{ scores }}'; var turnDecks = '{{ turnDecks | safe }}';</script>
+    <script>
+        var logIndex = {{ logIndex }};
+        var titlestring = "{{ titlestring }}";
+        var players = {{ players | safe }};
+        var staticRoot = "{% static 'woodcutter' %}";
+        var kingdom = '{{ kingdom }}'.split('~').map(x => (x ? x.split('|') : []));
+        var boards = "{{ boards | safe }}".split('~');
+        var pairRaws = '{{ pairs }}'.split('~').map(x => x.split('|').map(y => parseInt(y)));
+        var pairs = pairRaws.reduce(function(obj, x){
+            obj[x[0]] = x.slice(1);
+            return obj
+        }, {});
+        var scoreTotals = '{{ scoreTotals }}'.split('~').map(x => x.split('|').map(y => parseInt(y)));
+        var borders = {{ borders | safe }}; var interiors = {{ interiors | safe }}; var urls = {{ urls | safe }};
+        var stepPoints = {{ stepPoints | safe }}; var turnPoints = {{ turnPoints | safe }};
+        var turnOwners = {{ turnOwners }};
+        var phases = '{{ phases }}';
+        var turnDecks = '{{ turnDecks | safe }}';
+        var story = "{{ story | safe }}"; </script>
 {% endblock %}
 {% block content %}
     <div class='content'>

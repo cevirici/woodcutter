@@ -1,9 +1,8 @@
 
-
 class Container extends React.Component{
     constructor(props) {
         super(props);
-        let index = (logIndex >= boards.split('~').length - 1 ? boards.split('~').length - 2 : logIndex);
+        let index = (logIndex >= boards.length - 1 ? boards.length - 2 : logIndex);
         this.state = {index: index, showKingdom: false};
         this.changeIndex=this.changeIndex.bind(this);
         this.buttonShift=this.buttonShift.bind(this);
@@ -23,7 +22,7 @@ class Container extends React.Component{
         });
     }
     buttonShift(name){
-        let n = boards.split('~').length;
+        let n = boards.length;
         switch (name) {
             case 'back-turn':
                 var newIndex = (this.state.index < 1 ? 0 : this.state.index - 1);
@@ -68,122 +67,73 @@ class Container extends React.Component{
             <React.Fragment>
                 <StoryLegend index={this.state.index} changeIndex={this.changeIndex}/>
                 <div className='title-container'>{ titlestring }</div>
-                <BaseContainer buttonShift={this.buttonShift} index={this.state.index} />
-                <div className='board-container'>
-                    <Board index={this.state.index}/>
-                </div>
+                <Board decision={this.state.index}/>
                 <div className='story-container'>
                     <Story changeIndex={this.changeIndex} index={this.state.index}/>
                 </div>
+                <BaseContainer buttonShift={this.buttonShift} />
                 <BottomTabs index={this.state.index} />
             </React.Fragment>
         );
     }
 }
 
-// Board
-
-class Board extends React.Component {
-    render(){
-        var boardString = boards.split('~')[this.props.index + 1].split('/')[0];
-        var emptyString = empties.split('~')[this.props.index + 1];
-        var cardStacks = boardString.split('|');
-        var inPlays = inplays.split('~')[this.props.index + 1];
-        return(
-            <div className='board'>
-                <CardStack cards={cardStacks[0]} classes='decks top' stackName='DECK'/>
-                <CardStack cards={cardStacks[1]} classes='decks bot' stackName='DECK'/>
-                <CardStack cards={cardStacks[2]} classes='hands top' stackName='HAND'/>
-                <CardStack cards={cardStacks[3]} classes='hands bot' stackName='HAND'/>
-                <InplayStack cards={inPlays} classes='inplays' stackName='IN PLAY'/>
-                <CardStack cards={cardStacks[6]} classes='discards top' stackName='DISCARD'/>
-                <CardStack cards={cardStacks[7]} classes='discards bot' stackName='DISCARD'/>
-                <CardStack cards={cardStacks[8]} classes='tavern top' stackName='TAVERN'/>
-                <CardStack cards={cardStacks[9]} classes='tavern bot' stackName='TAVERN'/>
-                <CardStack cards={cardStacks[10]} classes='others top' stackName='ASIDE'/>
-                <CardStack cards={cardStacks[11]} classes='others bot' stackName='ASIDE'/>
-                <CardStack cards={cardStacks[12]} classes='supply' stackName='SUPPLY'/>
-                <CardStack cards={cardStacks[13]} classes='trash' stackName='TRASH'/>
-                <EmptyStack cards={emptyString} />
-                <div className='label top noselect'>{players[0]}</div>
-                <div className='label bot noselect'>{players[1]}</div>
-            </div>
-        );
-    }
-}
-
-
-class CardStack extends React.Component {
-    cardList(){
-        return this.props.cards.split('+').map(c => c.split(':'));
-    }
-
-    render() {
-        var output = '';
-        if (this.props.cards){
-            var output = this.cardList().map((n, i) => <Card amount={parseInt(n[0])} index={parseInt(n[1], 16)} key={i}/>);
-        }
-        var className = 'card-stack ' + this.props.classes;
-        return <div className={className}>
-            <div className='stack-label noselect'>{this.props.stackName}</div>
-            {output}
-        </div>
-    }
-}
-
-
-function InplayStack(props) {
-    var output = '';
-    if (props.cards){
-        var output = props.cards.split('|').map((n, i) => <Card amount={0} index={parseInt(n)} key={i}/>);
-    }
-    return <div className='card-stack inplays'>
-            <div className='stack-label noselect'>IN PLAY</div>
-        {output}
-    </div>
-}
-
-
-function EmptyStack(props) {
-    var output = '';
-    if (props.cards){
-        var output = props.cards.split('|').map((n, i) => <Card amount={0} index={parseInt(n)} key={i}/>);
-    }
-    return <div className='empties'>
-            <div className='stack-label noselect'>EMPTY</div>
-        {output}
-    </div>
-}
-
-
 // Cards
 
 class Card extends React.Component {
+    constructor(props){
+        super(props);
+        this.containerRef = React.createRef();
+        this.state = {x: 0, y: 0};
+    }
     divStyle() {
-        return {backgroundImage: 'url(' + staticRoot + '/card_images/' + urls[this.props.index] + '-mid.jpg)'}
+        let suffix;
+        switch(this.props.size){
+            case 'big':
+                suffix = '.jpg)';
+            break;
+            case 'tiny':
+                suffix = '-tiny.jpg)';
+            break;
+            case 'mid':
+            case 'small':
+            default:
+                suffix = '-mid.jpg)';
+            break;
+        }
+        return {backgroundImage: 'url(' + staticRoot + '/card_images/' + urls[this.props.index] + suffix}
     }
 
     borderStyle() {
         return {background: '#' + borders[this.props.index]}
     }
 
+    componentDidMount() {
+        this.setState({x: this.containerRef.current.offsetLeft + this.containerRef.current.offsetWidth,
+                       y: this.containerRef.current.offsetTop});
+    }
+
     render() {
-        let innerText = (this.props.label ? <div className='inner-text'> {this.props.label} </div> : '');
-        if (this.props.amount == 0){
+        let innerText = (this.props.inner ? <div className='inner-text'> {this.props.inner} </div> : '');
+        let containerClass = 'card-container' + (this.props.size ?  ' ' + this.props.size : '');
+        let hoverFunct = (this.props.hover ? this.props.hover(this.state.x, this.state.y) : null);
+        if (this.props.label) {
+            containerClass += ' wide';
             return (
-                <div className='card-small' style={this.borderStyle()}>
-                    <div className='card-small-inner' style={this.divStyle()}>
+                <div className={containerClass} ref={this.containerRef} onMouseLeave={this.props.dehover} onMouseOver={hoverFunct}>
+                    <div className='card-label noselect'> {this.props.label} </div>
+                    <div className={'card'} style={this.borderStyle()}>
+                        <div className={'card-inner'} style={this.divStyle()}>
+                        {innerText}
+                        </div>
                     </div>
                 </div>
             );
         } else {
             return (
-                <div className='card-container'>
-                    <div className='card-label noselect'>
-                        {this.props.amount}
-                    </div>
-                    <div className='card-small' style={this.borderStyle()}>
-                        <div className='card-small-inner' style={this.divStyle()}>
+                <div className={containerClass} ref={this.containerRef} onMouseLeave={this.props.dehover} onMouseOver={hoverFunct}>
+                    <div className={'card'} style={this.borderStyle()}>
+                        <div className={'card-inner'} style={this.divStyle()}>
                         {innerText}
                         </div>
                     </div>
@@ -193,28 +143,436 @@ class Card extends React.Component {
     }
 }
 
+// Board and Parts
 
-class MidCard extends Card {
-    divStyle() {
-        let suffix;
-        switch(this.props.size){
-            case 'big':
-                suffix = '.jpg)';
-            break;
-            case 'mid':
-                suffix = '-mid.jpg)';
-            break;
-            case 'table':
-                suffix = '-tiny.jpg)';
-            break;
-        }
-        return {backgroundImage: 'url(' + staticRoot + '/card_images/' + urls[this.props.index] + suffix}
+class Board extends React.Component{
+    constructor(props) {
+        super(props);
+        this.state = {activePart: '0', tooltip:'',
+                      tooltipX: 0, tooltipY: 0};
+        this.activate = this.activate.bind(this);
+        this.setToolTip = this.setToolTip.bind(this);
     }
-    render() {
+
+    activate(index) {
+        if (index == this.state.activePart){
+            this.setState({activePart: '0'});
+        } else {
+            this.setState({activePart: index});
+        }
+    }
+
+    setToolTip(x, y, content) {
+        this.setState({tooltipX: x, tooltipY: y, tooltip: content});
+    }
+
+    render(){
+        let tooltip = '';
+        if (this.state.tooltip != '') {
+            let style = {left: this.state.tooltipX, top: this.state.tooltipY};
+            tooltip = (
+                    <div className='tooltip-box' style={style}>
+                        {this.state.tooltip}
+                    </div>
+                );
+        }
+        let board = boards[this.props.decision + 1].split('/').map(x => x.split('|'));
         return (
-            <div className={'card-' + this.props.size} style={this.borderStyle()}>
-                <div className={'card-' + this.props.size + '-inner'} style={this.divStyle()}>
-                </div>
+            <div className='board'>
+                <BoardComponent structure={['board-container', 
+                                                ['board-left',
+                                                    ['board-basic-supply'],
+                                                    ['board-other-supply'],
+                                                    ['board-landscape']
+                                                ],
+                                                ['board-right',
+                                                    ['board-player-top',
+                                                        ['board-discard top'],
+                                                        ['board-deck top'],
+                                                        ['board-hand top'],
+                                                        ['board-tavern top'],
+                                                        ['board-other top'],
+                                                        ['board-misc top'],
+                                                    ],
+                                                    ['board-middle',
+                                                        ['board-kingdom'],
+                                                        ['board-trash'],
+                                                    ],
+                                                    ['board-inplay-row',
+                                                        ['board-inplays'],
+                                                        ['board-middle-info']
+                                                    ],
+                                                    ['board-player-bot',
+                                                        ['board-discard bot'],
+                                                        ['board-deck bot'],
+                                                        ['board-hand bot'],
+                                                        ['board-tavern bot'],
+                                                        ['board-other bot'],
+                                                        ['board-misc bot']
+                                                    ]
+                                                ]
+                                            ]} 
+                 activePart={this.state.activePart} decision={this.props.decision}
+                 index={'1'} activate={this.activate} tooltip={this.setToolTip}
+                 board={board} />
+                 {tooltip}
+            </div>
+        );
+    }
+}
+
+
+
+class BoardComponent extends React.Component {
+    constructor(props) {
+        super(props);
+        this.activate = this.activate.bind(this);
+        this.getInner = this.getInner.bind(this);
+        this.getStack = this.getStack.bind(this);
+    }
+
+    activate() {
+        if (this.props.structure.length == 1){
+            this.props.activate(this.props.index);
+        }
+    }
+
+    getInner(supply, cardList, size) {
+        var inner = [];
+        let clearHover = (e => {this.props.tooltip(0, 0, '')});
+        for (let n in cardList) {
+            let card = cardList[n];
+            if (card in pairs) {
+                let subCards = pairs[card].filter(x => x in supply);
+                if (subCards.length == 1) {
+                    inner.push(<Card size={size} index={subCards[0]} key={n}
+                                inner={supply[subCards[0]]} hover={clearHover}
+                                dehover={clearHover} />)
+                } else {
+                    let total = subCards.reduce((total, x) => {return total + supply[x];}, 0).toString();
+                    let tooltipInner = subCards.map((x, i) => <Card size='small' index={x} key={i} inner={supply[x]} />);
+                    let hoverFunct = ((x, y) => (e => {this.props.tooltip(x, y, tooltipInner);}));
+                    inner.push(<Card size={size} index={card} key={n} inner={total} hover={hoverFunct} dehover={clearHover} />);
+                }
+
+            } else {
+                inner.push(<Card size={size} index={card} key={n}
+                            inner={(parseInt(card) in supply ? supply[parseInt(card)] : '0')} />);
+            }
+        }
+        return inner
+    }
+
+    getStack(source, small) {
+        let inner = '';
+        if (source){
+            var cards = source.split('+');
+            let size = (small ? 'small' : (cards.length < 7 ? 'mid' : 'small'));
+            inner = cards.map((entry, n)  => <Card size={size} index={parseInt(entry.split(':')[1], 16)}
+                                              inner={entry.split(':')[0]} key={n}/>);
+        }
+
+        return (
+            <div className='board-content' key={0}>
+                {inner}
+            </div>
+        );
+    }
+
+    render() {
+        let className = 'board-component ' + this.props.structure[0];
+        if (this.props.activePart.search(this.props.index) == 0){
+            className += ' expanded';
+        }
+
+
+        let children = [];
+        let childIndex;
+        for (let i = 1; i < this.props.structure.length; i++){
+            childIndex = this.props.index + i.toString();
+            children.push(<BoardComponent structure={this.props.structure[i]} activePart={this.props.activePart}
+                           decision={this.props.decision} index={childIndex} activate={this.props.activate}
+                           tooltip={this.props.tooltip} key={childIndex} board={this.props.board}/>);
+        }
+
+        // Labels
+
+        var label = '';
+        if (children.length == 0){
+            className += ' node';
+            switch (this.props.structure[0]){
+                case 'board-basic-supply':
+                    label = <div className='board-component-label'> Basic Supply
+                            </div>;
+                break;
+
+                case 'board-other-supply':
+                    label = <div className='board-component-label'> Nonsupply
+                            </div>;
+                break;
+
+                case 'board-landscape':
+                    label = <div className='board-component-label'> Landscapes
+                            </div>;
+                break;
+
+                case 'board-kingdom':
+                    label = <div className='board-component-label'> Kingdom
+                            </div>;
+                break;
+
+                case 'board-deck top':
+                case 'board-deck bot':
+                    label = <div className='board-component-label'> Deck
+                            </div>;
+                break;
+
+                case 'board-discard top':
+                case 'board-discard bot':
+                    label = <div className='board-component-label'> Discard
+                            </div>;
+                break;
+
+                case 'board-hand top':
+                case 'board-hand bot':
+                    label = <div className='board-component-label'> Hand
+                            </div>;
+                break;
+
+                case 'board-tavern top':
+                case 'board-tavern bot':
+                    label = <div className='board-component-label'> Tavern
+                            </div>;
+                break;
+
+                case 'board-other top':
+                case 'board-other bot':
+                    label = <div className='board-component-label'> Aside
+                            </div>;
+                break;
+
+                case 'board-inplays':
+                    label = <div className='board-component-label'> In Play
+                            </div>;
+                break;
+
+                case 'board-trash':
+                    label = <div className='board-component-label'> Trash
+                            </div>;
+                break;
+
+                case 'board-misc top':
+                case 'board-misc bot':
+                case 'board-middle-info':
+                    label = <div className='board-component-label'> Info
+                            </div>;
+                break;
+            }
+        }
+
+        // Content
+
+        let content = '';
+        switch (this.props.structure[0]){
+            case 'board-basic-supply':
+                var supply = this.props.board[0][12].split('+');
+                var supplySize = {};
+                for (let entry of supply) {
+                    supplySize[parseInt(entry.split(':')[1], 16)] = parseInt(entry.split(':')[0]);
+                }
+
+                inner = this.getInner(supplySize, kingdom[1], 'mid');
+
+                content = (
+                    <div className='board-content' key={0}>
+                        {inner}
+                    </div>
+                );
+            break;
+
+            case 'board-other-supply':
+                var supply = this.props.board[0][12].split('+');
+                var supplySize = {};
+                for (let entry of supply) {
+                    supplySize[parseInt(entry.split(':')[1], 16)] = parseInt(entry.split(':')[0])
+                }
+
+                inner = this.getInner(supplySize, kingdom[2], 'small');
+
+                content = (
+                    <div className='board-content' key={0}>
+                        {inner}
+                    </div>
+                );
+            break;
+
+            case 'board-landscape':
+                var inner = kingdom[3].map((x, n) => <Card size='mid' index={x} key={n} />);
+                content = (
+                    <div className='board-content' key={0}>
+                        {inner}
+                    </div>
+                );
+            break;
+
+            case 'board-kingdom':
+                let temp = [];
+                let l = ~~((kingdom[0].length) / 2)
+                for (let i = 0; i < kingdom[0].length - l; i++) {
+                    if (i < l){
+                        temp.push(kingdom[0][i]);
+                    }
+                    temp.push(kingdom[0][i + l]);
+                }
+                var supply = this.props.board[0][12].split('+');
+                var supplySize = {};
+                for (let entry of supply) {
+                    supplySize[parseInt(entry.split(':')[1], 16)] = parseInt(entry.split(':')[0])
+                }
+
+                inner = this.getInner(supplySize, kingdom[0], 'mid');
+                content = (
+                    <div className='board-content' key={0}>
+                        {inner}
+                    </div>
+                );
+            break;
+
+            case 'board-deck top':
+                content = this.getStack(this.props.board[0][0], false);
+            break;
+
+            case 'board-deck bot':
+                content = this.getStack(this.props.board[0][1], false);
+            break;
+
+            case 'board-hand top':
+                content = this.getStack(this.props.board[0][2], false);
+            break;
+
+            case 'board-hand bot':
+                content = this.getStack(this.props.board[0][3], false);
+            break;
+
+            case 'board-discard top':
+                content = this.getStack(this.props.board[0][6], false);
+            break;
+
+            case 'board-discard bot':
+                content = this.getStack(this.props.board[0][7], false);
+            break;
+
+            case 'board-tavern top':
+                content = this.getStack(this.props.board[0][8], true);
+            break;
+
+            case 'board-tavern bot':
+                content = this.getStack(this.props.board[0][9], true);
+            break;
+
+            case 'board-other top':
+                content = this.getStack(this.props.board[0][10], true);
+            break;
+
+            case 'board-other bot':
+                content = this.getStack(this.props.board[0][11], true);
+            break;
+
+            case 'board-misc top':
+                var info = [3, 5, 7, 9].map(x => this.props.board[1][x]);
+                info.unshift(scoreTotals[this.props.decision + 1][0]);
+                info = info.map(x => <div className='info-label'> {x} </div>);
+                content = (
+                    <div className='board-content'>
+                        <div className='col' key={0}>
+                            <img src={staticRoot + "/hud-icons/points.png"} />
+                            <img src={staticRoot + "/hud-icons/vp.png"} />
+                            <img src={staticRoot + "/hud-icons/debt.png"} />
+                            <img src={staticRoot + "/hud-icons/coffers.png"} />
+                            <img src={staticRoot + "/hud-icons/villagers.png"} />
+                        </div>
+                        <div className='col' key={1}>
+                            { info }
+                        </div>
+                    </div>
+                )
+            break;
+
+            case 'board-misc bot':
+                var info = [4, 6, 8, 10].map(x => this.props.board[1][x]);
+                info.unshift(scoreTotals[this.props.decision + 1][1]);
+                info = info.map(x => <div className='info-label'> {x} </div>);
+                content = (
+                    <div className='board-content'>
+                        <div className='col' key={0}>
+                            <img src={staticRoot + "/hud-icons/points.png"} />
+                            <img src={staticRoot + "/hud-icons/vp.png"} />
+                            <img src={staticRoot + "/hud-icons/debt.png"} />
+                            <img src={staticRoot + "/hud-icons/coffers.png"} />
+                            <img src={staticRoot + "/hud-icons/villagers.png"} />
+                        </div>
+                        <div className='col' key={1}>
+                            { info }
+                        </div>
+                    </div>
+                )
+            break;
+
+            case 'board-trash':
+                content = this.getStack(this.props.board[0][13]);
+            break;
+
+            case 'board-inplays':
+                inner = '';
+                if (this.props.board[0][14]){
+                    var cards = this.props.board[0][14].split('+');
+                    let size = (cards.length < 10 ? 'mid' : 'small');
+                    inner = cards.map((entry, n) => <Card size={size} index={parseInt(entry)} key={n}/>);
+                }
+
+                content = (
+                    <div className='board-content' key={0}>
+                        {inner}
+                    </div>
+                );
+            break;
+
+            case 'board-middle-info':
+                var info = this.props.board[1].slice(0, 3).map((x, n) => <div className='info-label' key={n}> {x} </div>);
+                content = (
+                    <div className='board-content'>
+                        <div className='row' key={0}>
+                            <img src={staticRoot + "/hud-icons/actions.png"} />
+                            <img src={staticRoot + "/hud-icons/buys.png"} />
+                            <img src={staticRoot + "/hud-icons/coins.png"} />
+                        </div>
+                        <div className='row' key={1}>
+                            { info }
+                        </div>
+                    </div>
+                )
+            break;
+
+            case 'board-player-top':
+                content = <div className='player-label noselect'> {players[0]} </div>;
+            break;
+
+            case 'board-player-bot':
+                content = <div className='player-label noselect'> {players[1]} </div>;
+            break;
+
+            default:
+                if (children.length == 0){
+                    content = <div className='board-content' key={0}>
+                            </div>;
+                }
+        }
+
+        return (
+            <div className={className} onClick={this.activate}>
+                {label}
+                {content}
+                {children}
             </div>
         );
     }
@@ -329,7 +687,7 @@ class StoryLegend extends React.Component {
         var turnLabels = [];
         if (turnPoints.length > 0){
             var turnLengths = [...Array(turnPoints.length - 1).keys()].map(x => turnPoints[x + 1] - turnPoints[x]);
-            turnLengths.push(boards.split('~').length - turnPoints.slice(-1)[0]);
+            turnLengths.push(boards.length - turnPoints.slice(-1)[0]);
             var owners = [];
             var aliases = players.map(x => x.slice(0, 1));
             if (aliases[0] == aliases[1]){
@@ -353,7 +711,7 @@ class StoryLegend extends React.Component {
                                          highlighted={i==highlighted} changeIndex={this.props.changeIndex}/>);
             }
         }
-        return <div className='story-legend'> {output} </div>
+        return <div className='story-legend'> {output} </div>;
     }
 }
 
@@ -377,130 +735,25 @@ class LegendEntry extends React.Component {
 }
 
 
-// Base
+// Controls
 
 class BaseContainer extends React.Component {
     constructor(props) {
         super(props);
-        this.changeMode = this.changeMode.bind(this);
-        this.state = {mode: 0};
-    }
-    changeMode(i){
-        this.setState({mode: i});
     }
     render() {
-        switch (this.state.mode){
-            case 0:
-                var panel = <BaseInfo index={this.props.index}/>;
-            break;
-            case 1:
-                var panel = <BaseScore index={this.props.index}/>;
-            break;
-        }
         return  (
-            <div className='base-container'>
-                <div className='controls'>
-                    <ControlButton name='back-turn' buttonShift={this.props.buttonShift} />
-                    <ControlButton name='back-step' buttonShift={this.props.buttonShift} />
-                    <ControlButton name='back' buttonShift={this.props.buttonShift} />
-                    <ControlButton name='forward' buttonShift={this.props.buttonShift} />
-                    <ControlButton name='forward-step' buttonShift={this.props.buttonShift} />
-                    <ControlButton name='forward-turn' buttonShift={this.props.buttonShift} />
-                </div>
-                <div className='mode-switches'>
-                    <ModeSwitch active={this.state.mode} index={0} src='info-panel.png' changeMode={this.changeMode}/>
-                    <ModeSwitch active={this.state.mode} index={1} src='score-panel.png' changeMode={this.changeMode}/>
-                </div>
-                {panel}
-            </div>);
+            <div className='controls'>
+                <ControlButton name='back-turn' buttonShift={this.props.buttonShift} />
+                <ControlButton name='back-step' buttonShift={this.props.buttonShift} />
+                <ControlButton name='back' buttonShift={this.props.buttonShift} />
+                <ControlButton name='forward' buttonShift={this.props.buttonShift} />
+                <ControlButton name='forward-step' buttonShift={this.props.buttonShift} />
+                <ControlButton name='forward-turn' buttonShift={this.props.buttonShift} />
+            </div>
+        );
     }  
 }
-
-
-class BaseInfo extends React.Component {
-    render() {
-        let boardString = boards.split('~')[this.props.index + 1].split('/')[1];
-        let data = boardString.split('|');
-        let scoreData = scores.split('~')[this.props.index + 1].split(' ');
-        let scoreTotals = [];
-        var amount, worth, index;
-        for (let player = 0; player < 2; player++) {
-            scoreTotals.push(0);
-            if (scoreData[player].length > 0){
-                for (let entry of scoreData[player].split('/')) {
-                    [amount, worth, index] = entry.split('|');
-                    scoreTotals[player] += parseInt(amount) * parseInt(worth);
-                }
-            }
-        }
-        return <div className='info'>
-                    <div className='icon-row'>
-                        <img src={staticRoot + "/hud-icons/actions.png"} />
-                        <img src={staticRoot + "/hud-icons/buys.png"} />
-                        <img src={staticRoot + "/hud-icons/coins.png"} />
-                        <img src={staticRoot + "/hud-icons/debt.png"} />
-                        <img src={staticRoot + "/hud-icons/coffers.png"} />
-                        <img src={staticRoot + "/hud-icons/villagers.png"} />
-                        <img src={staticRoot + "/hud-icons/vp.png"} />
-                        <img src={staticRoot + "/hud-icons/points.png"} />
-                    </div>
-                    <div className='label-row'>
-                        <div className='single-label noselect'> {data[0]} </div>
-                        <div className='single-label noselect'> {data[1]} </div>
-                        <div className='single-label noselect'> {data[2]} </div>
-                        <div className='double-label'>
-                            <div className='top-label noselect'>{data[3]}</div>
-                            <div className='bot-label noselect'>{data[4]}</div>
-                        </div>
-                        <div className='double-label'>
-                            <div className='top-label noselect'>{data[5]}</div>
-                            <div className='bot-label noselect'>{data[6]}</div>
-                        </div>
-                        <div className='double-label'>
-                            <div className='top-label noselect'>{data[7]}</div>
-                            <div className='bot-label noselect'>{data[8]}</div>
-                        </div>
-                        <div className='double-label'>
-                            <div className='top-label noselect'>{data[9]}</div>
-                            <div className='bot-label noselect'>{data[10]}</div>
-                        </div>
-                        <div className='double-label'>
-                            <div className='top-label noselect'>{scoreTotals[0]}</div>
-                            <div className='bot-label noselect'>{scoreTotals[1]}</div>
-                        </div>
-                    </div>
-                </div>
-    }
-}
-
-
-class BaseScore extends React.Component {
-    render() {
-        let scoreData = scores.split('~')[this.props.index + 1].split(' ');
-        var amount, worth, index;
-        let outputStrings = [];
-        let scoreTotals = [];
-        for (let player = 0; player < 2; player++) {
-            outputStrings.push([]);
-            scoreTotals.push(0);
-            if (scoreData[player].length > 0){
-                for (let entry of scoreData[player].split('/')) {
-                    [amount, worth, index] = entry.split('|');
-                    scoreTotals[player] += parseInt(amount) * parseInt(worth);
-                    outputStrings[player].push(<Card amount={amount} label={worth} index={parseInt(index)} key={entry}/>);
-                }
-            }
-        }
-        return (
-        <div className='base-scores'>
-            <div className='row first'>{outputStrings[0]}</div>
-            <div className='totals first'>{scoreTotals[0]}</div>
-            <div className='row second'>{outputStrings[1]}</div>
-            <div className='totals second'>{scoreTotals[1]}</div>
-        </div>);
-    }
-}
-
 
 class ControlButton extends React.Component {
     constructor(props) {
@@ -517,31 +770,11 @@ class ControlButton extends React.Component {
 }
 
 
-class ModeSwitch extends React.Component {
-    constructor(props) {
-        super(props);
-        this.clickEvent = this.clickEvent.bind(this);
-    }
-    clickEvent() {
-        this.props.changeMode(this.props.index);
-    }
-    render() {
-        let className = 'mode-switch';
-        if (this.props.index == this.props.active) {
-            className += ' active'
-        }
-        return <div onClick={this.clickEvent} className={className}>
-            <img src={staticRoot + '/hud-icons/' + this.props.src} />
-        </div>;
-    }
-}
-
-// Bottoms
+// Bottom Tabs
 
 class BottomTabs extends React.Component{
     render() {
         return <div className='bottom-tabs'>
-            <BottomTab inner='kingdom' />
             <BottomTab inner='table' index={this.props.index}/>
         </div>;
     }
@@ -591,31 +824,11 @@ class BottomTab extends React.Component{
 }
 
 
-class Kingdom extends React.Component{
-    render() {
-        let rows = kingdom.split('~');
-        let output = [];
-        let i = 0;
-        for (var row of rows){
-            let rowDat = [];
-            if (row.length > 0) {
-                if (output.length == 0){
-                    rowDat.push(row.split('|').map((i, n) => <MidCard size={'big'} index={parseInt(i)} key={n} />));
-                } else {
-                    rowDat.push(row.split('|').map((i, n) => <MidCard size={'mid'} index={parseInt(i)} key={n} />));
-                }
-            }
-            output.push(<div className='kingdom-container' key={i}> {rowDat} </div>);
-            i++ ;
-        }
-        return <div className='kingdom-tab'>
-            {output}
-        </div>;
-    }
-}
-
-
 class Table extends React.Component{
+    constructor(props) {
+        super(props);
+        this.state = {value: 'count', decks: 'all'}
+    }
     render() {
         let data = turnDecks.split('~');
         let output = [];
@@ -648,7 +861,11 @@ class Table extends React.Component{
             lowBound = (lowBound < 0 ? 0 : lowBound);
             for (let turn = lowBound; turn < lowBound + 16; turn++){
                 if (turn < data.length){
-                    let column = data[turn];
+                    if (this.state.decks == 'all'){
+                        var column = data[turn];
+                    } else {
+                        var column = data[turn];
+                    }
                     let player = turnOwners[turnPoints[turn + 1]];
                     let active = turn == indexTurn - 1;
                     output.push(<TableTurn key={turn} data={column} label={turnLabels[turn]} player={player} active={active}/>);
@@ -690,7 +907,7 @@ class TableCol extends React.Component{
         for (let stack of this.props.cards.split('+')){
             let [amount, index] = stack.split(':')
             for (let i = 0; i < parseInt(amount); i++){
-                output.push(<MidCard key={j} size='table' amount={0} index={parseInt(index, 16)} />);
+                output.push(<Card key={j} size='tiny' index={parseInt(index, 16)} />);
                 j++ ;
             }
         }
@@ -701,7 +918,6 @@ class TableCol extends React.Component{
         </div>;
     }
 }
-
 
 
 const mainContainer = document.querySelector('.content');

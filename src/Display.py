@@ -11,6 +11,44 @@ def get_passables():
     return colors, borders, urls
 
 
+def get_kingdom(supply):
+    output = [[], [], [], []]
+    pairs = {('DAME ANNA', 'DAME JOSEPHINE', 'DAME MOLLY', 'DAME NATALIE',
+              'DAME SYLVIA', 'SIR BAILEY', 'SIR DESTRY', 'SIR MARTIN',
+              'SIR MICHAEL', 'SIR VANDER'): 'KNIGHTS',
+             ('RUINED LIBRARY', 'RUINED VILLAGE', 'ABANDONED MINE',
+              'RUINED MARKET', 'SURVIVORS'): 'RUINS',
+             ('HUMBLE CASTLE', 'CRUMBLING CASTLE', 'SMALL CASTLE',
+              'HAUNTED CASTLE', 'OPULENT CASTLE', 'SPRAWLING CASTLE',
+              'GRAND CASTLE', "KING'S CASTLE"): 'CASTLES',
+             ('PATRICIAN', 'EMPORIUM'): 'PATRICIAN',
+             ('ENCAMPMENT', 'PLUNDER'): 'ENCAMPMENT',
+             ('SETTLERS', 'BUSTLING VILLAGE'): 'SETTLERS',
+             ('CATAPULT', 'ROCKS'): 'CATAPULT',
+             ('GLADIATOR', 'FORTUNE'): 'GLADIATOR',
+             ('SAUNA', 'AVANTO'): 'SAUNA'}
+
+    supplyCards = supply.cardList()
+    for pair in pairs:
+        if sum([supply[card] for card in pair]) > 1:
+            output[0].append(pairs[pair])
+            for card in pair:
+                supplyCards.remove(card)
+
+    for card in supplyCards:
+        if Cards[card].supply_type != -1:
+            if Cards[card].supply_type == 3 or supply[card] > 1:
+                output[Cards[card].supply_type].append(card)
+            else:
+                output[2].append(card)
+
+    for row in output[1:]:
+        row.sort(key=lambda x: cardOrder[x])
+    output[0].sort(key=lambda x: (Cards[x].cost, Cards[x].simple_name))
+
+    return output, pairs
+
+
 def get_turn_owners(states):
     return [state.activePlayer for state in states]
 
@@ -28,30 +66,6 @@ def get_points(moves):
 
 def get_phases(states):
     return [state.phase for state in states]
-
-
-def get_kingdom(supply):
-    output = [[], [], []]
-    pairs = {('DAME ANNA', 'DAME JOSEPHINE', 'DAME MOLLY', 'DAME NATALIE',
-              'DAME SYLVIA', 'SIR BAILEY', 'SIR DESTRY', 'SIR MARTIN',
-              'SIR MICHAEL', 'SIR VANDER'): 'KNIGHTS',
-             ('RUINED LIBRARY', 'RUINED VILLAGE', 'ABANDONED MINE',
-              'RUINED MARKET', 'SURVIVORS'): 'RUINS',
-             ('HUMBLE CASTLE', 'CRUMBLING CASTLE', 'SMALL CASTLE',
-              'HAUNTED CASTLE', 'OPULENT CASTLE', 'SPRAWLING CASTLE',
-              'GRAND CASTLE', "KING'S CASTLE"): 'CASTLES'}
-    for pair in pairs:
-        if sum([supply[card] for card in pair]) > 1:
-            output[Cards[pairs[pair]].supply_type].append(pairs[pair])
-
-    for card in supply:
-        if (supply[card] > 1 and Cards[card].supply_type != -1) or \
-                Cards[card].supply_type == 2:
-            output[Cards[card].supply_type].append(card)
-    for n in range(len(output)):
-        output[n].sort(key=lambda x: (Cards[x].cost, Cards[x].simple_name))
-
-    return output
 
 
 def get_inplays(states):

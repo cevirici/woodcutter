@@ -127,8 +127,13 @@ def display(request, game_id, logIndex=0):
 
     titleString = 'Game {}: {} vs. {}'.format(str(game_id), *players)
     colors, borders, urls = get_passables()
+    kingdomRaw, pairs = get_kingdom(supply)
+    pairStr = '~'.join(['|'.join([str(Cards[card].index)
+                                  for card in [pairs[cards]] + list(cards)])
+                        for cards in pairs])
+    scores = [get_vps(state, kingdomRaw[3]) for state in gameStates]
+
     stepPoints, turnPoints = get_points(gameMoves)
-    kingdomRaw = get_kingdom(supply)
     fullKingdom = kingdomRaw[0] + \
         ['COPPER', 'SILVER', 'GOLD', 'ESTATE', 'DUCHY', 'PROVINCE', 'CURSE']
     kingdomStr = [[str(Cards[card].index) for card in row]
@@ -138,6 +143,8 @@ def display(request, game_id, logIndex=0):
                            for player in range(2)]) for state in turnStates]
 
     context = {'logIndex': logIndex,
+               'kingdom': '~'.join(['|'.join(x) for x in kingdomStr]),
+               'pairs': pairStr,
                'story': '~'.join(elaborate_story(players, gameMoves, True)),
                'boards': '~'.join([repr(x) for x in gameStates]),
                'titlestring': titleString,
@@ -149,12 +156,13 @@ def display(request, game_id, logIndex=0):
                'borders': borders,
                'urls': urls,
                'phases': ''.join([str(x) for x in get_phases(gameStates)]),
-               'kingdom': '~'.join(['|'.join(x) for x in kingdomStr]),
                'empties': '~'.join([state.empty_piles(fullKingdom)
                                     for state in gameStates]),
                'inplays': '~'.join(get_inplays(gameStates)),
-               'scores': '~'.join([' '.join(get_vps(state, kingdomRaw[2]))
-                                   for state in gameStates]),
+               'scores': '~'.join([' '.join(score[0])
+                                   for score in scores]),
+               'scoreTotals': '~'.join(['|'.join(score[1])
+                                        for score in scores]),
                'turnDecks': '~'.join(turnDecks)}
 
     return render(request, 'woodcutter/display.html', context)
