@@ -262,7 +262,7 @@ class BoardComponent extends React.Component {
             } else {
                 if (pilable || parseInt(card) in supply) {
                     inner.push(<Card size={size} index={card} key={n} pilable={pilable}
-                                inner={(parseInt(card) in supply ? supply[parseInt(card)] : 0)} />);
+                                inner={(parseInt(card) in supply ? supply[parseInt(card)] : '0')} />);
                 }
             }
         }
