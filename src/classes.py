@@ -81,12 +81,15 @@ class GameState:
                 outstr += repr(self.boardState[zone]) + '|'
         outstr += '+'.join([str(Cards[x].index) for x in self.orderedPlays])
         outstr += '/'
+        projectStrings = ['+'.join([str(Cards[x].index) for x in playerProj])
+                          for playerProj in self.projects]
         outstr += '|'.join([str(self.actions), str(self.buys), str(self.coins),
                             *[str(x) for x in self.vps],
                             *[str(x) for x in self.debt],
                             *[str(x) for x in self.coffers],
                             *[str(x) for x in self.villagers],
-                            '+'.join(self.lastMove)])
+                            '+'.join(self.lastMove),
+                            '|'.join(projectStrings)])
         return outstr
 
     def __str__(self):

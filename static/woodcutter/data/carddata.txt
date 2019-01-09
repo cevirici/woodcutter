@@ -402,7 +402,7 @@ ff,Dungeon,Dungeons,a Dungeon,3,0,dda561,4f472d,a
 191,Twice Miserable,Twice Miserables,Twice Miserable,0,-1,ceb0a4,1c161a,s
 192,Envious,Envious,Envious,0,-1,ceb0a4,618f55,s
 193,Deluded,Deludeds,Deluded,0,-1,ceb0a4,65634d,s
-194,Lost In The Woods,Lost In The Woods,Lost In The Woods,0,-1,ceb0a4,527052,s
+194,Lost In The Woods,Lost In The Woods,Lost In The Woods,0,-1,ceb0a4,527052,f
 195,Bard,Bards,a Bard,4,0,c4c0b4,57932f,a
 196,Blessed Village,Blessed Villages,a Blessed Village,4,0,c4c0b4,8f7737,a
 197,Changeling,Changelings,a Changeling,3,0,30484e,183442,n

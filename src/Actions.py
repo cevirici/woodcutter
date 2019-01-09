@@ -1321,7 +1321,9 @@ def return_action(moves, i, blockLength, state):
     move = moves[i]
     target = move.items[0].primary
 
-    if 's' not in Cards[target].types:
+    if 's' in Cards[target].types:
+        state.projects[moves[i].player].discard(target)
+    else:
         state.move(moves[i].player, 'INPLAYS', 'SUPPLY', move.items[0])
 
 
@@ -1473,6 +1475,12 @@ def take_action(moves, i, blockLength, state):
     target = move.items[0]
     if target.primary in ['MISERABLE', 'TWICE MISERABLE']:
         state.vps[move.player] -= 2
+
+    if 'f' in Cards[target.primary].types:
+        state.projects[move.player].add(target.primary)
+        state.projects[1 - move.player].discard(target.primary)
+    elif 's' in Cards[target.primary].types:
+        state.projects[move.player].add(target.primary)
 
 
 Preds['TAKES'].action = take_action

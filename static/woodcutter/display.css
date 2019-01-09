@@ -587,10 +587,25 @@ body {
 }
 
 
-.board-tavern, .board-other {
-    width: 8vh;
+.board-others {
+    width: 16vh;
     height: 100%;
     margin-right: 1vh;
+    display: flex;
+    flex-direction: column;
+}
+
+
+.board-tavern, .board-aside {
+    height: 4vh;
+    margin-bottom: 1vh;
+    width: 100%;
+}
+
+
+.board-projects {
+    height: 4vh;
+    width: 100%;
 }
 
 

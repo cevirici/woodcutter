@@ -191,8 +191,11 @@ class Board extends React.Component{
                                                         ['board-discard top'],
                                                         ['board-deck top'],
                                                         ['board-hand top'],
-                                                        ['board-tavern top'],
-                                                        ['board-other top'],
+                                                        ['board-others top',
+                                                            ['board-tavern top'],
+                                                            ['board-aside top'],
+                                                            ['board-projects top'],
+                                                        ],
                                                         ['board-misc top'],
                                                     ],
                                                     ['board-middle',
@@ -207,8 +210,11 @@ class Board extends React.Component{
                                                         ['board-discard bot'],
                                                         ['board-deck bot'],
                                                         ['board-hand bot'],
-                                                        ['board-tavern bot'],
-                                                        ['board-other bot'],
+                                                        ['board-others bot',
+                                                            ['board-tavern bot'],
+                                                            ['board-aside bot'],
+                                                            ['board-projects bot'],
+                                                        ],
                                                         ['board-misc bot']
                                                     ]
                                                 ]
@@ -306,8 +312,8 @@ class BoardComponent extends React.Component {
                        'board-hand bot': 'HANDS1',
                        'board-tavern top': 'TAVERN0',
                        'board-tavern bot': 'TAVERN1',
-                       'board-other top': 'OTHERS0',
-                       'board-other bot': 'OTHERS1'}
+                       'board-aside top': 'OTHERS0',
+                       'board-aside bot': 'OTHERS1'}
         if (partMap[this.props.structure[0]] == lastMove[0]) {
             className += ' source';
         }
@@ -375,9 +381,15 @@ class BoardComponent extends React.Component {
                             </div>;
                 break;
 
-                case 'board-other top':
-                case 'board-other bot':
+                case 'board-aside top':
+                case 'board-aside bot':
                     label = <div className='board-component-label'> Aside
+                            </div>;
+                break;
+
+                case 'board-projects top':
+                case 'board-projects bot':
+                    label = <div className='board-component-label'> Projects
                             </div>;
                 break;
 
@@ -500,12 +512,40 @@ class BoardComponent extends React.Component {
                 content = this.getStack(this.props.board[0][9], true);
             break;
 
-            case 'board-other top':
+            case 'board-aside top':
                 content = this.getStack(this.props.board[0][10], true);
             break;
 
-            case 'board-other bot':
+            case 'board-aside bot':
                 content = this.getStack(this.props.board[0][11], true);
+            break;
+
+            case 'board-projects top':
+                var inner = '';
+                if (this.props.board[1][11]){
+                    var cards = this.props.board[1][12].split('+');
+                    inner = cards.map((entry, n)  => <Card size='small' index={parseInt(entry, 16)} key={n}/>);
+                }
+
+                content = (
+                    <div className='board-content' key={0}>
+                        {inner}
+                    </div>
+                );
+            break;
+
+            case 'board-projects bot':
+                var inner = '';
+                if (this.props.board[1][12]){
+                    var cards = this.props.board[1][13].split('+');
+                    inner = cards.map((entry, n)  => <Card size='small' index={parseInt(entry, 16)} key={n}/>);
+                }
+
+                content = (
+                    <div className='board-content' key={0}>
+                        {inner}
+                    </div>
+                );
             break;
 
             case 'board-misc top':
