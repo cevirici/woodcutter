@@ -217,15 +217,23 @@ body {
 
 /**** Table ****/
 
-.table{
+.table-tab{
     border: 1px solid #3E3B3F;
     background: rgba(40, 41, 35, 0.9);
+    padding: 1vh;
     left: 5vw;
     width: 80vw;
     height: 85vh;
     display: flex;
     position: relative;
-    justify-content: center;
+    justify-content: flex-start;
+}
+
+
+.table{
+    display: flex;
+    position: relative;
+    justify-content: flex-start;
 }
 
 

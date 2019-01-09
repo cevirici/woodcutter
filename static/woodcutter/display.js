@@ -511,7 +511,7 @@ class BoardComponent extends React.Component {
             case 'board-misc top':
                 var info = [3, 5, 7, 9].map(x => this.props.board[1][x]);
                 info.unshift(scoreTotals[this.props.decision + 1][0]);
-                info = info.map(x => <div className='info-label'> {x} </div>);
+                info = info.map((x, n) => <div className='info-label' key={n}> {x} </div>);
                 content = (
                     <div className='board-content'>
                         <div className='col' key={0}>
@@ -531,7 +531,7 @@ class BoardComponent extends React.Component {
             case 'board-misc bot':
                 var info = [4, 6, 8, 10].map(x => this.props.board[1][x]);
                 info.unshift(scoreTotals[this.props.decision + 1][1]);
-                info = info.map(x => <div className='info-label'> {x} </div>);
+                info = info.map((x, n) => <div className='info-label' key={n}> {x} </div>);
                 content = (
                     <div className='board-content'>
                         <div className='col' key={0}>
@@ -814,7 +814,7 @@ class BottomTabs extends React.Component{
 class BottomTab extends React.Component{
     constructor(props) {
         super(props);
-        this.state = {hovered: false, showing: false}
+        this.state = {hovered: false, showing: false, shouldShow: false}
         this.hoverAction = this.hoverAction.bind(this);
         this.clickAction = this.clickAction.bind(this);
         this.leaveAction = this.leaveAction.bind(this);
@@ -826,7 +826,7 @@ class BottomTab extends React.Component{
         this.setState({hovered: false});
     }
     clickAction(){
-        this.setState({showing: !this.state.showing});
+        this.setState({shouldShow: !this.state.shouldShow, showing: true});
     }
     render() {
         let classes = 'bottom-tab';
@@ -834,7 +834,7 @@ class BottomTab extends React.Component{
         if (this.state.hovered){
                 classes += ' hovered';
         }
-        if (this.state.showing){
+        if (this.state.shouldShow){
                 classes += ' active';
         }
         switch (this.props.inner){
@@ -845,7 +845,7 @@ class BottomTab extends React.Component{
                 inner = <Table index={this.props.index} showing={this.state.showing}/>;
             break;
         }
-        return <div className={classes}>
+        return <div className={classes} onTransitionEnd={() => {this.setState({showing: this.state.shouldShow});}}>
             <img className={this.props.inner + '-tab-icon'} onClick={this.clickAction} onMouseOver={this.hoverAction} onMouseLeave={this.leaveAction}
              src={ staticRoot + "/hud-icons/" + this.props.inner + ".png" } />
             {inner}
@@ -902,9 +902,11 @@ class Table extends React.Component{
                 }
             }
         }
-        return <div className='table'>
+        return <div className='table-tab'>
                 <div className='sad-message'>This is under construction - it sucks now but it'll suck less eventually! </div>
-                {output}
+                <div className='table'>
+                    {output}
+                </div>
             </div>
     }
 }

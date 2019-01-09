@@ -108,7 +108,8 @@ def tower_worth(state, player):
                   'RUINED MARKET', 'SURVIVORS'],
                  ['SAUNA', 'AVANTO']]
 
-        if 'v' not in Cards[card].types or card == 'DAME JOSEPHINE':
+        if ('v' not in Cards[card].types and
+                Cards[card].supply_type in [0, 1]) or card == 'DAME JOSEPHINE':
             for pair in pairs:
                 if card in pair:
                     for others in pair:
