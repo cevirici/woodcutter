@@ -71,7 +71,7 @@ f,Council Room,Council Rooms,a Council Room,5,0,c4c0b4,815121,a
 44,Fishing Village,Fishing Villages,a Fishing Village,3,0,dda561,7db9b3,a
 45,Ghost Ship,Ghost Ships,a Ghost Ship,5,0,c4c0b4,59814d,a
 46,Haven,Havens,a Haven,2,0,dda561,866846,a
-47,Island,Islands,an Island,4,0,aac298,5d9fbd,av
+47,Island,Islands,an Island,4,0,aac298,5d9fbd,av,2
 48,Lighthouse,Lighthouses,a Lighthouse,2,0,dda561,559773,a
 49,Lookout,Lookouts,a Lookout,3,0,c4c0b4,723a6a,a
 4a,Merchant Ship,Merchant Ships,a Merchant Ship,5,0,dda561,b58127,a

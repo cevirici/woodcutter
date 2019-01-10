@@ -362,7 +362,7 @@ body {
     margin-right: 5%;
     text-align: right;
     color: #CCC;
-    font: 4vh Bahnschrift;
+    font: 3vh Bahnschrift;
 }
 
 
@@ -373,7 +373,7 @@ body {
     align-items: center;
     flex-grow: 1;
     color: #999;
-    font: 4vh Bahnschrift;
+    font: 3vh Bahnschrift;
     border: 1px solid #767277;
     background: #2D342C;
     pointer-events: all;
@@ -388,7 +388,7 @@ body {
 .table-control.active {
     color: #CCC;
     border: 1px solid #949095;
-    background: #303C2E;
+    background: #2E402B;
 }
 
 

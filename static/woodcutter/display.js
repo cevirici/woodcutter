@@ -897,7 +897,7 @@ class BottomTab extends React.Component{
 class Table extends React.Component{
     constructor(props) {
         super(props);
-        this.state = {value: 'count', decks: 'all'}
+        this.state = {value: 'Count', decks: 'All'}
     }
     render() {
         let data = turnDecks.split('~');
@@ -950,17 +950,32 @@ class Table extends React.Component{
                 <div className='table-controls'>
                     <div className='table-control-row'>
                         <div className='table-control-label noselect'> Cards: </div>
-                        <div className='table-control noselect'> All </div>
-                        <div className='table-control noselect'> Gains </div>
+                        <TableControl name='All' active={this.state.decks} clickEvent={() => this.setState({decks: 'All'})}/>
+                        <TableControl name='Gains' active={this.state.decks} clickEvent={() => this.setState({decks: 'Gains'})}/>
                     </div>
                     <div className='table-control-row'>
                         <div className='table-control-label noselect'> Value: </div>
-                        <div className='table-control noselect'> Count </div>
-                        <div className='table-control noselect'> Worth </div>
-                        <div className='table-control noselect'> Score </div>
+                        <TableControl name='Count' active={this.state.value} clickEvent={() => this.setState({value: 'Count'})}/>
+                        <TableControl name='Worth' active={this.state.value} clickEvent={() => this.setState({value: 'Worth'})}/>
+                        <TableControl name='Score' active={this.state.value} clickEvent={() => this.setState({value: 'Score'})}/>
                     </div>
                 </div>
             </div>
+    }
+}
+
+
+class TableControl extends React.Component {
+    render () {
+        let className = 'table-control noselect'
+        if (this.props.active == this.props.name){
+            className += ' active';
+        }
+        return (
+            <div className={className} onClick={this.props.clickEvent}>
+                {this.props.name}
+            </div>
+        );
     }
 }
 
