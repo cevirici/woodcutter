@@ -947,6 +947,19 @@ class Table extends React.Component{
                 <div className='table'>
                     {output}
                 </div>
+                <div className='table-controls'>
+                    <div className='table-control-row'>
+                        <div className='table-control-label noselect'> Cards: </div>
+                        <div className='table-control noselect'> All </div>
+                        <div className='table-control noselect'> Gains </div>
+                    </div>
+                    <div className='table-control-row'>
+                        <div className='table-control-label noselect'> Value: </div>
+                        <div className='table-control noselect'> Count </div>
+                        <div className='table-control noselect'> Worth </div>
+                        <div className='table-control noselect'> Score </div>
+                    </div>
+                </div>
             </div>
     }
 }
