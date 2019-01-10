@@ -33,7 +33,8 @@ def get_kingdom(supply):
         if sum([supply[card] for card in pair]) > 1:
             output[0].append(pairs[pair])
             for card in pair:
-                supplyCards.remove(card)
+                if card in supplyCards:
+                    supplyCards.remove(card)
 
     for card in supplyCards:
         if Cards[card].supply_type != -1:
