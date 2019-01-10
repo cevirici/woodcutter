@@ -894,6 +894,12 @@ class BottomTab extends React.Component{
 }
 
 
+
+function getDifference(firstTurn, secondTurn) {
+    
+}
+
+
 class Table extends React.Component{
     constructor(props) {
         super(props);

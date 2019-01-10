@@ -870,7 +870,8 @@ body {
 
 
 .board-content {
-    margin: 1vh;
+    margin-bottom: 0.5vh;
+    margin-left: 0.5vh;
     display: flex;
     flex-flow: row wrap;
     justify-content: flex-start;
