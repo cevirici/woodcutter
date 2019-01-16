@@ -896,7 +896,25 @@ class BottomTab extends React.Component{
 
 
 function getDifference(firstTurn, secondTurn) {
-    
+    output = [];
+    for (i = 0; i < 2; i++){
+        let firstPart = firstTurn.split('/')[i];
+        let secondPart = firstTurn.split('/')[i];
+        let counts = {};
+        if (firstPart) {
+            let positives = firstPart.split('+').map(x => x.split(':'));
+            counts = positives.reduce((count, entry) => {count[entry[1]] = parseInt(entry[0]); return count}, counts);
+        }
+        if (secondPart) {
+            let negatives = secondPart.split('+').map(x => x.split(':'));
+            counts = negatives.reduce((count, entry) => {
+                count[entry[1]] = (entry[1] in count ? count[entry[1]] : 0) - parseInt(entry[0]);
+                return count
+            } , counts);
+        }
+        output.push(counts);
+    }
+    return output;
 }
 
 
@@ -937,19 +955,22 @@ class Table extends React.Component{
             lowBound = (lowBound < 0 ? 0 : lowBound);
             for (let turn = lowBound; turn < lowBound + 16; turn++){
                 if (turn < data.length){
-                    if (this.state.decks == 'all'){
-                        var column = data[turn];
-                    } else {
-                        var column = data[turn];
-                    }
                     let player = turnOwners[turnPoints[turn + 1]];
                     let active = turn == indexTurn - 1;
-                    output.push(<TableTurn key={turn} data={column} label={turnLabels[turn]} player={player} active={active}/>);
+                    if (this.state.decks == 'all'){
+                        var column = data[turn].split('/').map(x => x.split('+').map(y => y.split(':')));
+                        output.push(<TableTurn key={turn} data={column} label={turnLabels[turn]} player={player} active={active} doubled={false}/>);
+                    } else {
+                        // var column = getDifference((turn > 0 ? data[turn - 1] : ''),
+                        //                            data[turn]);
+                        // output.push(<TableTurn key={turn} data={column} label={turnLabels[turn]} player={player} active={active} doubled={true}/>);
+                        var column = data[turn].split('/').map(x => x.split('+').map(y => y.split(':')));
+                        output.push(<TableTurn key={turn} data={column} label={turnLabels[turn]} player={player} active={active} doubled={false}/>);
+                    }
                 }
             }
         }
         return <div className='table-tab'>
-                <div className='sad-message'>This is under construction - it sucks now but it'll suck less eventually! </div>
                 <div className='table'>
                     {output}
                 </div>
@@ -971,26 +992,11 @@ class Table extends React.Component{
 }
 
 
-class TableControl extends React.Component {
-    render () {
-        let className = 'table-control noselect'
-        if (this.props.active == this.props.name){
-            className += ' active';
-        }
-        return (
-            <div className={className} onClick={this.props.clickEvent}>
-                {this.props.name}
-            </div>
-        );
-    }
-}
-
-
 class TableTurn extends React.Component{
     render() {
         let output = [];
         for (let i = 0; i < 2; i++){
-            output.push(<TableCol key={i} player={i} cards={this.props.data.split('/')[i]} />);
+            output.push(<TableCol key={i} player={i} cards={this.props.data[i]} doubled={this.props.doubled} />);
         }
         let labelClass = 'table-turn-label' + (this.props.player == 0 ? ' first' : ' second');
         if (this.props.active){
@@ -1008,13 +1014,20 @@ class TableTurn extends React.Component{
 
 class TableCol extends React.Component{
     render() {
-        let output = [];
+        let output = (this.props.doubled ? [[], []] : []);
         let j = 0;
-        for (let stack of this.props.cards.split('+')){
-            let [amount, index] = stack.split(':')
-            for (let i = 0; i < parseInt(amount); i++){
-                output.push(<Card key={j} size='tiny' index={parseInt(index, 16)} />);
-                j++ ;
+        for (let stack of this.props.cards){
+            let [amount, index] = stack
+            if (this.props.doubled){
+                for (let i = 0; i < parseInt(amount); i++){
+                    output.push(<Card key={j} size='tiny' index={parseInt(index, 16)} />);
+                    j++ ;
+                }
+            } else {
+                for (let i = 0; i < parseInt(amount); i++){
+                    output.push(<Card key={j} size='tiny' index={parseInt(index, 16)} />);
+                    j++ ;
+                }
             }
         }
         let colClass = 'table-col' + (this.props.player == 0 ? ' first' : ' second')
@@ -1022,6 +1035,21 @@ class TableCol extends React.Component{
         return <div className={colClass}>
             {output}
         </div>;
+    }
+}
+
+
+class TableControl extends React.Component {
+    render () {
+        let className = 'table-control noselect'
+        if (this.props.active == this.props.name){
+            className += ' active';
+        }
+        return (
+            <div className={className} onClick={this.props.clickEvent}>
+                {this.props.name}
+            </div>
+        );
     }
 }
 
