@@ -26,6 +26,7 @@
             return obj
         }, {});
         var scoreTotals = '{{ scoreTotals }}'.split('~').map(x => x.split('|').map(y => parseInt(y)));
+        var costs = '{{ costs }}'.split('~').map(x => parseInt(x));
         var borders = {{ borders | safe }}; var interiors = {{ interiors | safe }}; var urls = {{ urls | safe }};
         var stepPoints = {{ stepPoints | safe }}; var turnPoints = {{ turnPoints | safe }};
         var turnOwners = {{ turnOwners }};

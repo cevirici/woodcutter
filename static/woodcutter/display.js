@@ -101,11 +101,23 @@ class Card extends React.Component {
                 suffix = '-mid.jpg)';
             break;
         }
-        return {backgroundImage: 'url(' + staticRoot + '/card_images/' + urls[this.props.index] + suffix}
+        return {backgroundImage: 'url(' + staticRoot + '/card_images/' + urls[this.props.index] + suffix};
     }
 
     borderStyle() {
-        return {background: '#' + borders[this.props.index]}
+        let output = {background: '#' + borders[this.props.index]};
+        if (this.props.scale) {
+            let size = (this.props.scale - 0.5).toString();
+            output['height'] = size + 'vh';
+        }
+        return output;
+    }
+
+    containerStyle() {
+        if (this.props.scale) {
+            let size = (this.props.scale).toString();
+            return {'height': size + 'vh'};
+        }    
     }
 
     hoverEvent() {
@@ -118,11 +130,15 @@ class Card extends React.Component {
     render() {
         let innerText = (this.props.inner ? <div className='inner-text'> {this.props.inner} </div> : '');
         let containerClass = 'card-container' + (this.props.size ?  ' ' + this.props.size : '');
+        if (this.props.spaced){
+            containerClass += ' spaced';
+        }
         let innerClass = 'card-inner' + (this.props.pilable && parseInt(this.props.inner) < 3 ? ' low' : '');
         if (this.props.label) {
             containerClass += ' wide';
             return (
-                <div className={containerClass} ref={this.containerRef} onMouseLeave={this.props.dehover} onMouseOver={this.hoverEvent}>
+                <div className={containerClass} style={this.containerStyle()} ref={this.containerRef}
+                     onMouseLeave={this.props.dehover} onMouseOver={this.hoverEvent}>
                     <div className='card-label noselect'> {this.props.label} </div>
                     <div className={'card'} style={this.borderStyle()}>
                         <div className={innerClass} style={this.divStyle()}>
@@ -133,7 +149,8 @@ class Card extends React.Component {
             );
         } else {
             return (
-                <div className={containerClass} ref={this.containerRef} onMouseLeave={this.props.dehover} onMouseOver={this.hoverEvent}>
+                <div className={containerClass} style={this.containerStyle()} ref={this.containerRef}
+                     onMouseLeave={this.props.dehover} onMouseOver={this.hoverEvent}>
                     <div className={'card'} style={this.borderStyle()}>
                         <div className={innerClass} style={this.divStyle()}>
                         {innerText}
@@ -766,7 +783,7 @@ class StoryLegend extends React.Component {
 
             let i = 0;
             let last = 1;
-            for (let turn of turnPoints){
+            for (let turn of turnPoints.slice(0, -1)){
                 if (last != 0 && turnOwners[turn + 1] == 0){
                     i++ ;
                 }
@@ -774,6 +791,7 @@ class StoryLegend extends React.Component {
                 last = turnOwners[turn + 1];
                 owners.push(last);
             }
+            turnLabels.push('END');
 
             let highlighted = turnPoints.filter(point => point <= this.props.index).length - 1;
             for (let i = 0; i < turnLabels.length; i++){
@@ -896,23 +914,24 @@ class BottomTab extends React.Component{
 
 
 function getDifference(firstTurn, secondTurn) {
-    output = [];
+    var output = [];
     for (i = 0; i < 2; i++){
         let firstPart = firstTurn.split('/')[i];
-        let secondPart = firstTurn.split('/')[i];
+        let secondPart = secondTurn.split('/')[i];
         let counts = {};
-        if (firstPart) {
-            let positives = firstPart.split('+').map(x => x.split(':'));
-            counts = positives.reduce((count, entry) => {count[entry[1]] = parseInt(entry[0]); return count}, counts);
-        }
         if (secondPart) {
-            let negatives = secondPart.split('+').map(x => x.split(':'));
-            counts = negatives.reduce((count, entry) => {
-                count[entry[1]] = (entry[1] in count ? count[entry[1]] : 0) - parseInt(entry[0]);
-                return count
-            } , counts);
+            secondPart = secondPart.split('+').map(x => x.split(':'));
+            for (entry of secondPart) {
+                counts[entry[1]] = parseInt(entry[0]);
+            }
         }
-        output.push(counts);
+        if (firstPart) {
+            firstPart = firstPart.split('+').map(x => x.split(':'));
+            for (entry of firstPart) {
+                counts[entry[1]] = (counts[entry[1]] || 0) - parseInt(entry[0]);
+            }
+        }
+        output.push(Object.keys(counts).map(x => [counts[x], x]));
     }
     return output;
 }
@@ -936,13 +955,14 @@ class Table extends React.Component{
 
             let i = 0;
             let last = 1;
-            for (let turn of turnPoints){
+            for (let turn of turnPoints.slice(0, -1)){
                 if (last != 0 && turnOwners[turn + 1] == 0){
                     i++ ;
                 }
                 turnLabels.push(aliases[turnOwners[turn + 1]] + i.toString());
                 last = turnOwners[turn + 1];
             }
+            turnLabels.push('END');
 
             for (indexTurn = 0; indexTurn < turnPoints.length; indexTurn++){
                 if (turnPoints[indexTurn] > this.props.index){
@@ -950,22 +970,25 @@ class Table extends React.Component{
                 }
             }
 
-            let lowBound = indexTurn - 8;
-            lowBound = (lowBound > data.length - 17 ? data.length - 17 : lowBound);
+            let numTurns = 8;
+            let minBound = data.length - numTurns * 2;
+            let lowBound = indexTurn - numTurns;
+            lowBound = (lowBound > minBound ? minBound : lowBound);
             lowBound = (lowBound < 0 ? 0 : lowBound);
-            for (let turn = lowBound; turn < lowBound + 16; turn++){
+            for (let turn = lowBound; turn < lowBound + numTurns * 2; turn++){
                 if (turn < data.length){
                     let player = turnOwners[turnPoints[turn + 1]];
                     let active = turn == indexTurn - 1;
-                    if (this.state.decks == 'all'){
+                    if (this.state.decks == 'All'){
                         var column = data[turn].split('/').map(x => x.split('+').map(y => y.split(':')));
-                        output.push(<TableTurn key={turn} data={column} label={turnLabels[turn]} player={player} active={active} doubled={false}/>);
+                        output.push(<TableTurn key={turn} data={column} label={turnLabels[turn]} player={player}
+                                               active={active} doubled={false} scale={this.state.value}/>);
                     } else {
-                        // var column = getDifference((turn > 0 ? data[turn - 1] : ''),
-                        //                            data[turn]);
-                        // output.push(<TableTurn key={turn} data={column} label={turnLabels[turn]} player={player} active={active} doubled={true}/>);
-                        var column = data[turn].split('/').map(x => x.split('+').map(y => y.split(':')));
-                        output.push(<TableTurn key={turn} data={column} label={turnLabels[turn]} player={player} active={active} doubled={false}/>);
+                        if (turn < data.length - 1) {
+                            var column = getDifference(data[turn], data[turn + 1]);
+                            output.push(<TableTurn key={turn} data={column} label={turnLabels[turn]} player={player}
+                                                   active={active} doubled={true} scale={this.state.value}/>);
+                        }
                     }
                 }
             }
@@ -994,43 +1017,80 @@ class Table extends React.Component{
 
 class TableTurn extends React.Component{
     render() {
-        let output = [];
+        let uprights = [];
+        let inverts = [];
         for (let i = 0; i < 2; i++){
-            output.push(<TableCol key={i} player={i} cards={this.props.data[i]} doubled={this.props.doubled} />);
+            uprights.push(<TableCol key={i} player={i} cards={this.props.data[i]}
+                           doubled={this.props.doubled} inverted={false} scale={this.props.scale}/>);
+            inverts.push(<TableCol key={i} player={i} cards={this.props.data[i]}
+                           doubled={this.props.doubled} inverted={true} scale={this.props.scale}/>);
         }
         let labelClass = 'table-turn-label' + (this.props.player == 0 ? ' first' : ' second');
         if (this.props.active){
             labelClass += ' active';
         }
-        return <div className='table-turn-container'>
-            <div className={labelClass}>{this.props.label}</div>
-            <div className='table-turn'>
-                {output}
-            </div>
-        </div>;
+        if (this.props.doubled){
+            return (
+                <div className='table-turn-container'>
+                    <div className='table-turn inverted'>
+                        {inverts}
+                    </div>
+                    <div className={labelClass}>{this.props.label}</div>
+                    <div className='table-turn'>
+                        {uprights}
+                    </div>
+                </div>
+            );
+        } else {
+            return (
+                <div className='table-turn-container'>
+                    <div className={labelClass}>{this.props.label}</div>
+                    <div className='table-turn'>
+                        {uprights}
+                    </div>
+                </div>
+            );            
+        }
     }
 }
 
 
 class TableCol extends React.Component{
     render() {
-        let output = (this.props.doubled ? [[], []] : []);
+        let output = [];
         let j = 0;
+        let total = 0;
         for (let stack of this.props.cards){
             let [amount, index] = stack
-            if (this.props.doubled){
+            if (this.props.inverted) {
+                amount *= -1;
+            }
+            if (amount > 0) {
                 for (let i = 0; i < parseInt(amount); i++){
-                    output.push(<Card key={j} size='tiny' index={parseInt(index, 16)} />);
-                    j++ ;
-                }
-            } else {
-                for (let i = 0; i < parseInt(amount); i++){
-                    output.push(<Card key={j} size='tiny' index={parseInt(index, 16)} />);
+                    switch (this.props.scale) {
+                        case 'Count':
+                            total++;
+                            output.push(<Card key={j} spaced={total % 5 == 0} size='tiny' index={parseInt(index, 16)}/>);
+                            break;
+                        case 'Worth':
+                            let scale = costs[parseInt(index, 16)];
+                            if (scale > 0) {
+                                let passedGaps = ~~((total + scale - 1) / 5) - ~~(total / 5);
+                                total += scale;
+                                output.push(<Card key={j} spaced={total % 5 == 0} size='tiny'
+                                                     index={parseInt(index, 16)} scale={scale / 2 + passedGaps / 2}/>);
+                            }
+                            break;
+                        default:
+                            total++;
+                            output.push(<Card key={j} spaced={total % 5 == 0} size='tiny' index={parseInt(index, 16)}/>);
+                            break;
+                    }
                     j++ ;
                 }
             }
         }
-        let colClass = 'table-col' + (this.props.player == 0 ? ' first' : ' second')
+        let colClass = 'table-col' + (this.props.player == 0 ? ' first' : ' second');
 
         return <div className={colClass}>
             {output}

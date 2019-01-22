@@ -62,6 +62,7 @@ def get_points(moves):
             turnPoints.append(i)
         if move.indent == 0:
             stepPoints.append(i)
+    turnPoints.append(len(moves) - 1)
     return stepPoints, turnPoints
 
 

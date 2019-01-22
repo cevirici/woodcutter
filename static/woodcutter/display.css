@@ -179,6 +179,7 @@ body {
     transition: all 0.5s ease-out;
     width: 100vw;
     height: 100vh;
+    overflow: none;
     bottom: 0;
     position: absolute;
     transform: translateY(-6vh);
@@ -280,9 +281,14 @@ body {
 
 
 .table-col{
+    width: 2.4vh;
     height: 100%;
     display: flex;
     flex-flow: column-reverse nowrap;
+}
+
+.table-turn.inverted > .table-col{
+    flex-flow: column nowrap;
 }
 
 .table-col.first{   
@@ -299,7 +305,7 @@ body {
 }
 
 
-.table-col > .card-container:nth-child(5n){
+.table-col > .card-container.spaced{
     margin-top: 0.5vh;
 }
 
@@ -316,8 +322,8 @@ body {
     margin: 1px 1px 1px 1px;
 }
 
-.card-table:nth-child(5n){
-    margin-top: 3px;
+.card-table.spaced{
+    margin-top: 0.5vh;
 }
 
 .card-table-inner {

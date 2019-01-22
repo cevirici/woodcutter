@@ -166,6 +166,7 @@ def display(request, game_id, logIndex=0):
                                    for score in scores]),
                'scoreTotals': '~'.join(['|'.join(score[1])
                                         for score in scores]),
+               'costs': '~'.join([str(sum(card.cost)) for card in CardList]),
                'turnDecks': '~'.join(turnDecks)}
 
     return render(request, 'woodcutter/display.html', context)
