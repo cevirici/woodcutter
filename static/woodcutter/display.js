@@ -1,4 +1,25 @@
 
+function getTurnLabels() {
+    var aliases = players.map(x => x.slice(0, 1));
+    if (aliases[0] == aliases[1]){
+        aliases = players.map(x => x.slice(0, 2));
+    }
+
+    let turnLabels = [];
+    let i = 0;
+    let last = 1;
+    for (let turn of turnPoints.slice(0, -1)){
+        if (last != 0 && turnOwners[turn + 1] == 0){
+            i++ ;
+        }
+        turnLabels.push(aliases[turnOwners[turn + 1]] + i.toString());
+        last = turnOwners[turn + 1];
+    }
+    turnLabels.push('END');
+    return turnLabels;
+}
+
+
 class Container extends React.Component{
     constructor(props) {
         super(props);
@@ -944,26 +965,11 @@ class Table extends React.Component{
     }
     render() {
         let data = turnDecks.split('~');
-        let output = [];
-        var turnLabels = [];
+        let tableRows = [[], [], []];
         let indexTurn = 0;
+        let output = [];
         if (this.props.showing){
-            var aliases = players.map(x => x.slice(0, 1));
-            if (aliases[0] == aliases[1]){
-                aliases = players.map(x => x.slice(0, 2));
-            }
-
-            let i = 0;
-            let last = 1;
-            for (let turn of turnPoints.slice(0, -1)){
-                if (last != 0 && turnOwners[turn + 1] == 0){
-                    i++ ;
-                }
-                turnLabels.push(aliases[turnOwners[turn + 1]] + i.toString());
-                last = turnOwners[turn + 1];
-            }
-            turnLabels.push('END');
-
+            let turnLabels = getTurnLabels();
             for (indexTurn = 0; indexTurn < turnPoints.length; indexTurn++){
                 if (turnPoints[indexTurn] > this.props.index){
                     break;
@@ -975,22 +981,37 @@ class Table extends React.Component{
             let lowBound = indexTurn - numTurns;
             lowBound = (lowBound > minBound ? minBound : lowBound);
             lowBound = (lowBound < 0 ? 0 : lowBound);
+
             for (let turn = lowBound; turn < lowBound + numTurns * 2; turn++){
                 if (turn < data.length){
-                    let player = turnOwners[turnPoints[turn + 1]];
-                    let active = turn == indexTurn - 1;
-                    if (this.state.decks == 'All'){
-                        var column = data[turn].split('/').map(x => x.split('+').map(y => y.split(':')));
-                        output.push(<TableTurn key={turn} data={column} label={turnLabels[turn]} player={player}
-                                               active={active} doubled={false} scale={this.state.value}/>);
-                    } else {
-                        if (turn < data.length - 1) {
-                            var column = getDifference(data[turn], data[turn + 1]);
-                            output.push(<TableTurn key={turn} data={column} label={turnLabels[turn]} player={player}
-                                                   active={active} doubled={true} scale={this.state.value}/>);
+                    let labelClass = 'table-turn-label ' + (turnOwners[turnPoints[turn + 1]] == 0 ? 'first' : 'second');
+                    labelClass += (turn == indexTurn - 1 ? ' active' : '');
+
+                    let generate = () => {
+                        for (let side = 0; side < 3; side += 2){
+                            tableRows[side].push(<TableTurn key={turn} data={column}
+                                                            scale={this.state.value} inverted={side == 2}/>);
                         }
+                    };
+                    switch (this.state.decks){
+                        case 'All':
+                            var column = data[turn].split('/').map(x => x.split('+').map(y => y.split(':')));
+                            tableRows[1].push(<div className={labelClass}>{turnLabels[turn]}</div>);
+                            generate()
+                            break;
+                        case 'Gains':
+                            if (turn < data.length - 1) {
+                                var column = getDifference(data[turn], data[turn + 1]);
+                                tableRows[1].push(<div className={labelClass}>{turnLabels[turn]}</div>);
+                                generate()
+                            }
+                            break;
                     }
                 }
+            }
+
+            for (let row = 0; row < 3; row++){
+                output.push(<div className='table-row' key={row}> {tableRows[row]} </div>);
             }
         }
         return <div className='table-tab'>
@@ -1017,84 +1038,53 @@ class Table extends React.Component{
 
 class TableTurn extends React.Component{
     render() {
-        let uprights = [];
-        let inverts = [];
-        for (let i = 0; i < 2; i++){
-            uprights.push(<TableCol key={i} player={i} cards={this.props.data[i]}
-                           doubled={this.props.doubled} inverted={false} scale={this.props.scale}/>);
-            inverts.push(<TableCol key={i} player={i} cards={this.props.data[i]}
-                           doubled={this.props.doubled} inverted={true} scale={this.props.scale}/>);
-        }
-        let labelClass = 'table-turn-label' + (this.props.player == 0 ? ' first' : ' second');
-        if (this.props.active){
-            labelClass += ' active';
-        }
-        if (this.props.doubled){
-            return (
-                <div className='table-turn-container'>
-                    <div className='table-turn inverted'>
-                        {inverts}
-                    </div>
-                    <div className={labelClass}>{this.props.label}</div>
-                    <div className='table-turn'>
-                        {uprights}
-                    </div>
-                </div>
-            );
-        } else {
-            return (
-                <div className='table-turn-container'>
-                    <div className={labelClass}>{this.props.label}</div>
-                    <div className='table-turn'>
-                        {uprights}
-                    </div>
-                </div>
-            );            
-        }
-    }
-}
-
-
-class TableCol extends React.Component{
-    render() {
         let output = [];
-        let j = 0;
-        let total = 0;
-        for (let stack of this.props.cards){
-            let [amount, index] = stack
-            if (this.props.inverted) {
-                amount *= -1;
-            }
-            if (amount > 0) {
-                for (let i = 0; i < parseInt(amount); i++){
-                    switch (this.props.scale) {
-                        case 'Count':
-                            total++;
-                            output.push(<Card key={j} spaced={total % 5 == 0} size='tiny' index={parseInt(index, 16)}/>);
-                            break;
-                        case 'Worth':
-                            let scale = costs[parseInt(index, 16)];
-                            if (scale > 0) {
-                                let passedGaps = ~~((total + scale - 1) / 5) - ~~(total / 5);
-                                total += scale;
-                                output.push(<Card key={j} spaced={total % 5 == 0} size='tiny'
-                                                     index={parseInt(index, 16)} scale={scale / 2 + passedGaps / 2}/>);
-                            }
-                            break;
-                        default:
-                            total++;
-                            output.push(<Card key={j} spaced={total % 5 == 0} size='tiny' index={parseInt(index, 16)}/>);
-                            break;
+        for (let p = 0; p < 2; p++){
+            let total = 0;
+            let colClass = 'table-col' + (p == 0 ? ' first' : ' second');
+            colClass += (this.props.inverted ? ' inverted' : '');
+            let colDivs = [];
+            for (let stack of this.props.data[p]){
+                let [amount, index] = stack
+                if (this.props.inverted) {
+                    amount *= -1;
+                }
+                if (amount > 0) {
+                    for (let i = 0; i < parseInt(amount); i++){
+                        switch (this.props.scale) {
+                            case 'Count':
+                                total++;
+                                colDivs.push(<Card key={total} spaced={total % 5 == 0} size='tiny' index={parseInt(index, 16)}/>);
+                                break;
+                            case 'Worth':
+                                let scale = costs[parseInt(index, 16)];
+                                if (scale > 0) {
+                                    let passedGaps = ~~((total + scale - 1) / 10) - ~~(total / 10);
+                                    total += scale;
+                                    colDivs.push(<Card key={total} spaced={total % 10 == 0} size='tiny'
+                                                         index={parseInt(index, 16)} scale={scale / 2 + passedGaps / 2}/>);
+                                }
+                                break;
+                            case 'Score':
+
+                                break;
+                            default:
+                                total++;
+                                colDivs.push(<Card key={total} spaced={total % 5 == 0} size='tiny' index={parseInt(index, 16)}/>);
+                                break;
+                        }
                     }
-                    j++ ;
                 }
             }
-        }
-        let colClass = 'table-col' + (this.props.player == 0 ? ' first' : ' second');
 
-        return <div className={colClass}>
-            {output}
-        </div>;
+            output.push(<div className={colClass} key={p}>{colDivs}</div>);
+        }
+
+        return (
+            <div className='table-turn-container'>
+                {output}
+            </div>
+        );
     }
 }
 

@@ -232,29 +232,46 @@ body {
 
 
 .table{
+    overflow: hidden;
+    height: 90%;
     display: flex;
     position: relative;
+    flex-flow: column;
     justify-content: flex-start;
 }
 
 
-.table-turn-container{
-    margin-top: 3%;
-    height: 90%;
+.table-row {
+    overflow: hidden;
     display: flex;
-    flex-flow: column-reverse;
+    flex-flow: row;
+    justify-content: flex-start;
+    align-items: flex-end;
+    pointer-events: all;
+    scrollbar-color: transparent transparent;
+}
+.table-row::-webkit-scrollbar {
+    display: none;
 }
 
 
-.table-turn{
+.table-row:first-child {
+    flex-grow: 1;
+}
+
+
+.table-turn-container{
+    width: 5.3vh;
     height: 100%;
+    flex-shrink: 0;
     display: flex;
-    margin: 0px 3px;
+    justify-content: center;
+    align-items: flex-end;
 }
 
 
 .table-turn-label{
-    width: 100%;
+    width: 5.3vh;
     height: 1.8vh;
     padding-top: 4px;
     color: #999;
@@ -264,6 +281,7 @@ body {
     display: flex;
     flex-direction: column;
     justify-content: center;
+    flex-shrink: 0;
 }
 
 .table-turn-label.first{   
@@ -287,7 +305,7 @@ body {
     flex-flow: column-reverse nowrap;
 }
 
-.table-turn.inverted > .table-col{
+.table-col.inverted{
     flex-flow: column nowrap;
 }
 
