@@ -111,7 +111,7 @@ vp: {}<br> co: {}<br> vi: {}<br> db: {}<br>'
             if zone in GameState.playerZones:
                 for part in self.boardState[zone]:
                     outstr += '<br>    ' + str(part) + '<br>'
-            else:
+            elif zone == 'SUPPLY':
                 outstr += '<br>    ' + str(self.boardState[zone]) + '<br>'
 
             outstr += '---'

@@ -58,7 +58,7 @@ def get_vps(state, kingdom):
     landmarks = [card for card in kingdom if 'l' in Cards[card].types]
     for player in range(len(state['DECKS'])):
         playerDeck = state.crunch(GameState.playerZones, [player])
-        entries = [[playerDeck[card],
+        entries = [[0,
                     Cards[card].worth(state, player),
                     Cards[card].index] for card in playerDeck
                    if Cards[card].worth(state, player) != 0]

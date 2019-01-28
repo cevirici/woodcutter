@@ -137,8 +137,6 @@ def display(request, game_id, logIndex=0):
     scores = [get_vps(state, kingdomRaw[3]) for state in gameStates]
 
     stepPoints, turnPoints = get_points(gameMoves)
-    fullKingdom = kingdomRaw[0] + \
-        ['COPPER', 'SILVER', 'GOLD', 'ESTATE', 'DUCHY', 'PROVINCE', 'CURSE']
     kingdomStr = [[str(Cards[card].index) for card in row]
                   for row in kingdomRaw]
     turnStates = [gameStates[i] for i in turnPoints]
@@ -159,11 +157,9 @@ def display(request, game_id, logIndex=0):
                'borders': borders,
                'urls': urls,
                'phases': ''.join([str(x) for x in get_phases(gameStates)]),
-               'empties': '~'.join([state.empty_piles(fullKingdom)
-                                    for state in gameStates]),
                'inplays': '~'.join(get_inplays(gameStates)),
-               'scores': '~'.join([' '.join(score[0])
-                                   for score in scores]),
+               'scores': '~'.join([' '.join(scores[point][0])
+                                   for point in turnPoints]),
                'scoreTotals': '~'.join(['|'.join(score[1])
                                         for score in scores]),
                'costs': '~'.join([str(sum(card.cost)) for card in CardList]),

@@ -34,6 +34,17 @@ for line in cardFile:
 
 cardOrder = {CardList[i].simple_name.upper(): i
              for i in range(len(CardList))}
+
+
+def supplyOrder(card):
+    supplyCards = ['COLONY', 'PLATINUM', 'PROVINCE', 'GOLD', 'DUCHY',
+                   'SILVER', 'ESTATE', 'COPPER', 'CURSE']
+    if card in supplyCards:
+        return supplyCards.index(card)
+    else:
+        return cardOrder[card] + len(supplyCards)
+
+
 CardList.sort(key=lambda c: c.index)
 cardFile.close()
 

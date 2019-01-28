@@ -43,7 +43,8 @@ def get_kingdom(supply):
             else:
                 output[2].append(card)
 
-    for row in output[1:]:
+    output[1].sort(key=supplyOrder)
+    for row in output[2:]:
         row.sort(key=lambda x: cardOrder[x])
     output[0].sort(key=lambda x: (Cards[x].cost, Cards[x].simple_name))
 

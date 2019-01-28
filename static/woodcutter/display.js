@@ -989,7 +989,7 @@ class Table extends React.Component{
 
                     let generate = () => {
                         for (let side = 0; side < 3; side += 2){
-                            tableRows[side].push(<TableTurn key={turn} data={column}
+                            tableRows[side].push(<TableTurn key={turn} data={column} worths={scores[turn]}
                                                             scale={this.state.value} inverted={side == 2}/>);
                         }
                     };
@@ -1044,6 +1044,19 @@ class TableTurn extends React.Component{
             let colClass = 'table-col' + (p == 0 ? ' first' : ' second');
             colClass += (this.props.inverted ? ' inverted' : '');
             let colDivs = [];
+            if (this.props.scale == 'Score') {
+                var worths = {};
+                var worthData = this.props.worths[p].map(x => x.split('|').map(y => parseInt(y)));
+                for (let entry of worthData) {
+                    worths[entry[2]] = entry[1];
+                    if (entry[0] == 1) {
+                        let passedGaps = ~~((total + entry[1] - 1) / 5) - ~~(total / 5);
+                        total += entry[1];
+                        colDivs.push(<Card key={total} spaced={total % 5 == 0} size='tiny' index={entry[2]}
+                                           scale={scale + passedGaps / 2}/>);
+                    }
+                }
+            }
             for (let stack of this.props.data[p]){
                 let [amount, index] = stack
                 if (this.props.inverted) {
@@ -1051,13 +1064,14 @@ class TableTurn extends React.Component{
                 }
                 if (amount > 0) {
                     for (let i = 0; i < parseInt(amount); i++){
+                        var scale;
                         switch (this.props.scale) {
                             case 'Count':
                                 total++;
                                 colDivs.push(<Card key={total} spaced={total % 5 == 0} size='tiny' index={parseInt(index, 16)}/>);
                                 break;
                             case 'Worth':
-                                let scale = costs[parseInt(index, 16)];
+                                scale = costs[parseInt(index, 16)];
                                 if (scale > 0) {
                                     let passedGaps = ~~((total + scale - 1) / 10) - ~~(total / 10);
                                     total += scale;
@@ -1066,7 +1080,16 @@ class TableTurn extends React.Component{
                                 }
                                 break;
                             case 'Score':
-
+                                let card = parseInt(index, 16);
+                                if (card in worths) {
+                                    scale = worths[card];
+                                    if (scale > 0) {
+                                        let passedGaps = ~~((total + scale - 1) / 5) - ~~(total / 5);
+                                        total += scale;
+                                        colDivs.push(<Card key={total} spaced={total % 5 == 0} size='tiny'
+                                                             index={parseInt(index, 16)} scale={scale + passedGaps / 2}/>);
+                                    }
+                                }
                                 break;
                             default:
                                 total++;
