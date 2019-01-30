@@ -987,26 +987,59 @@ class Table extends React.Component{
                     let labelClass = 'table-turn-label ' + (turnOwners[turnPoints[turn + 1]] == 0 ? 'first' : 'second');
                     labelClass += (turn == indexTurn - 1 ? ' active' : '');
 
-                    let generate = () => {
-                        for (let side = 0; side < 3; side += 2){
-                            tableRows[side].push(<TableTurn key={turn} data={column} worths={scores[turn]}
-                                                            scale={this.state.value} inverted={side == 2}/>);
-                        }
-                    };
                     switch (this.state.decks){
                         case 'All':
-                            var column = data[turn].split('/').map(x => x.split('+').map(y => y.split(':')));
+                            let column = data[turn].split('/').map(x => x.split('+').map(y => y.split(':')));
                             tableRows[1].push(<div className={labelClass}>{turnLabels[turn]}</div>);
-                            generate()
+                            for (let side = 0; side < 3; side += 2){
+                                tableRows[side].push(<TableTurn key={turn} data={column} worths={scores[turn]}
+                                                                scale={this.state.value} inverted={side == 2}/>);
+                            }
                             break;
                         case 'Gains':
                             if (turn < data.length - 1) {
-                                var column = getDifference(data[turn], data[turn + 1]);
+                                let column = getDifference(data[turn], data[turn + 1]);
                                 tableRows[1].push(<div className={labelClass}>{turnLabels[turn]}</div>);
-                                generate()
+                                for (let side = 0; side < 3; side += 2){
+                                    tableRows[side].push(<TableTurn key={turn} data={column} worths={scores[turn]}
+                                                                    scale={this.state.value} inverted={side == 2}/>);
+                                }
                             }
                             break;
                     }
+                }
+            }
+
+            /* Table horizontal lines */
+            for (let row = 0; row < 3; row += 2) {
+                switch (this.state.value) {
+                    case 'Count':
+                        for (let height = 10.65; height < 67; height += 11){
+                            if (row == 2) {
+                                tableRows[row].push(<div className='table-line' style={{'top': height.toString() + 'vh'}}></div>);
+                            } else {
+                                tableRows[row].push(<div className='table-line' style={{'bottom': height.toString() + 'vh'}}></div>);
+                            }
+                        }
+                        break;
+                    case 'Worth':
+                        for (let height = 6.15; height < 67; height += 6.5){
+                            if (row == 2) {
+                                tableRows[row].push(<div className='table-line' style={{'top': height.toString() + 'vh'}}></div>);
+                            } else {
+                                tableRows[row].push(<div className='table-line' style={{'bottom': height.toString() + 'vh'}}></div>);
+                            }
+                        }
+                        break;
+                    case 'Score':
+                        for (let height = 5.2; height < 67; height += 5.5){
+                            if (row == 2) {
+                                tableRows[row].push(<div className='table-line' style={{'top': height.toString() + 'vh'}}></div>);
+                            } else {
+                                tableRows[row].push(<div className='table-line' style={{'bottom': height.toString() + 'vh'}}></div>);
+                            }
+                        }
+                        break;
                 }
             }
 
@@ -1050,8 +1083,9 @@ class TableTurn extends React.Component{
                 for (let entry of worthData) {
                     worths[entry[2]] = entry[1];
                     if (entry[0] == 1) {
-                        let passedGaps = ~~((total + entry[1] - 1) / 5) - ~~(total / 5);
-                        total += entry[1];
+                        let amount = entry[1] * (this.props.inverted ? -1 : 1);
+                        let passedGaps = ~~((total + amount - 1) / 5) - ~~(total / 5);
+                        total += amount;
                         colDivs.push(<Card key={total} spaced={total % 5 == 0} size='tiny' index={entry[2]}
                                            scale={scale + passedGaps / 2}/>);
                     }
@@ -1062,40 +1096,46 @@ class TableTurn extends React.Component{
                 if (this.props.inverted) {
                     amount *= -1;
                 }
-                if (amount > 0) {
-                    for (let i = 0; i < parseInt(amount); i++){
-                        var scale;
-                        switch (this.props.scale) {
-                            case 'Count':
+                if (amount != 0) {
+                    let scale;
+                    switch (this.props.scale) {
+                        case 'Count':
+                            for (let i = 0; i < parseInt(amount); i++){
                                 total++;
                                 colDivs.push(<Card key={total} spaced={total % 5 == 0} size='tiny' index={parseInt(index, 16)}/>);
-                                break;
-                            case 'Worth':
+                            }
+                            break;
+                        case 'Worth':
+                            for (let i = 0; i < parseInt(amount); i++){
                                 scale = costs[parseInt(index, 16)];
                                 if (scale > 0) {
                                     let passedGaps = ~~((total + scale - 1) / 10) - ~~(total / 10);
                                     total += scale;
                                     colDivs.push(<Card key={total} spaced={total % 10 == 0} size='tiny'
-                                                         index={parseInt(index, 16)} scale={scale / 2 + passedGaps / 2}/>);
+                                                         index={parseInt(index, 16)} scale={scale * 0.6 + passedGaps / 2 - 0.1}/>);
                                 }
-                                break;
-                            case 'Score':
-                                let card = parseInt(index, 16);
-                                if (card in worths) {
-                                    scale = worths[card];
+                            }
+                            break;
+                        case 'Score':
+                            let card = parseInt(index, 16);
+                            if (card in worths) {
+                                let factor = this.props.inverted ? -1 : 1;
+                                scale = worths[card] * factor;
+                                amount *= factor;
+                                for (let i = 0; i < parseInt(amount); i++){
                                     if (scale > 0) {
                                         let passedGaps = ~~((total + scale - 1) / 5) - ~~(total / 5);
                                         total += scale;
                                         colDivs.push(<Card key={total} spaced={total % 5 == 0} size='tiny'
-                                                             index={parseInt(index, 16)} scale={scale + passedGaps / 2}/>);
+                                                             index={parseInt(index, 16)} scale={scale + passedGaps / 2 - 0.1}/>);
                                     }
                                 }
-                                break;
-                            default:
-                                total++;
-                                colDivs.push(<Card key={total} spaced={total % 5 == 0} size='tiny' index={parseInt(index, 16)}/>);
-                                break;
-                        }
+                            }
+                            break;
+                        default:
+                            total++;
+                            colDivs.push(<Card key={total} spaced={total % 5 == 0} size='tiny' index={parseInt(index, 16)}/>);
+                            break;
                     }
                 }
             }
