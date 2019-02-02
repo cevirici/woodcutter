@@ -1084,10 +1084,12 @@ class TableTurn extends React.Component{
                     worths[entry[2]] = entry[1];
                     if (entry[0] == 1) {
                         let amount = entry[1] * (this.props.inverted ? -1 : 1);
-                        let passedGaps = ~~((total + amount - 1) / 5) - ~~(total / 5);
-                        total += amount;
-                        colDivs.push(<Card key={total} spaced={total % 5 == 0} size='tiny' index={entry[2]}
-                                           scale={amount + passedGaps / 2 - 0.1}/>);
+                        if (amount > 0) {
+                            let passedGaps = ~~((total + amount - 1) / 5) - ~~(total / 5);
+                            total += amount;
+                            colDivs.push(<Card key={total} spaced={total % 5 == 0} size='tiny' index={entry[2]}
+                                               scale={amount + passedGaps / 2 - 0.1}/>);
+                        }
                     }
                 }
             }
