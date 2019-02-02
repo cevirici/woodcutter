@@ -1087,7 +1087,7 @@ class TableTurn extends React.Component{
                         let passedGaps = ~~((total + amount - 1) / 5) - ~~(total / 5);
                         total += amount;
                         colDivs.push(<Card key={total} spaced={total % 5 == 0} size='tiny' index={entry[2]}
-                                           scale={scale + passedGaps / 2}/>);
+                                           scale={amount + passedGaps / 2 - 0.1}/>);
                     }
                 }
             }
