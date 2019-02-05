@@ -53,7 +53,7 @@ def kingscastle_worth(state, player):
 
 def banditfort_worth(state, player):
     playerDeck = state.crunch(GameState.playerZones, [player])
-    return playerDeck['SILVER'] + playerDeck['GOLD'] * -3
+    return playerDeck['SILVER'] + playerDeck['GOLD'] * -2
 
 
 def fountain_worth(state, player):
@@ -76,8 +76,8 @@ def museum_worth(state, player):
 
 def obelisk_worth(state, player):
     playerDeck = state.crunch(GameState.playerZones, [player])
-    return sum([playerDeck[card] for card in playerDeck
-                if card in state.obelisk])
+    return 2 * sum([playerDeck[card] for card in playerDeck
+                    if card in state.obelisk])
 
 
 def orchard_worth(state, player):
