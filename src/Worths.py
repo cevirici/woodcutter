@@ -53,7 +53,7 @@ def kingscastle_worth(state, player):
 
 def banditfort_worth(state, player):
     playerDeck = state.crunch(GameState.playerZones, [player])
-    return playerDeck['SILVER'] + playerDeck['GOLD'] * -2
+    return (playerDeck['SILVER'] + playerDeck['GOLD']) * -2
 
 
 def fountain_worth(state, player):
