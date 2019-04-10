@@ -72,8 +72,11 @@ def get_vps(state, kingdom):
         output.append(entries)
         total = 0
         for entry in entries:
-            count = playerDeck[CardList[entry[2]].simple_name.upper()]
-            total += entry[1] * count
+            if entry[0] == 0:
+                count = playerDeck[CardList[entry[2]].simple_name.upper()]
+                total += entry[1] * count
+            else:
+                total += entry[1]
         totals.append(str(total))
 
     return ['/'.join(['|'.join([str(x) for x in entry])

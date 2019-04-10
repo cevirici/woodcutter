@@ -1321,6 +1321,9 @@ def return_action(moves, i, blockLength, state):
     move = moves[i]
     target = move.items[0].primary
 
+    if target in ['DELUDED', 'ENVIOUS']:
+        state.phase = 2
+
     if 's' in Cards[target].types:
         state.projects[moves[i].player].discard(target)
     else:
