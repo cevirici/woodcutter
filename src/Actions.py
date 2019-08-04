@@ -832,6 +832,7 @@ def standard_plays(moves, i, blockLength, state):
                 'SEER': [exc_revealTopdeck],
                 'TREASURER': [gainTo('TRASH', 'HANDS')],
                 'RESEARCH': [checkMove(['SET ASIDE'], 'DECKS', 'OTHERS')],
+                'CAPTAIN': [Exception(check(['PLAY']), standard_plays)],
                 }
 
     move = moves[i]
