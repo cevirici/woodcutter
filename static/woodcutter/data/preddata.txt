@@ -1,4 +1,4 @@
-0~^Game #(?P<argument>.*), (?P<argumentb>.*)\.$~GAME START
+0~^Game #(?P<argument>.*), (?P<argumentb>.*)$~GAME START
 1~^Turn (?P<argument>.*) - (?P<player>.*)$~NEW TURN
 2~^(?P<player>.*) starts their turn\.$~TURN START
 3~^(?P<player>.*) ends their buy phase\.$~END BUYPHASE
@@ -120,5 +120,4 @@ f~^(?P<player>.*) trashes (?P<cards>.*)\. \((?P<cardsb>.*)\)$~TRASH GENERIC
 77~^Outpost fails because (?P<player>.*) has already played it\.$~OUTPOST FAIL2
 78~^(?P<player>.*) fails to discard for The Sky's Gift$~SKY GIFT FAIL
 79~^The Sun's Gift has nothing to discard\.$~SUN GIFT FAIL
-7b~^Kingdom generated with these relative percentages:(?P<argument>.*)$~CARDLISTS
 7a~^(?P<argument>.*)$~OTHERS
