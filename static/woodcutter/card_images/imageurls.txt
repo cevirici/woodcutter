@@ -515,3 +515,5 @@ Sewers:images/cards/art/renaissance/sewers.jpg
 Silos:images/cards/art/renaissance/silos.jpg
 Sinister Plot:images/cards/art/renaissance/sinister-plot.jpg
 Star Chart:images/cards/art/renaissance/star-chart.jpg
+Captain:images/cards/art/promos/captain.jpg
+Church:images/cards/art/promos/church.jpg
