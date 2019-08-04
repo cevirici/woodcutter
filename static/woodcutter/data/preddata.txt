@@ -1,4 +1,4 @@
-0~^Game #(?P<argument>.*), (?P<argumentb>.*)$~GAME START
+0~^Game #(?P<argument>.*?), (?P<argumentb>.*)$~GAME START
 1~^Turn (?P<argument>.*) - (?P<player>.*)$~NEW TURN
 2~^(?P<player>.*) starts their turn\.$~TURN START
 3~^(?P<player>.*) ends their buy phase\.$~END BUYPHASE
