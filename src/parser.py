@@ -37,6 +37,7 @@ def parse_card_phrase(cardlist):
 def parse_line(line):
     indent = get_indent(line)
     line = re.sub('<.*?>|&bull;|&sdot;', '', line).strip()
+    line = re.sub('Kingdom generated with these relative precentages(.*)', '', line)
     for p in predParseOrder:
         if re.match(p.regex, line):
             pred = p
@@ -89,7 +90,6 @@ def translate_file(inString):
 def combined_parse(inStrings):
     logs = [translate_file(x) for x in inStrings]
     parsedLog = []
-    something = logs[0][0].predName
     gameNum = int(logs[0][0].arguments[0])
 
     actualLength = min([len(log) for log in logs])
