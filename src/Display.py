@@ -118,6 +118,7 @@ def elaborate_line(players, line, fancy):
         for j, entry in enumerate(source):
             fieldName = [playerFields, cardFields, argumentFields][i][j]
             output = output.replace('(?P<{}>.*)'.format(fieldName), entry)
+            output = output.replace('(?P<{}>.*?)'.format(fieldName), entry)
 
     output = re.sub(r'([^\\])[\.\(\)\+\$]', r'\1', output)
     output = re.sub(r'\\([\.\(\)\+\$])', r'\1', output)
