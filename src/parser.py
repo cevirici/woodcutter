@@ -89,7 +89,7 @@ def translate_file(inString):
 def combined_parse(inStrings):
     logs = [translate_file(x) for x in inStrings]
     parsedLog = []
-    something = logs[0][0].arguments[0]
+    something = logs[0][0].predName
     gameNum = int(logs[0][0].arguments[0])
 
     actualLength = min([len(log) for log in logs])
