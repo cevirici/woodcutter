@@ -514,3 +514,5 @@ ff,Dungeon,Dungeons,a Dungeon,3,0,dda561,4f472d,a
 201,Silos,Silos,Silos,4,3,b99489,8c948c,p
 202,Sinister Plot,Sinister Plot,Sinister Plot,4,3,b99489,534637,p
 203,Star Chart,Star Chart,Star Chart,3,3,b99489,b9987c,p
+204,Church,Churches,a Church,3,0,bfa381,bbada2,a
+205,Captain,Captains,a Captain,6,0,bfa381,777671,a

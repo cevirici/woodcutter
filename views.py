@@ -7,7 +7,7 @@ from django.views.decorators.csrf import csrf_exempt
 
 from random import randint
 from .src import *
-from .models import GameLog
+from .models import *
 import re
 
 
