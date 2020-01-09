@@ -1,7 +1,10 @@
 
 def parse_items(items):
-    return {i.split(':')[1]: i.split(':')[0] for
-            i in items.split('+')}
+    if items == '':
+        return {}
+    else
+        return {i.split(':')[1]: i.split(':')[0] for
+                i in items.split('+')}
 
 
 def merge_lines(lines):
