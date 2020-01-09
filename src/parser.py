@@ -1,125 +1,35 @@
-import re
-from .classes import *
-from .Standards import *
-from functools import reduce
-from copy import deepcopy
+
+def parse_items(items):
+    return {i.split(':')[1]: i.split(':')[0] for
+            i in items.split('+')}
 
 
-def get_indent(line):
-    t = re.search('padding-left:(.*?)em;', line).group(1)
-    return int(float(t) // 1.5)
-
-
-def get_card(name):
-    for card in Cards:
-        if name in Cards[card].names:
-            return card
-
-
-def parse_card_phrase(cardlist):
-    r = re.split(', | and ', cardlist)
-    a = Cardstack({})
-
-    for item in r:
-        m = re.match('^(?:(\d+|a|(?:an)) )?(.*)$', item)
-        prefix, suffix = m.group(1), m.group(2)
-
-        if prefix:
-            if prefix in ['a', 'an']:
-                prefix = 1
-            a[get_card(suffix)] = int(prefix)
-        else:
-            a[get_card(suffix)] = 255
-
-    return a
-
-
-def parse_line(line):
-    indent = get_indent(line)
-    line = re.sub('<.*?>|&bull;|&sdot;', '', line).strip()
-    line = re.sub('Kingdom generated with these relative precentages(.*)', '', line)
-    for p in predParseOrder:
-        if re.match(p.regex, line):
-            pred = p
-            break
-
-    m = re.match(pred.regex, line)
-    gd = m.groupdict()
-
-    playerFields = ('player', 'playerb')
-    players = [gd[group] for group in playerFields if group in gd]
-
-    cardFields = ('cards', 'cardsb')
-    cards = [parse_card_phrase(gd[group]) for group in cardFields
-             if group in gd]
-
-    argumentFields = ('argument', 'argumentb', 'argumentc')
-    arguments = [gd[group] for group in argumentFields if group in gd]
-
-    return ParsedLine(indent, pred, players, cards, arguments)
-
-
-def translate_file(inString):
-    lines = inString.split('~')
-    parsedLog = []
-    names = []
+def merge_lines(lines):
+    minimal_count = -1
+    best_backs = 0
+    best_line = None
 
     for line in lines:
-        parsed = parse_line(line)
-        for i, player in enumerate(parsed.players):
-            if parsed.pred == 'NEW TURN':
-                matchedAliases = [name for name in names if
-                                  re.match('^' + name, player)]
-                matchedAliases.sort(key=lambda x: -len(x))
-                if names.index(matchedAliases[0]) + 1 > 2:
-                    print(player)
-                parsed.players[i] = names.index(matchedAliases[0]) + 1
-            else:
-                if player not in names:
-                    names.append(player)
-
-                if names.index(player) + 1 > 2:
-                    print(player)
-                parsed.players[i] = names.index(player) + 1
-
-        parsedLog.append(parsed)
-
-    return parsedLog
+        items = parse_items(line.split('|')[-1])
+        count = sum(items.values())
+        if minimal_count < 0 or count < minimal_count or \
+                (count == minimal_count and items.get(0, 0) < best_backs):
+            best_line = line
+            best_backs = items.get(0, 0)
+            minimal_count = count
+    return best_line
 
 
-def combined_parse(inStrings):
-    logs = [translate_file(x) for x in inStrings]
-    parsedLog = []
-    gameNum = int(logs[0][0].arguments[0])
+def combined_parse(logString):
+    logs = logString.split('###')
 
     actualLength = min([len(log) for log in logs])
-    for i in range(actualLength):
-        currentLines = [log[i] for log in logs]
-        mergedLine = deepcopy(currentLines[0])
-        mergedItems = [reduce(lambda x, y: x.merge(y),
-                              [line.items[j] for line in currentLines])
-                       for j in range(len(currentLines[0].items))]
+    mergedLines = [merge_lines([log[i] for log in logs])
+                   for i in range(actualLength)]
 
-        mergedLine.items = mergedItems
-
-        parsedLog.append(repr(mergedLine))
-
-    return ('~'.join(parsedLog), gameNum)
+    return '\n'.join(mergedLines)
 
 
-def parse_supply(inString):
-    f = inString.split('~')
-    cards = []
-
-    baseStr = '{:0>3}{:0>2}'
-
-    for line in f:
-        entry = line.strip().rsplit("-", 1)
-        for card in CardList:
-            if entry[0] == card.simple_name:
-                cards.append(baseStr.format(repr(card),
-                                            entry[1]
-                                            ))
-                break
-
-    return '~'.join(cards)
+def parse_header(headerString):
+    data = headerString.split(":", 1)
+    return (data[0], data[1].split("~"))

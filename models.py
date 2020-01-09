@@ -25,3 +25,5 @@ class GameLog(models.Model):
                                blank=True)
 
     valid = models.BooleanField(default=True)
+
+    version = models.IntegerField(default=0)
