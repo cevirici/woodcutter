@@ -38,9 +38,9 @@ def random(request):
 
 @csrf_exempt
 def submit(request):
-    if request.POST['v'] != 2:
+    if request.POST['v'] != '2':
         # Invalid version of grabber
-        return
+        return request.POST['v']
 
     gameId, players = parse_header(request.POST['header'])
     combinedLog = combined_parse(request.POST['logs'])
