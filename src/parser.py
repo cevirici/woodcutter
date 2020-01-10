@@ -24,7 +24,7 @@ def merge_lines(lines):
 
 
 def combined_parse(logString):
-    logs = logString.split('###')
+    logs = [l.split('~') for l in logString.split('###')]
 
     actualLength = min([len(log) for log in logs])
     mergedLines = [merge_lines([log[i] for log in logs])
