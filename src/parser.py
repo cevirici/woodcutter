@@ -3,7 +3,7 @@ def parse_items(items):
     if items == '':
         return {}
     else:
-        return {i.split(':')[1]: i.split(':')[0] for
+        return {int(i.split(':')[1]): int(i.split(':')[0]) for
                 i in items.split('+')}
 
 
