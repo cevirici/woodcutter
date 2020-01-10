@@ -47,10 +47,10 @@ def submit(request):
     supply = request.POST['supply']
 
     try:
-        oldLog = GameLog.objects.get(game_id=gameID)
+        oldLog = GameLog.objects.get(game_id=gameId)
     except ObjectDoesNotExist:
         GameLog.objects.create(version=2,
-                               game_id=gameID,
+                               game_id=gameId,
                                log=condensedLog,
                                supply=supply,
                                players=players)
@@ -76,7 +76,7 @@ def submit(request):
     # log.valid = gameStates[-1].valid
     # log.save()
 
-    return HttpResponseRedirect(reverse('woodcutter:display', args=(gameID,)))
+    return HttpResponseRedirect(reverse('woodcutter:display', args=(gameId,)))
 
 
 def plaintext(request, game_id):
