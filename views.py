@@ -44,7 +44,7 @@ def submit(request):
 
     gameId, players = parse_header(request.POST['header'])
     combinedLog = combined_parse(request.POST['logs'])
-    supply = request.POST['supply'].replace("~", "\n")
+    supply = request.POST['supply']
 
     try:
         oldLog = GameLog.objects.get(game_id=gameId)

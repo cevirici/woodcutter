@@ -30,9 +30,9 @@ def combined_parse(logString):
     mergedLines = [merge_lines([log[i] for log in logs])
                    for i in range(actualLength)]
 
-    return '\n'.join(mergedLines)
+    return '~'.join(mergedLines)
 
 
 def parse_header(headerString):
     data = headerString.split(":", 1)
-    return (data[0], data[1].split("~"))
+    return (data[0], data[1])
