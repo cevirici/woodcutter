@@ -42,6 +42,7 @@ def submit(request):
         # Invalid version of grabber
         return request.POST['v']
 
+    version = int(request.POST['v'])
     gameId, players = parse_header(request.POST['header'])
     combinedLog = combined_parse(request.POST['logs'])
     supply = request.POST['supply']
@@ -49,7 +50,7 @@ def submit(request):
     try:
         oldLog = GameLog.objects.get(game_id=gameId)
     except ObjectDoesNotExist:
-        GameLog.objects.create(version=2,
+        GameLog.objects.create(version=version,
                                game_id=gameId,
                                log=combinedLog,
                                supply=supply,
@@ -79,17 +80,20 @@ def submit(request):
     return HttpResponseRedirect(reverse('woodcutter:display', args=(gameId,)))
 
 
+def dump(request, game_id):
+    log = get_object_or_404(GameLog, game_id=game_id)
+    states = simulate(log.supply, log.log)
+
+    return HttpResponse('<br>'.join([s.zones for s in states]))
+
+
 def plaintext(request, game_id):
     log = get_object_or_404(GameLog, game_id=game_id)
-    players = log.players.split('~')
+    cards, preds = getInfo(log.version)
 
-    parsedLog, supply = unpack(log.log, log.supply)
-    kingdomRaw, pairs = get_kingdom(supply)
-    kingdomStr = [[Cards[card].simple_name for card in row]
-                  for row in kingdomRaw]
-    kingdom = '|'.join(['|'.join(row) for row in kingdomStr])
-    story = elaborate_story(players, parsedLog)
-    return HttpResponse(kingdom + '<br>' + '<br>'.join(story))
+    printer = Printer(log.version)
+    printedLog = [printer.print_line(line) for line in log.log.split("~")]
+    return HttpResponse('<br>'.join(printedLog))
 
 
 def detailed(request, game_id):

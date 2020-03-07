@@ -1,3 +1,6 @@
+from .Enums import *
+from .Utils import *
+
 
 def parse_items(items):
     if items == '':
@@ -36,3 +39,39 @@ def combined_parse(logString):
 def parse_header(headerString):
     data = headerString.split(":", 1)
     return (data[0], data[1])
+
+
+class Printer:
+    def __init__(self, version):
+        self.cards, self.preds = getInfo(version)
+
+    def print_items(self, inString):
+        def parse(item):
+            parts = item.split(":")
+            if len(parts) == 1:
+                return parts[0]
+            else:
+                return "{} {}".format(parts[0], self.cards[int(parts[1])])
+        items = inString.split("+")
+
+        parsedItems = [parse(item) for item in items]
+        return ", ".join(parsedItems)
+
+    def print_line(self, line):
+        indent, pred, player, items, args = line.split("|")
+        if args:
+            return "P{} - {} ({}): {}".format(
+                player,
+                self.preds[int(pred)],
+                self.print_items(args),
+                self.print_items(items)
+            )
+        else:
+            if items:
+                return "P{} - {}: {}".format(
+                    player,
+                    self.preds[int(pred)],
+                    self.print_items(items)
+                )
+            else:
+                return "P{} - {}".format(player, self.preds[int(pred)])
