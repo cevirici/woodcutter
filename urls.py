@@ -17,4 +17,5 @@ urlpatterns = [
     path('<int:game_id>/display/<int:logIndex>', views.display),
     path('<int:game_id>/debug/', views.dump, name='dump'),
     path('<int:game_id>/update/', views.v0ToV1, name='update'),
+    path('updateAll', views.updateAll, name='updateall'),
 ]

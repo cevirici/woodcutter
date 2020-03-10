@@ -151,6 +151,12 @@ def v0ToV1(request, game_id):
     return HttpResponseRedirect(reverse('woodcutter:plain', args=(game_id,)))
 
 
+def updateAll(request):
+    for log in GameLog.objects.filter(version=0):
+        v0ToV1(None, log.game_id)
+    return HttpResponse('done, maybe?')
+
+
 def dump(request, game_id):
     log = get_object_or_404(GameLog, game_id=game_id)
     states = simulate(log.supply, log.log)
