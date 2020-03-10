@@ -79,4 +79,3 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         for log in GameLog.objects.filter(version=0):
             v0ToV1(log.game_id)
-            self.stdout.write(self.style.SUCCESS(str(log.game_id)))
