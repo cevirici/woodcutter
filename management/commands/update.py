@@ -83,7 +83,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         for i in range(options['count'][0]):
             try:
-                log = GameLog.objects.filter(version=0).get()
+                log = GameLog.objects.filter(version=0).first()
                 v0ToV1(log.game_id)
             except GameLog.DoesNotExist:
                 raise CommandError('No More Logs')
