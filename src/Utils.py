@@ -29,11 +29,18 @@ def getItems(logLine):
 
 
 def getInfo(version):
-    cardPath = 'woodcutter/data/cardv3.txt'
+    if version in [0, 1, 9]:
+        cardPath = 'woodcutter/data/cardv1.txt'
+    else:
+        cardPath = 'woodcutter/data/cardv3.txt'
     cardF = open(os.path.join(settings.STATIC_ROOT, cardPath), 'r')
     cardNames = [line for line in cardF]
 
-    if version == 2:
+    if version == 0:
+        predPath = 'woodcutter/data/predv0.txt'
+    elif version == 1:
+        predPath = 'woodcutter/data/predv1.txt'
+    elif version == 2:
         predPath = 'woodcutter/data/predv2.txt'
     else:
         predPath = 'woodcutter/data/predv3.txt'

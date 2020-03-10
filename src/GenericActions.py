@@ -1,4 +1,4 @@
-# Generic actions
+# Actions associated with a predicate
 from copy import deepcopy
 from .Utils import *
 
