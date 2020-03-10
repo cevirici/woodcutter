@@ -3,12 +3,30 @@ from copy import deepcopy
 from .Utils import *
 
 
-def startGame(state, log):
-    # Presumes correctness.
-    state = deepcopy(state)
-    state.logLine += 1
-    state.candidates = [startDecks]
-    return state
+class Action:
+    name = "Unknown Action"
+
+    def __init__(self):
+        pass
+
+    def __repr__(self):
+        return name
+
+    def attempt(self, state, log):
+        return None
+
+
+class startGame(Action):
+    name = "Start Game"
+
+    def attempt(self, state, log):
+        if getPred(log[state.logLine]) == "GAME_META_INFO":
+            state = deepcopy(state)
+            state.logLine += 1
+            state.candidates = [startDecks()]
+            return state
+        else:
+            return None
 
 
 def startDecks(state, log):
