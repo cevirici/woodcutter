@@ -45,6 +45,14 @@ class Printer:
     def __init__(self, version):
         self.cards, self.preds = getInfo(version)
 
+    def print_supply(self, supply):
+        def parse(item):
+            parts = item.split(":")
+            return "{} {}".format(parts[0], self.cards[int(parts[1])])
+        items = supply.split("~")
+        parsedItems = [parse(item) for item in items if item]
+        return "Supply: " + ", ".join(parsedItems)
+
     def print_items(self, inString):
         def parse(item):
             parts = item.split(":")

@@ -93,7 +93,8 @@ def plaintext(request, game_id):
 
     printer = Printer(log.version)
     printedLog = [printer.print_line(line) for line in log.log.split("~")]
-    return HttpResponse('<br>'.join(printedLog))
+    return HttpResponse(printer.print_supply(log.supply) + '<br>' +
+                        '<br>'.join(printedLog))
 
 
 def detailed(request, game_id):
