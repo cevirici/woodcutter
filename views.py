@@ -38,7 +38,7 @@ def random(request):
 
 @csrf_exempt
 def submit(request):
-    if request.POST['v'] != '2':
+    if int(request.POST['v']) < 3:
         # Invalid version of grabber
         return request.POST['v']
 
