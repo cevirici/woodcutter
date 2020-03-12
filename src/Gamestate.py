@@ -1,4 +1,5 @@
 from .Card import *
+from .Pile import *
 from .Utils import *
 PLAYER_COUNT = 2
 
@@ -17,14 +18,32 @@ class Gamestate:
         self.candidates = []
         self.selectedMove = None
 
+        self.actions = 0
+
+        self.turnStartEffects = []
+        self.cleanupEffects = []
+
     def zoneCount(self, zoneName, player=-1):
         if player == -1:
             player = self.player
         if isinstance(zoneName, PlayerZones):
             return sum([pile.count() for pile
-                        in self.playerZones[zoneName][player]])
+                        in self.zones[zoneName][player]])
         else:
             return sum([pile.count() for pile in self.zones[zoneName]])
+
+    def zoneContains(self, card, zoneName, player=-1):
+        if player == -1:
+            player = self.player
+        if isinstance(zoneName, PlayerZones):
+            zone = self.zones[zoneName][player]
+        else:
+            zone = self.zones[zoneName]
+
+        for pile in zone:
+            if pile.contains(card):
+                return True
+        return False
 
     def newPile(self, pile, zoneName, player=-1):
         if player == -1:
@@ -37,7 +56,7 @@ class Gamestate:
     def add(self, card, zone, keyCard=None):
         # Adds a card to a zone
         if len(zone) == 0:
-            self.newPile(Pile(keyCard if keyCard else card), [])
+            zone.append(Pile(keyCard if keyCard else card, []))
         zone[0].addCard(card)
 
     def addCard(self, card, zoneName, keyCard=None, player=0):
@@ -57,7 +76,8 @@ class Gamestate:
                 return
 
     def moveCards(self, cardList, src, dest, srcP=-1, destP=-1):
-        if isInstance(src, PlayerZones):
+        cardList = copy(cardList)
+        if isinstance(src, PlayerZones):
             if srcP >= 0:
                 srcZone = self.zones[src][srcP]
             else:
@@ -65,7 +85,7 @@ class Gamestate:
         else:
             srcZone = self.zones[src]
 
-        if isInstance(dest, PlayerZones):
+        if isinstance(dest, PlayerZones):
             if destP >= 0:
                 destZone = self.zones[dest][destP]
             else:
@@ -90,4 +110,29 @@ class Gamestate:
                     break
 
             if not removedSomething:
-                raise InvalidMove
+                return False
+        return True
+
+    def moveAllCards(self, src, dest, srcP=-1, destP=-1):
+        if isinstance(src, PlayerZones):
+            if srcP >= 0:
+                srcZone = self.zones[src][srcP]
+            else:
+                srcZone = self.zones[src][self.player]
+        else:
+            srcZone = self.zones[src]
+
+        if isinstance(dest, PlayerZones):
+            if destP >= 0:
+                destZone = self.zones[dest][destP]
+            else:
+                destZone = self.zones[dest][self.player]
+        else:
+            destZone = self.zones[dest]
+
+        for pile in srcZone:
+            for card in pile.cards:
+                self.add(card, destZone)
+            pile.removeAll()
+
+        return True

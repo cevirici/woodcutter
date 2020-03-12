@@ -2,7 +2,7 @@ from .Enums import *
 from .Utils import *
 
 
-def parse_items(items):
+def itemsToDict(items):
     if items == '':
         return {}
     else:
@@ -16,7 +16,7 @@ def merge_lines(lines):
     best_line = None
 
     for line in lines:
-        items = parse_items(line.split('|')[-2])
+        items = itemsToDict(line.split('|')[-2])
         count = sum(items.values())
         if minimal_count < 0 or count < minimal_count or \
                 (count == minimal_count and items.get(0, 0) < best_backs):

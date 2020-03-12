@@ -3,32 +3,75 @@ from .Pile import *
 from .Cards import *
 
 
-def initializeSupply(supplyString):
-    piles = supplyString.split("~")
-    piles = {int(i.split(':')[1]): int(i.split(':')[0]) for i in piles}
-    handled = set()
-    state = Gamestate()
+class ParsedLine:
+    def __init__(self, indent, pred, player, items, args):
+        self.indent = indent
+        self.pred = pred
+        self.player = player
+        self.items = items
+        self.args = args
 
-    for index in piles:
-        if index not in handled:
-            handled.add(index)
-            cardName = CardNames(index)
-            card = Cards[cardName]
 
-            # Look for BM cards
-            associates = []
-            for i in piles:
-                if CardNames(i) in card.pileCards:
-                    handled.add(i)
-                    associates.extend([CardNames(i) for j in range(piles[i])])
+class Parser:
+    def __init__(self, version):
+        self.cards, self.preds = getInfo(version)
 
-            if card.initialZone == NeutralZones.SUPPLY and \
-                    len(associates) == 1:
-                state.addCard(cardName, NeutralZones.BLACK_MARKET,
-                              CardNames.BLACK_MARKET_PILE)
+    def initializeSupply(self, supplyString):
+        piles = {}
+        for item in supplyString.split("~"):
+            if item:
+                c, i = item.split(':')
+                piles[self.cards[int(i)]] = int(c)
 
-            else:
-                if (card.orderedPile):
-                    associates.sort(key=lambda c: c.value)
-                pile = Pile(card.keyCard, associates, card.orderedPile)
-                state.newPile(pile, card.initialZone)
+        handled = set()
+        state = Gamestate()
+
+        for card in piles:
+            if card not in handled:
+                handled.add(card)
+                pileCards = getPileCards(card)
+                initialZone = getInitialZone(card)
+                orderedPile = isOrderedPile(card)
+
+                # Look for BM cards
+                associates = []
+                for otherCard in piles:
+                    if otherCard in pileCards:
+                        handled.add(i)
+                        associates += [otherCard for j in range(piles[card])]
+
+                if initialZone == NeutralZones.SUPPLY and len(associates) == 1:
+                    state.addCard(card, NeutralZones.BLACK_MARKET,
+                                  "Black Market Pile")
+
+                else:
+                    if (orderedPile):
+                        associates.sort(key=lambda c: c.value)
+                    pile = Pile(getKeyCard(card), associates)
+                    state.newPile(pile, initialZone)
+        return state
+
+    def parse_items(self, inString):
+        items = inString.split("+")
+        output = []
+
+        for item in items:
+            parts = item.split(":")
+            if len(parts) == 2:
+                for i in range(int(parts[0])):
+                    output.append(self.cards[int(parts[1])])
+        return output
+
+    def parseLog(self, logString):
+        logLines = logString.split('~')
+        parsedLines = []
+        for line in logLines:
+            indent, pred, player, items, args = line.split("|")
+            parsedLines.append(ParsedLine(
+                int(indent),
+                self.preds[int(pred)],
+                int(player) - 1,
+                self.parse_items(items),
+                args.split("+") if args else []
+            ))
+        return parsedLines
