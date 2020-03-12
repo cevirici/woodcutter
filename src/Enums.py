@@ -49,6 +49,40 @@ class Phases(Enum):
     PREGAME = 6
 
 
+class Types(Enum):
+    ACTION = 0
+    NIGHT = 1
+    TREASURE = 2
+    ATTACK = 3
+    CURSE = 4
+    DURATION = 5
+    EVENT = 6
+    GATHERING = 7
+    KNIGHT = 8
+    LANDMARK = 9
+    LOOTER = 10
+    RUINS = 11
+    TRAVELLER = 12
+    PRIZE = 13
+    RESERVE = 14
+    VICTORY = 15
+    REACTION = 16
+    SHELTER = 17
+    CASTLE = 18
+    FATE = 19
+    DOOM = 20
+    HEIRLOOM = 21
+    SPIRIT = 22
+    ZOMBIE = 23
+    BOON = 24
+    HEX = 25
+    STATE = 26
+    ARTIFACT = 27
+    PROJECT = 28
+    COMMAND = 29
+    WAY = 30
+
+
 class CardNames(Enum):
     Back = 0
     Curse = 1

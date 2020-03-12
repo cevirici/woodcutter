@@ -21,8 +21,7 @@ def simulate(gamelog):
         else:
             states[-1].move = states[-1].candidates.pop()
             attempt = states[-1].move.act(states[-1], log)
-            print(states[-1].move)
-            print(states[-1].logLine)
+            print(states[-1].logLine, states[-1].move)
             if attempt:
                 states.append(attempt)
             else:

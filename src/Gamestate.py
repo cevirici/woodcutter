@@ -1,7 +1,6 @@
 from .Card import *
 from .Pile import *
 from .Utils import *
-PLAYER_COUNT = 2
 
 
 class Gamestate:
@@ -19,6 +18,10 @@ class Gamestate:
         self.selectedMove = None
 
         self.actions = 0
+        self.coins = 0
+        self.coffers = [0 for p in range(PLAYER_COUNT)]
+        self.debt = [0 for p in range(PLAYER_COUNT)]
+        self.villagers = [0 for p in range(PLAYER_COUNT)]
 
         self.turnStartEffects = []
         self.cleanupEffects = []

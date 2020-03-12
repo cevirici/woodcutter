@@ -1,6 +1,7 @@
 from .Enums import *
 from django.conf import settings
 import os
+PLAYER_COUNT = 2
 
 
 class InvalidMove(Exception):

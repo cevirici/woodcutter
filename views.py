@@ -83,7 +83,7 @@ def submit(request):
 def dump(request, game_id):
     log = get_object_or_404(GameLog, game_id=game_id)
     states = simulate(log)
-    return HttpResponse('<br>'.join([repr(s.move) + ", " + str(s.player) for s in states]))
+    return HttpResponse('<br>'.join([repr(s.move) for s in states]))
 
 
 def plaintext(request, game_id):
