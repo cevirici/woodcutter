@@ -1,5 +1,4 @@
 from .GenericActions import *
-from copy import copy
 
 
 class Pile:
@@ -21,14 +20,18 @@ class Pile:
     def count(self):
         return len(self.cards)
 
-    def contains(self, card):
-        return card in self.cards
+    def contains(self, cardName):
+        for card in self.cards:
+            if card.name == cardName:
+                return True
+        return False
 
-    def remove(self, card):
-        if not self.contains(card):
-            return False
-
-        self.cards.remove(card)
+    def remove(self, cardName):
+        for card in self.cards:
+            if card.name == cardName:
+                self.cards.remove(card)
+                return card
+        return False
 
     def removeAll(self):
         self.cards = []

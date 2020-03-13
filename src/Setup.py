@@ -1,5 +1,6 @@
 from .Gamestate import *
 from .Pile import *
+from .Card import *
 from .GenericActions import *
 
 
@@ -25,29 +26,30 @@ class Parser:
 
         handled = set()
         state = Gamestate()
+        index = 0
 
-        for card in piles:
-            if card not in handled:
-                handled.add(card)
-                cardInfo = getCardInfo(card)
+        for cardName in piles:
+            if cardName not in handled:
+                handled.add(cardName)
+                cardInfo = getCardInfo(cardName)
                 pileCards = cardInfo.getPileCards()
                 initialZone = cardInfo.initialZone
-                orderedPile = cardInfo.isOrderedPile
 
                 # Look for BM cards
                 associates = []
                 for otherCard in piles:
                     if otherCard in pileCards:
-                        handled.add(i)
-                        associates += [otherCard for j in range(piles[card])]
+                        handled.add(otherCard)
+                        for j in range(piles[otherCard]):
+                            associates.append(Card(otherCard, index))
+                            index += 1
 
                 if initialZone == NeutralZones.SUPPLY and len(associates) == 1:
-                    state.addCard(card, NeutralZones.BLACK_MARKET,
+                    state.addCard(Card(cardName, index),
+                                  NeutralZones.BLACK_MARKET,
                                   "Black Market Pile")
-
+                    index += 1
                 else:
-                    if (orderedPile):
-                        associates.sort(key=lambda c: c.value)
                     pile = Pile(cardInfo.getKeyCard(), associates)
                     state.newPile(pile, initialZone)
         return state
@@ -63,16 +65,31 @@ class Parser:
                     output.append(self.cards[int(parts[1])])
         return output
 
+    def parse_arg(self, arg, parse=False):
+        if ":" in arg:
+            return [int(i) for i in arg.split(":")]
+        elif parse:
+            return self.cards[int(arg)]
+        else:
+            return int(arg)
+
     def parseLog(self, logString):
         logLines = logString.split('~')
         parsedLines = []
+        parseablePreds = ["WISH_CORRECT", "WISH_WRONG"]
+
         for line in logLines:
             indent, pred, player, items, args = line.split("|")
+            pred = self.preds[int(pred)]
+            shouldParse = pred in parseablePreds
+            args = [self.parse_arg(a, shouldParse) for
+                    a in args.split("+")] if args else []
+
             parsedLines.append(ParsedLine(
                 int(indent),
-                self.preds[int(pred)],
+                pred,
                 int(player) - 1,
                 self.parse_items(items),
-                args.split("+") if args else []
+                args
             ))
         return parsedLines

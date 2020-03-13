@@ -25,9 +25,10 @@ class Gamestate:
         self.debt = [0 for p in range(PLAYER_COUNT)]
         self.villagers = [0 for p in range(PLAYER_COUNT)]
 
-        self.turnStartEffects = []
         self.cleanupEffects = []
         self.reductions = 0
+        self.turnStarts = []
+        self.stayOuts = []
 
     def zoneCount(self, zoneName, player=-1):
         if player == -1:
@@ -73,14 +74,6 @@ class Gamestate:
             zone = self.zones[zoneName]
         self.add(card, zone, keyCard)
 
-    def addToSupply(self, card, zoneName):
-        # This one cares about piles
-        # This shouldn't be called on playerzones so player is not a param
-        for pile in self.zones[zoneName]:
-            if (card in pile.acceptedCards):
-                pile.addCard(card)
-                return
-
     def moveCards(self, cardList, src, dest, srcP=-1, destP=-1):
         cardList = copy(cardList)
         if isinstance(src, PlayerZones):
@@ -104,10 +97,9 @@ class Gamestate:
             for card in cardList:
                 for pile in srcZone:
                     if pile.contains(card):
-                        pile.remove(card)
+                        self.add(pile.remove(card), destZone)
                         removedSomething = True
                         cardList.remove(card)
-                        self.add(card, destZone)
                         # Avoid double removal
                         break
                 if removedSomething:
