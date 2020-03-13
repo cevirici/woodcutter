@@ -1,6 +1,6 @@
 from .Gamestate import *
 from .Pile import *
-from .Cards import *
+from .GenericActions import *
 
 
 class ParsedLine:
@@ -29,9 +29,10 @@ class Parser:
         for card in piles:
             if card not in handled:
                 handled.add(card)
-                pileCards = getPileCards(card)
-                initialZone = getInitialZone(card)
-                orderedPile = isOrderedPile(card)
+                cardInfo = getCardInfo(card)
+                pileCards = cardInfo.getPileCards()
+                initialZone = cardInfo.initialZone
+                orderedPile = cardInfo.isOrderedPile
 
                 # Look for BM cards
                 associates = []
@@ -47,7 +48,7 @@ class Parser:
                 else:
                     if (orderedPile):
                         associates.sort(key=lambda c: c.value)
-                    pile = Pile(getKeyCard(card), associates)
+                    pile = Pile(cardInfo.getKeyCard(), associates)
                     state.newPile(pile, initialZone)
         return state
 

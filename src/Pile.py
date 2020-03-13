@@ -1,11 +1,11 @@
-from .Cards import *
+from .GenericActions import *
 from copy import copy
 
 
 class Pile:
     def __init__(self, keyCard, cards):
         self.keyCard = keyCard
-        self.acceptedCards = getPileCards(keyCard)
+        self.acceptedCards = getCardInfo(keyCard).getPileCards()
         self.cards = cards
 
     def __repr__(self):

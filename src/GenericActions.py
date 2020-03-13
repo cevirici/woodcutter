@@ -3,7 +3,6 @@
 from copy import deepcopy
 from .Utils import *
 from .Enums import *
-from .Cards import *
 from .Card import *
 
 
@@ -282,8 +281,7 @@ class buyPhaseB(Action):
         state = deepcopy(state)
         state.player = log[state.logLine].player
         state.stack = [buyPhaseB()]
-        state.candidates = [nightPhase(), repayDebt(),
-                            buy(NeutralZones.SUPPLY, PlayerZones.DISCARD)]
+        state.candidates = [nightPhase(), repayDebt(), buy()]
         return state
 
 
@@ -434,7 +432,7 @@ class onPlay(Action):
 
 
 class buy(Action):
-    def __init__(self, src=NeutralZones.SUPPLY, dest=PlayerZones.DISCARD):
+    def __init__(self, src=NeutralZones.SUPPLY, dest=None):
         self.name = "Buy from {} to {}".format(src, dest)
         self.src = src
         self.dest = dest
@@ -446,9 +444,12 @@ class buy(Action):
 
         if logLine.pred == "BUY_AND_GAIN":
             state.logLine += 1
-            if not state.moveCards(logLine.items, self.src, self.dest):
-                return None
             for target in logLine.items:
+                cardInfo = getCardInfo(target)
+                dest = self.dest if self.dest else cardInfo.gainDestination
+                if not state.moveCards([target], self.src, dest):
+                    return None
+
                 state.stack += [onGain(target), onBuy(target)]
 
             state.candidates = [state.stack.pop()]
@@ -481,7 +482,7 @@ class onBuy(Action):
 
 
 class gain(Action):
-    def __init__(self, src=NeutralZones.SUPPLY, dest=PlayerZones.DISCARD):
+    def __init__(self, src=NeutralZones.SUPPLY, dest=None):
         self.name = "Gain from {} to {}".format(src, dest)
         self.src = src
         self.dest = dest
@@ -493,13 +494,16 @@ class gain(Action):
 
         if logLine.pred == "GAIN":
             state.logLine += 1
-            if not state.moveCards(logLine.items, self.src, self.dest):
-                return None
-            else:
-                state.stack += [onGain(target) for target in logLine.items]
+            for target in logLine.items:
+                cardInfo = getCardInfo(target)
+                dest = self.dest if self.dest else cardInfo.gainDestination
+                if not state.moveCards([target], self.src, dest):
+                    return None
 
-                state.candidates = [state.stack.pop()]
-                return state
+                state.stack.append(onGain(target))
+
+            state.candidates = [state.stack.pop()]
+            return state
         return None
 
 
@@ -605,7 +609,7 @@ class topdeck(Action):
         logLine = log[state.logLine]
         state.player = logLine.player
 
-        if logLine.pred == "TOPDECK":
+        if logLine.pred in ["TOPDECK", "INSERT_IN_DECK", "BOTTOMDECKS"]:
             state.logLine += 1
             if not state.moveCards(logLine.items, self.src, self.dest):
                 return None
@@ -665,6 +669,24 @@ class revealHand(Action):
                                PlayerZones.HAND):
                 state.candidates = [state.stack.pop()]
                 return state
+        return None
+
+
+class putInHand(Action):
+    name = "Put In Hand"
+
+    def act(self, state, log):
+        state = deepcopy(state)
+        logLine = log[state.logLine]
+        state.player = logLine.player
+
+        if logLine.pred == "PUT_IN_HAND":
+            state.logLine += 1
+            if state.moveCards(logLine.items, PlayerZones.DECK,
+                               PlayerZones.HAND):
+                state.candidates = [state.stack.pop()]
+                return state
+        return None
 
 
 class getAction(Action):
@@ -828,6 +850,29 @@ class onReact(Action):
             return state
 
 
+class passCard(Action):
+    name = "Pass"
+
+    def act(self, state, log):
+        state = deepcopy(state)
+        logLine = log[state.logLine]
+        state.player = logLine.player
+
+        if logLine.pred == "PASS":
+            state.logLine += 1
+            target = logLine.items[0]
+            nextPlayer = (state.player + 1) % PLAYER_COUNT
+
+            if not state.moveCards([target], PlayerZones.HAND,
+                                   PlayerZones.HAND, state.player,
+                                   nextPlayer):
+                return None
+
+            state.candidates = [state.stack.pop()]
+            return state
+        return None
+
+
 class forceEnd(Action):
     name = "Win"
 
@@ -842,9 +887,24 @@ class CardInfo:
     names = ["Back", "Backs", "a Back"]
     types = []
     cost = [0, 0, 0]
+    isOrderedPile = False
+    initialZone = NeutralZones.SUPPLY
+    gainDestination = PlayerZones.DISCARD
 
     def hasType(self, cardType):
         return cardType in self.types
+
+    def getKeyCard(self):
+        if hasattr(self, 'keyCard'):
+            return self.keyCard
+        else:
+            return self.names[0]
+
+    def getPileCards(self):
+        if hasattr(self, 'pileCard'):
+            return self.pileCards
+        else:
+            return [self.names[0]]
 
     def onBuy(self, state, log):
         state = deepcopy(state)
@@ -1351,6 +1411,271 @@ class DIPLOMAT(CardInfo):
         return state
 
 
+class DUKE(CardInfo):
+    names = ["Duke", "Dukes", "a Duke"]
+    types = [Types.VICTORY]
+    cost = [5, 0, 0]
+
+
+class HAREM(CardInfo):
+    names = ["Harem", "Harems", "a Harem"]
+    types = [Types.TREASURE, Types.VICTORY]
+    cost = [6, 0, 0]
+
+    def onPlay(self, state, log):
+        state = deepcopy(state)
+        state.candidates = [state.stack.pop()]
+        state.coins += 2
+        return state
+
+
+class NOBLES(CardInfo):
+    names = ["Nobles", "Nobles", "a Nobles"]
+    types = [Types.ACTION, Types.VICTORY]
+    cost = [6, 0, 0]
+
+    def onPlay(self, state, log):
+        state = deepcopy(state)
+        state.candidates = [getAction(), drawN(3)]
+        return state
+
+
+class IRONWORKS(CardInfo):
+    names = ["Ironworks", "Ironworks", "an Ironworks"]
+    types = [Types.ACTION]
+    cost = [4, 0, 0]
+
+    def onPlay(self, state, log):
+        state = deepcopy(state)
+        state.stack += [maybe(drawN(1)), maybe(getCoin()),
+                        maybe(getAction()), maybe(gain())]
+        state.candidates = [state.stack.pop()]
+        return state
+
+
+class LURKER(CardInfo):
+    names = ["Lurker", "Lurkers", "a Lurker"]
+    types = [Types.ACTION]
+    cost = [2, 0, 0]
+
+    def onPlay(self, state, log):
+        state = deepcopy(state)
+        state.stack += [maybe(trash(NeutralZones.SUPPLY, NeutralZones.TRASH)),
+                        maybe(gain(NeutralZones.TRASH, None))]
+        state.candidates = [state.stack.pop()]
+        return state
+
+
+class MASQUERADE(CardInfo):
+    names = ["Masquerade", "Masquerades", "a Masquerade"]
+    types = [Types.ACTION]
+    cost = [3, 0, 0]
+
+    def onPlay(self, state, log):
+        state = deepcopy(state)
+        state.stack += [maybe(passCard()) for p in range(PLAYER_COUNT)]
+        state.stack.append(drawN(2))
+        state.candidates = [state.stack.pop()]
+        return state
+
+
+class MILL(CardInfo):
+    names = ["Mill", "Mills", "a Mill"]
+    types = [Types.ACTION, Types.VICTORY]
+    cost = [4, 0, 0]
+
+    def onPlay(self, state, log):
+        state = deepcopy(state)
+        state.stack += [maybe(getCoin()), maybe(discard()), getActions(),
+                        drawN(1)]
+        state.candidates = [state.stack.pop()]
+        return state
+
+
+class MINING_VILLAGE(CardInfo):
+    names = ["Mining Village", "Mining Villages", "a Mining Village"]
+    types = [Types.ACTION]
+    cost = [4, 0, 0]
+
+    def onPlay(self, state, log):
+        state = deepcopy(state)
+        state.stack += [maybe(getCoin()),
+                        maybe(trash(PlayerZones.PLAY, NeutralZones.TRASH)),
+                        getActions(), drawN(1)]
+        state.candidates = [state.stack.pop()]
+        return state
+
+
+class MINION(CardInfo):
+    names = ["Minion", "Minions", "a Minion"]
+    types = [Types.ACTION, Types.ATTACK]
+    cost = [5, 0, 0]
+
+    def onPlay(self, state, log):
+        state = deepcopy(state)
+        for p in range(PLAYER_COUNT):
+            state.stack += [maybe(drawN(4)), maybe(discard())]
+        state.stack += [maybe(getCoin()), getAction(), reactToAttack()]
+        state.candidates = [state.stack.pop()]
+        return state
+
+
+class PATROL(CardInfo):
+    names = ["Patrol", "Patrols", "a Patrol"]
+    types = [Types.ACTION]
+    cost = [5, 0, 0]
+
+    def onPlay(self, state, log):
+        state = deepcopy(state)
+        state.stack += [maybe(topdeck(PlayerZones.DECK, PlayerZones.DECK)),
+                        maybe(putInHand()), revealN(4), drawN(3)]
+        state.candidates = [state.stack.pop()]
+        return state
+
+
+class PAWN(CardInfo):
+    names = ["Pawn", "Pawns", "a Pawn"]
+    types = [Types.ACTION]
+    cost = [2, 0, 0]
+
+    def onPlay(self, state, log):
+        state = deepcopy(state)
+        state.stack += [maybe(getCoin()), maybe(getBuy()),
+                        maybe(getAction()), maybe(drawN(1))]
+        state.candidates = [state.stack.pop()]
+        return state
+
+
+class replaceGain(Action):
+    name = "Replace Gain"
+
+    def act(self, state, log):
+        state = deepcopy(state)
+        logLine = log[state.logLine]
+        state.player = logLine.player
+
+        if logLine.pred == "GAIN":
+            state.logLine += 1
+            if len(logLine.items) == 1:
+                target = logLine.items[0]
+                cardInfo = getCardInfo(target)
+                dest = cardInfo.gainDestination
+
+                if cardInfo.hasType(Type.TREASURE) or \
+                        cardInfo.hasType(Type.ACTION):
+                    dest = PlayerZones.DECK
+                if cardInfo.hasType(Type.VICTORY):
+                    state.stack.append(gain())
+                if not state.moveCards([target], self.src, dest):
+                    return None
+
+                state.stack.append(onGain(target))
+
+                state.candidates = [state.stack.pop()]
+                return state
+        return None
+
+
+class REPLACE(CardInfo):
+    names = ["Replace", "Replaces", "a Replace"]
+    types = [Types.ACTION, Types.ATTACK]
+    cost = [5, 0, 0]
+
+    def onPlay(self, state, log):
+        state = deepcopy(state)
+        state.stack += [maybe(replaceGain()), maybe(trash()), reactToAttack()]
+        state.candidates = [state.stack.pop()]
+        return state
+
+
+class SECRET_PASSAGE(CardInfo):
+    names = ["Secret Passage", "Secret Passages", "a Secret Passage"]
+    types = [Types.ACTION]
+    cost = [4, 0, 0]
+
+    def onPlay(self, state, log):
+        state = deepcopy(state)
+        state.stack += [maybe(topdeck()), getAction(), drawN(2)]
+        state.candidates = [state.stack.pop()]
+        return state
+
+
+class SHANTY_TOWN(CardInfo):
+    names = ["Shanty Town", "Shanty Towns", "a Shanty Town"]
+    types = [Types.ACTION]
+    cost = [3, 0, 0]
+
+    def onPlay(self, state, log):
+        state = deepcopy(state)
+        state.stack += [maybe(drawN(2)), revealHand(), getAction()]
+        state.candidates = [state.stack.pop()]
+        return state
+
+
+class STEWARD(CardInfo):
+    names = ["Steward", "Stewards", "a Steward"]
+    types = [Types.ACTION]
+    cost = [3, 0, 0]
+
+    def onPlay(self, state, log):
+        state = deepcopy(state)
+        state.candidates = [drawN(2), trash(), getCoin()]
+        return state
+
+
+class SWINDLER(CardInfo):
+    names = ["Swindler", "Swindlers", "a Swindler"]
+    types = [Types.ACTION, Types.ATTACK]
+    cost = [3, 0, 0]
+
+    def onPlay(self, state, log):
+        state = deepcopy(state)
+        state.stack += [maybe(gain()),
+                        maybe(trash(PlayerZones.DECK, NeutralZones.TRASH)),
+                        getCoin(), reactToAttack()]
+        state.candidates = [state.stack.pop()]
+        return state
+
+
+class TORTURER(CardInfo):
+    names = ["Torturer", "Torturers", "a Torturer"]
+    types = [Types.ACTION, Types.ATTACK]
+    cost = [5, 0, 0]
+
+    def onPlay(self, state, log):
+        state = deepcopy(state)
+        state.stack += [maybe(discard()),
+                        maybe(gain(NeutralZones.SUPPLY, PlayerZones.HAND)),
+                        drawN(5), reactToAttack()]
+        state.candidates = [state.stack.pop()]
+        return state
+
+
+class TRADING_POST(CardInfo):
+    names = ["Trading Post", "Trading Posts", "a Trading Post"]
+    types = [Types.ACTION]
+    cost = [5, 0, 0]
+
+    def onPlay(self, state, log):
+        state = deepcopy(state)
+        state.stack += [maybe(gain(NeutralZones.SUPPLY, PlayerZones.HAND)),
+                        maybe(trash())]
+        state.candidates = [state.stack.pop()]
+        return state
+
+
+class UPGRADE(CardInfo):
+    names = ["Upgrade", "Upgrades", "an Upgrade"]
+    types = [Types.ACTION]
+    cost = [5, 0, 0]
+
+    def onPlay(self, state, log):
+        state = deepcopy(state)
+        state.stack += [maybe(gain()), maybe(trash()), getAction(), drawN(1)]
+        state.candidates = [state.stack.pop()]
+        return state
+
+
 def getCardInfo(card):
     correspondences = {
         "Curse": CURSE,
@@ -1391,7 +1716,26 @@ def getCardInfo(card):
         "Courtier": COURTIER,
         "Baron": BARON,
         "Bridge": BRIDGE,
-        "Diplomat": DIPLOMAT
+        "Diplomat": DIPLOMAT,
+        "Duke": DUKE,
+        "Harem": HAREM,
+        "Nobles": NOBLES,
+        "Ironworks": IRONWORKS,
+        "Lurker": LURKER,
+        "Masquerade": MASQUERADE,
+        "Mill": MILL,
+        "Mining Village": MINING_VILLAGE,
+        "Minion": MINION,
+        "Patrol": PATROL,
+        "Pawn": PAWN,
+        "Replace": REPLACE,
+        "Secret Passage": SECRET_PASSAGE,
+        "Shanty Town": SHANTY_TOWN,
+        "Steward": STEWARD,
+        "Swindler": SWINDLER,
+        "Torturer": TORTURER,
+        "Trading Post": TRADING_POST,
+        "Upgrade": UPGRADE,
     }
     if card in correspondences:
         return correspondences[card]()

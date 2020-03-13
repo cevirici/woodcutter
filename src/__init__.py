@@ -1,5 +1,4 @@
 from .Card import *
-from .Cards import *
 from .CardInfo import *
 from .Enums import *
 from .Gamestate import *
