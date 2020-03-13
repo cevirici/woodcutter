@@ -27,7 +27,7 @@ class Gamestate:
 
         self.turnStartEffects = []
         self.cleanupEffects = []
-        self.activeReductions = 0
+        self.reductions = 0
 
     def zoneCount(self, zoneName, player=-1):
         if player == -1:
