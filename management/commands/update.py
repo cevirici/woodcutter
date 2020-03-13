@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from woodcutter.models import *
 from django.core.management.base import BaseCommand, CommandError
 from django.shortcuts import get_object_or_404, render
@@ -6,34 +7,34 @@ from django.shortcuts import get_object_or_404, render
 def v0ToV1(game_id):
     log = get_object_or_404(GameLog, game_id=game_id)
     if log.version == 0:
-        postRen = log.log[1] == '|'
-        lines = log.log.split('~')
+        postRen = log.log[1] == "|"
+        lines = log.log.split("~")
 
         def parseLine(line):
             if postRen:
-                (indent, pred, player, items, args) = line.split('|')
+                (indent, pred, player, items, args) = line.split("|")
                 pred = str(int(pred, 16))
 
-                items = items.replace('/', '+')
+                items = items.replace("/", "+")
                 if args:
-                    args = args.split('/')
+                    args = args.split("/")
                 else:
                     args = []
                 if items:
-                    items = [x.split(':') for x in items.split('+')]
+                    items = [x.split(":") for x in items.split("+")]
                     trueItems = []
                     for (c, i) in items:
                         card = int(i, 16)
-                        if c == '255':
-                            c = '1'
+                        if c == "255":
+                            c = "1"
                         trueItems.append([c, str(card)])
-                    itemsStr = '+'.join([':'.join(x) for x in trueItems])
+                    itemsStr = "+".join([":".join(x) for x in trueItems])
                 else:
-                    itemsStr = ''
+                    itemsStr = ""
 
-                args = '+'.join(args)
+                args = "+".join(args)
 
-                return '|'.join([indent, pred, player, itemsStr, args])
+                return "|".join([indent, pred, player, itemsStr, args])
             else:
                 player = line[0:1]
                 indent = line[1:2]
@@ -41,49 +42,50 @@ def v0ToV1(game_id):
                 items = line[4:]
 
                 if items:
-                    items = [x.split(':') for x in items.split('|')]
-                    trueItems, args = ([], '')
+                    items = [x.split(":") for x in items.split("|")]
+                    trueItems, args = ([], "")
                     for (c, i) in items:
                         card = int(i, 16)
                         if card == 0:
-                            args = c.replace('/', '+')
+                            args = c.replace("/", "+")
                         else:
                             trueItems.append([c, str(card)])
-                    itemsStr = '+'.join([':'.join(x) for x in trueItems])
+                    itemsStr = "+".join([":".join(x) for x in trueItems])
                 else:
-                    itemsStr = ''
-                    args = ''
+                    itemsStr = ""
+                    args = ""
 
-                return '|'.join([indent, pred, player, itemsStr, args])
+                return "|".join([indent, pred, player, itemsStr, args])
 
         def parseSupply(supply):
-            items = supply.split('~')
+            items = supply.split("~")
 
             def parseItem(item):
                 card = int(item[0:3], 16)
                 count = int(item[3:])
-                return '{}:{}'.format(count, card)
-            return '~'.join([parseItem(item) for item in items])
+                return "{}:{}".format(count, card)
+
+            return "~".join([parseItem(item) for item in items])
 
         if postRen:
             log.version = 1
         else:
             log.version = 9
-        log.log = '~'.join([parseLine(line) for line in lines])
+        log.log = "~".join([parseLine(line) for line in lines])
         log.supply = parseSupply(log.supply)
         log.save()
 
 
 class Command(BaseCommand):
-    help = 'updates old logs'
+    help = "updates old logs"
 
     def add_arguments(self, parser):
-        parser.add_argument('count', nargs='+', type=int)
+        parser.add_argument("count", nargs="+", type=int)
 
     def handle(self, *args, **options):
-        for i in range(options['count'][0]):
+        for i in range(options["count"][0]):
             try:
                 log = GameLog.objects.filter(version=0).first()
                 v0ToV1(log.game_id)
             except GameLog.DoesNotExist:
-                raise CommandError('No More Logs')
+                raise CommandError("No More Logs")

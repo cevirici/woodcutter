@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from copy import deepcopy
 from .Standards import *
 
@@ -28,14 +29,14 @@ class Cardstack:
     def __add__(self, other):
         t = deepcopy(self)
         for c in other:
-            if c != 'NOTHING':
+            if c != "NOTHING":
                 t[c] += other[c]
         return t
 
     def __sub__(self, other):
         t = deepcopy(self)
         for c in other:
-            if c != 'NOTHING':
+            if c != "NOTHING":
                 t[c] -= other[c]
         return t
 
@@ -46,16 +47,16 @@ class Cardstack:
         return True
 
     def __str__(self):
-        return '<br>'.join(['{}:{}'.format(self.cards[i], str(i))
-                            for i in self.cards])
+        return "<br>".join(["{}:{}".format(self.cards[i], str(i)) for i in self.cards])
 
     def __repr__(self):
         sortedCards = sorted(self.cards, key=lambda c: cardOrder[c])
-        return '+'.join(['{}:{}'.format(self.cards[i], repr(Cards[i]))
-                         for i in sortedCards])
+        return "+".join(
+            ["{}:{}".format(self.cards[i], repr(Cards[i])) for i in sortedCards]
+        )
 
     def __len__(self):
-        return sum([self[item] for item in self if item != 'NOTHING'])
+        return sum([self[item] for item in self if item != "NOTHING"])
 
     def cardList(self):
         return list(self.cards)
@@ -65,7 +66,7 @@ class Cardstack:
 
     def strip(self):
         t = deepcopy(self)
-        for c in ['NOTHING', 'CARD']:
+        for c in ["NOTHING", "CARD"]:
             del t[c]
 
         return t
@@ -75,11 +76,10 @@ class Cardstack:
         if len(self) > 0:
             return list(self.cards.keys())[0]
         else:
-            return 'CARD'
+            return "CARD"
 
     def merge(self, other):
-        choices = [x for x in [self, other]
-                   if 'CARD' not in x and 'NOTHING' not in x]
+        choices = [x for x in [self, other] if "CARD" not in x and "NOTHING" not in x]
         if len(choices) == 2:
             if self.cards != other.cards:
                 print([self, other])
@@ -92,6 +92,5 @@ class Cardstack:
         elif len(choices) == 1:
             return choices[0]
         else:
-            choices = sorted([self, other],
-                             key=lambda x: x['CARD'] + x['NOTHING'])
+            choices = sorted([self, other], key=lambda x: x["CARD"] + x["NOTHING"])
             return choices[0]

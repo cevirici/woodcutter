@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from .Enums import *
 from .Card import *
 from copy import deepcopy
@@ -71,8 +72,10 @@ class ARTISAN(CardInfo):
 
     def onPlay(self, state, log):
         state = deepcopy(state)
-        state.stack += [gain(NeutralZones.SUPPLY, PlayerZones.HAND),
-                        topdeck(PlayerZones.HAND, PlayerZones.DECK)]
+        state.stack += [
+            gain(NeutralZones.SUPPLY, PlayerZones.HAND),
+            topdeck(PlayerZones.HAND, PlayerZones.DECK),
+        ]
         state.candidates = [state.stack.pop()]
         return state
 
@@ -94,8 +97,7 @@ class MILITIA(CardInfo):
 
     def onPlay(self, state, log):
         state = deepcopy(state)
-        state.stack += [discard(PlayerZones.HAND, PlayerZones.DISCARD),
-                        getCoin()]
+        state.stack += [discard(PlayerZones.HAND, PlayerZones.DISCARD), getCoin()]
         state.candidates = [state.stack.pop()]
         return state
 
@@ -106,8 +108,7 @@ class WITCH(CardInfo):
 
     def onPlay(self, state, log):
         state = deepcopy(state)
-        state.stack += [gain(NeutralZones.SUPPLY, PlayerZones.DISCARD),
-                        drawN(2)]
+        state.stack += [gain(NeutralZones.SUPPLY, PlayerZones.DISCARD), drawN(2)]
         state.candidates = [state.stack.pop()]
         return state
 
@@ -124,7 +125,7 @@ def getCardInfo(card):
         "Artisan": ARTISAN,
         "Bandit": BANDIT,
         "Militia": MILITIA,
-        "Witch": WITCH
+        "Witch": WITCH,
     }
     if card in correspondences:
         return correspondences[card]()

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from .Card import *
 from .Pile import *
 from .Utils import *
@@ -8,8 +9,7 @@ class Gamestate:
         self.player = 0
         self.turnNumber = 0
         self.turnType = TurnTypes.PREGAME
-        self.zones = {z: [[] for p in range(PLAYER_COUNT)]
-                      for z in PlayerZones}
+        self.zones = {z: [[] for p in range(PLAYER_COUNT)] for z in PlayerZones}
         self.zones.update({z: [] for z in NeutralZones})
 
         self.stack = []
@@ -30,8 +30,7 @@ class Gamestate:
         if player == -1:
             player = self.player
         if isinstance(zoneName, PlayerZones):
-            return sum([pile.count() for pile
-                        in self.zones[zoneName][player]])
+            return sum([pile.count() for pile in self.zones[zoneName][player]])
         else:
             return sum([pile.count() for pile in self.zones[zoneName]])
 
@@ -74,7 +73,7 @@ class Gamestate:
         # This one cares about piles
         # This shouldn't be called on playerzones so player is not a param
         for pile in self.zones[zoneName]:
-            if (card in pile.acceptedCards):
+            if card in pile.acceptedCards:
                 pile.addCard(card)
                 return
 

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from .Gamestate import *
 from .Pile import *
 from .Cards import *
@@ -20,7 +21,7 @@ class Parser:
         piles = {}
         for item in supplyString.split("~"):
             if item:
-                c, i = item.split(':')
+                c, i = item.split(":")
                 piles[self.cards[int(i)]] = int(c)
 
         handled = set()
@@ -41,11 +42,10 @@ class Parser:
                         associates += [otherCard for j in range(piles[card])]
 
                 if initialZone == NeutralZones.SUPPLY and len(associates) == 1:
-                    state.addCard(card, NeutralZones.BLACK_MARKET,
-                                  "Black Market Pile")
+                    state.addCard(card, NeutralZones.BLACK_MARKET, "Black Market Pile")
 
                 else:
-                    if (orderedPile):
+                    if orderedPile:
                         associates.sort(key=lambda c: c.value)
                     pile = Pile(getKeyCard(card), associates)
                     state.newPile(pile, initialZone)
@@ -63,15 +63,17 @@ class Parser:
         return output
 
     def parseLog(self, logString):
-        logLines = logString.split('~')
+        logLines = logString.split("~")
         parsedLines = []
         for line in logLines:
             indent, pred, player, items, args = line.split("|")
-            parsedLines.append(ParsedLine(
-                int(indent),
-                self.preds[int(pred)],
-                int(player) - 1,
-                self.parse_items(items),
-                args.split("+") if args else []
-            ))
+            parsedLines.append(
+                ParsedLine(
+                    int(indent),
+                    self.preds[int(pred)],
+                    int(player) - 1,
+                    self.parse_items(items),
+                    args.split("+") if args else [],
+                )
+            )
         return parsedLines

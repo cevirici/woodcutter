@@ -1,13 +1,13 @@
+# -*- coding: utf-8 -*-
 from .Enums import *
 from .Utils import *
 
 
 def itemsToDict(items):
-    if items == '':
+    if items == "":
         return {}
     else:
-        return {int(i.split(':')[1]): int(i.split(':')[0]) for
-                i in items.split('+')}
+        return {int(i.split(":")[1]): int(i.split(":")[0]) for i in items.split("+")}
 
 
 def merge_lines(lines):
@@ -16,10 +16,13 @@ def merge_lines(lines):
     best_line = None
 
     for line in lines:
-        items = itemsToDict(line.split('|')[-2])
+        items = itemsToDict(line.split("|")[-2])
         count = sum(items.values())
-        if minimal_count < 0 or count < minimal_count or \
-                (count == minimal_count and items.get(0, 0) < best_backs):
+        if (
+            minimal_count < 0
+            or count < minimal_count
+            or (count == minimal_count and items.get(0, 0) < best_backs)
+        ):
             best_line = line
             best_backs = items.get(0, 0)
             minimal_count = count
@@ -27,13 +30,12 @@ def merge_lines(lines):
 
 
 def combined_parse(logString):
-    logs = [l.split('~') for l in logString.split('###')]
+    logs = [l.split("~") for l in logString.split("###")]
 
     actualLength = min([len(log) for log in logs])
-    mergedLines = [merge_lines([log[i] for log in logs])
-                   for i in range(actualLength)]
+    mergedLines = [merge_lines([log[i] for log in logs]) for i in range(actualLength)]
 
-    return '~'.join(mergedLines)
+    return "~".join(mergedLines)
 
 
 def parse_header(headerString):
@@ -49,6 +51,7 @@ class Printer:
         def parse(item):
             parts = item.split(":")
             return "{} {}".format(parts[0], self.cards[int(parts[1])])
+
         items = supply.split("~")
         parsedItems = [parse(item) for item in items if item]
         return "Supply: " + ", ".join(parsedItems)
@@ -60,6 +63,7 @@ class Printer:
                 return parts[0]
             else:
                 return "{} {}".format(parts[0], self.cards[int(parts[1])])
+
         items = inString.split("+")
 
         parsedItems = [parse(item) for item in items]
@@ -72,14 +76,12 @@ class Printer:
                 player,
                 self.preds[int(pred)],
                 self.print_items(args),
-                self.print_items(items)
+                self.print_items(items),
             )
         else:
             if items:
                 return "P{} - {}: {}".format(
-                    player,
-                    self.preds[int(pred)],
-                    self.print_items(items)
+                    player, self.preds[int(pred)], self.print_items(items)
                 )
             else:
                 return "P{} - {}".format(player, self.preds[int(pred)])

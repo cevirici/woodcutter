@@ -1,27 +1,39 @@
+# -*- coding: utf-8 -*-
 import os
 from django.conf import settings
 
-CARD_URLS_PATH = 'woodcutter/card_images/imageurls.txt'
+CARD_URLS_PATH = "woodcutter/card_images/imageurls.txt"
 
 cardUrls = {}
 f = open(os.path.join(settings.STATIC_ROOT, CARD_URLS_PATH))
 for line in f:
-    raw = line.strip().split(':')
-    raw[1] = raw[1][raw[1].rfind('/') + 1:raw[1].rfind('.')]
+    raw = line.strip().split(":")
+    raw[1] = raw[1][raw[1].rfind("/") + 1 : raw[1].rfind(".")]
     cardUrls[raw[0]] = raw[1]
 
 
 class Card:
-    def __init__(self, index, simple_name, multi_name, phrase_name,
-                 cost, supply_type, border_color, card_color,
-                 types, action, worth=lambda x, y: 0):
+    def __init__(
+        self,
+        index,
+        simple_name,
+        multi_name,
+        phrase_name,
+        cost,
+        supply_type,
+        border_color,
+        card_color,
+        types,
+        action,
+        worth=lambda x, y: 0,
+    ):
 
         self.index = index
         self.simple_name = simple_name
         self.multi_name = multi_name
         self.phrase_name = phrase_name
         self.names = [self.simple_name, self.multi_name, self.phrase_name]
-        self.cost = [int(x) for x in cost.split('d')]
+        self.cost = [int(x) for x in cost.split("d")]
         self.supply_type = int(supply_type)
         self.action = action
         self.border_color = border_color
@@ -32,10 +44,10 @@ class Card:
         if self.simple_name in cardUrls:
             self.cardurl = cardUrls[self.simple_name]
         else:
-            self.cardurl = cardUrls['card']
+            self.cardurl = cardUrls["card"]
 
     def __repr__(self):
-        return '{:0>3}'.format(hex(self.index)[2:])
+        return "{:0>3}".format(hex(self.index)[2:])
 
     def __str__(self):
         return self.simple_name.upper()

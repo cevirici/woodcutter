@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 class Pred:
     def __init__(self, index, regex, action, name):
         self.index = index
@@ -6,7 +7,7 @@ class Pred:
         self.name = name
 
     def __repr__(self):
-        return '{:0>2}'.format(hex(self.index)[2:])
+        return "{:0>2}".format(hex(self.index)[2:])
 
     def __str__(self):
         return self.name

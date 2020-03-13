@@ -1,11 +1,11 @@
+# -*- coding: utf-8 -*-
 from .Standards import *
 from .Cardstack import *
 from copy import deepcopy
 
 
 class ParsedLine:
-    def __init__(self, indent, pred, players,
-                 items, arguments, isCleanup=False):
+    def __init__(self, indent, pred, players, items, arguments, isCleanup=False):
         self.indent = indent
         self.pred = pred
         self.predName = self.pred.name
@@ -15,13 +15,11 @@ class ParsedLine:
         self.isCleanup = isCleanup
 
     def __repr__(self):
-        playerStr = '/'.join([str(x) for x in self.players])
-        itemStr = '/'.join([repr(x) for x in self.items])
-        return '{}|{}|{}|{}|{}'.format(self.indent,
-                                       repr(self.pred),
-                                       playerStr,
-                                       itemStr,
-                                       '/'.join(self.arguments))
+        playerStr = "/".join([str(x) for x in self.players])
+        itemStr = "/".join([repr(x) for x in self.items])
+        return "{}|{}|{}|{}|{}".format(
+            self.indent, repr(self.pred), playerStr, itemStr, "/".join(self.arguments)
+        )
 
     @property
     def player(self):
@@ -29,8 +27,8 @@ class ParsedLine:
 
 
 class GameState:
-    playerZones = ('DECKS', 'HANDS', 'INPLAYS', 'DISCARDS', 'TAVERN', 'OTHERS')
-    soloZones = ('SUPPLY', 'TRASH')
+    playerZones = ("DECKS", "HANDS", "INPLAYS", "DISCARDS", "TAVERN", "OTHERS")
+    soloZones = ("SUPPLY", "TRASH")
 
     def __init__(self, players=2):
         self.boardState = {}
@@ -44,7 +42,7 @@ class GameState:
         self.coins = 0
         self.actions = 0
         self.buys = 0
-        self.inherited = ['NOTHING', 'NOTHING']
+        self.inherited = ["NOTHING", "NOTHING"]
         self.projects = [set(), set()]
         self.vps = [0, 0]
         self.coffers = [0, 0]
@@ -61,7 +59,7 @@ class GameState:
         self.cargoShips = 0
         self.cargoCount = 0
         self.orderedPlays = []
-        self.lastMove = ['', '']
+        self.lastMove = ["", ""]
 
         self.valid = True
 
@@ -72,51 +70,64 @@ class GameState:
         self.boardState[item] = value
 
     def __repr__(self):
-        outstr = ''
+        outstr = ""
         for zone in self.boardState:
             if zone in GameState.playerZones:
                 for part in self.boardState[zone]:
-                    outstr += repr(part) + '|'
+                    outstr += repr(part) + "|"
             else:
-                outstr += repr(self.boardState[zone]) + '|'
-        outstr += '+'.join([str(Cards[x].index) for x in self.orderedPlays])
-        outstr += '/'
-        projectStrings = ['+'.join([str(Cards[x].index) for x in playerProj])
-                          for playerProj in self.projects]
-        outstr += '|'.join([str(self.actions), str(self.buys), str(self.coins),
-                            *[str(x) for x in self.vps],
-                            *[str(x) for x in self.debt],
-                            *[str(x) for x in self.coffers],
-                            *[str(x) for x in self.villagers],
-                            '+'.join(self.lastMove),
-                            '|'.join(projectStrings)])
+                outstr += repr(self.boardState[zone]) + "|"
+        outstr += "+".join([str(Cards[x].index) for x in self.orderedPlays])
+        outstr += "/"
+        projectStrings = [
+            "+".join([str(Cards[x].index) for x in playerProj])
+            for playerProj in self.projects
+        ]
+        outstr += "|".join(
+            [
+                str(self.actions),
+                str(self.buys),
+                str(self.coins),
+                *[str(x) for x in self.vps],
+                *[str(x) for x in self.debt],
+                *[str(x) for x in self.coffers],
+                *[str(x) for x in self.villagers],
+                "+".join(self.lastMove),
+                "|".join(projectStrings),
+            ]
+        )
         return outstr
 
     def __str__(self):
-        basestr = '{}<br>\
+        basestr = "{}<br>\
 Player: {}<br>\
 Phase: {}<br>\
 C: {} A: {} B: {}<br>\
-vp: {}<br> co: {}<br> vi: {}<br> db: {}<br>'
-        outstr = basestr.format(str(self.valid), self.activePlayer,
-                                len(self.exceptions),
-                                self.coins, self.actions, self.buys,
-                                ','.join([str(x) for x in self.vps]),
-                                ','.join([str(x) for x in self.coffers]),
-                                ','.join([str(x) for x in self.villagers]),
-                                ','.join([str(x) for x in self.debt]))
-        outstr += 'Cards:<br>'
+vp: {}<br> co: {}<br> vi: {}<br> db: {}<br>"
+        outstr = basestr.format(
+            str(self.valid),
+            self.activePlayer,
+            len(self.exceptions),
+            self.coins,
+            self.actions,
+            self.buys,
+            ",".join([str(x) for x in self.vps]),
+            ",".join([str(x) for x in self.coffers]),
+            ",".join([str(x) for x in self.villagers]),
+            ",".join([str(x) for x in self.debt]),
+        )
+        outstr += "Cards:<br>"
         for zone in self.boardState:
-            outstr += '<br>    ' + zone
+            outstr += "<br>    " + zone
             if zone in GameState.playerZones:
                 for part in self.boardState[zone]:
-                    outstr += '<br>    ' + str(part) + '<br>'
-            elif zone == 'SUPPLY':
-                outstr += '<br>    ' + str(self.boardState[zone]) + '<br>'
+                    outstr += "<br>    " + str(part) + "<br>"
+            elif zone == "SUPPLY":
+                outstr += "<br>    " + str(self.boardState[zone]) + "<br>"
 
-            outstr += '---'
+            outstr += "---"
 
-        outstr += '<br>    ------<br>'
+        outstr += "<br>    ------<br>"
         return outstr
 
     def move(self, player, src, dest, items):
@@ -140,15 +151,15 @@ vp: {}<br> co: {}<br> vi: {}<br> db: {}<br>'
             self.lastMove[1] = dest + str(player)
 
         # Edit orderedinplays
-        if src == 'INPLAYS' and player == self.activePlayer:
-            self.lastMove[0] = 'INPLAYS'
+        if src == "INPLAYS" and player == self.activePlayer:
+            self.lastMove[0] = "INPLAYS"
             for card in items:
                 for i in range(items[card]):
                     if card in self.orderedPlays:
                         self.orderedPlays.remove(card)
 
-        if dest == 'INPLAYS' and player == self.activePlayer:
-            self.lastMove[1] = 'INPLAYS'
+        if dest == "INPLAYS" and player == self.activePlayer:
+            self.lastMove[1] = "INPLAYS"
             for card in items:
                 for i in range(items[card]):
                     self.orderedPlays.append(card)
@@ -171,33 +182,54 @@ vp: {}<br> co: {}<br> vi: {}<br> db: {}<br>'
         return outlist
 
     def export(self):
-        zoneStrings = [[repr(part) for part in self.boardState[zone]]
-                       for zone in gSZones]
+        zoneStrings = [
+            [repr(part) for part in self.boardState[zone]] for zone in gSZones
+        ]
         return zoneStrings
 
     def empty_piles(self, supply):
-        pairs = {'ENCAMPMENT': ['ENCAMPMENT', 'PLUNDER'],
-                 'PATRICIAN': ['PATRICIAN', 'EMPORIUM'],
-                 'SETTLERS': ['SETTLERS', 'BUSTLING VILLAGE'],
-                 'CATAPULT': ['CATAPULT', 'ROCKS'],
-                 'GLADIATOR': ['GLADIATOR', 'FORTUNE'],
-                 'KNIGHTS': ['DAME ANNA', 'DAME JOSEPHINE', 'DAME MOLLY',
-                             'DAME NATALIE', 'DAME SYLVIA', 'SIR BAILEY',
-                             'SIR DESTRY', 'SIR MARTIN', 'SIR MICHAEL',
-                             'SIR VANDER'],
-                 'RUINS': ['RUINED LIBRARY', 'RUINED VILLAGE',
-                           'ABANDONED MINE', 'RUINED MARKET', 'SURVIVORS'],
-                 'SAUNA': ['SAUNA', 'AVANTO'],
-                 'CASTLES': ['HUMBLE CASTLE', 'CRUMBLING CASTLE',
-                             'SMALL CASTLE', 'HAUNTED CASTLE',
-                             'OPULENT CASTLE', 'SPRAWLING CASTLE',
-                             'GRAND CASTLE', "KING'S CASTLE"]}
+        pairs = {
+            "ENCAMPMENT": ["ENCAMPMENT", "PLUNDER"],
+            "PATRICIAN": ["PATRICIAN", "EMPORIUM"],
+            "SETTLERS": ["SETTLERS", "BUSTLING VILLAGE"],
+            "CATAPULT": ["CATAPULT", "ROCKS"],
+            "GLADIATOR": ["GLADIATOR", "FORTUNE"],
+            "KNIGHTS": [
+                "DAME ANNA",
+                "DAME JOSEPHINE",
+                "DAME MOLLY",
+                "DAME NATALIE",
+                "DAME SYLVIA",
+                "SIR BAILEY",
+                "SIR DESTRY",
+                "SIR MARTIN",
+                "SIR MICHAEL",
+                "SIR VANDER",
+            ],
+            "RUINS": [
+                "RUINED LIBRARY",
+                "RUINED VILLAGE",
+                "ABANDONED MINE",
+                "RUINED MARKET",
+                "SURVIVORS",
+            ],
+            "SAUNA": ["SAUNA", "AVANTO"],
+            "CASTLES": [
+                "HUMBLE CASTLE",
+                "CRUMBLING CASTLE",
+                "SMALL CASTLE",
+                "HAUNTED CASTLE",
+                "OPULENT CASTLE",
+                "SPRAWLING CASTLE",
+                "GRAND CASTLE",
+                "KING'S CASTLE",
+            ],
+        }
         output = []
         for card in supply:
             if card in pairs:
-                if sum([self['SUPPLY'][subcard]
-                        for subcard in pairs[card]]) == 0:
+                if sum([self["SUPPLY"][subcard] for subcard in pairs[card]]) == 0:
                     output.append(card)
-            elif self['SUPPLY'][card] == 0:
+            elif self["SUPPLY"][card] == 0:
                 output.append(card)
-        return '|'.join([str(Cards[card].index) for card in output])
+        return "|".join([str(Cards[card].index) for card in output])

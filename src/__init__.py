@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from .Card import *
 from .Cards import *
 from .CardInfo import *

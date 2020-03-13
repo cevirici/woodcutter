@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from .Enums import *
 
 
@@ -43,7 +44,7 @@ def getKeyCard(card):
         "Avanto": "Sauna",
         "Zombie Apprentice": "Zombie Apprentice",
         "Zombie Mason": "Zombie Apprentice",
-        "Zombie Spy": "Zombie Apprentice"
+        "Zombie Spy": "Zombie Apprentice",
     }
     if card in keyCards:
         return keyCards[card]
@@ -53,25 +54,45 @@ def getKeyCard(card):
 
 def getPileCards(card):
     piles = {
-        "Knights":
-            ["Knights", "Sir Bailey", "Sir Destry", "Sir Martin",
-             "Sir Michael", "Sir Vander", "Dame Anna", "Dame Josephine",
-             "Dame Molly", "Dame Natalie", "Dame Sylvia"],
-        "Ruin Pile":
-            ["Ruin Pile", "Abandoned Mine", "Ruined Library", "Ruined Market",
-             "Ruined Village", "Survivors"],
-        "Castles":
-            ["Castles", "Humble Castle", "Crumbling Castle", "Small Castle",
-             "Haunted Castle", "Opulent Castle", "Sprawling Castle",
-             "Grand Castle", "Kings Castle"],
+        "Knights": [
+            "Knights",
+            "Sir Bailey",
+            "Sir Destry",
+            "Sir Martin",
+            "Sir Michael",
+            "Sir Vander",
+            "Dame Anna",
+            "Dame Josephine",
+            "Dame Molly",
+            "Dame Natalie",
+            "Dame Sylvia",
+        ],
+        "Ruin Pile": [
+            "Ruin Pile",
+            "Abandoned Mine",
+            "Ruined Library",
+            "Ruined Market",
+            "Ruined Village",
+            "Survivors",
+        ],
+        "Castles": [
+            "Castles",
+            "Humble Castle",
+            "Crumbling Castle",
+            "Small Castle",
+            "Haunted Castle",
+            "Opulent Castle",
+            "Sprawling Castle",
+            "Grand Castle",
+            "Kings Castle",
+        ],
         "Encampment": ["Encampment", "Plunder"],
         "Patrician": ["Patrician", "Emporium"],
         "Settlers": ["Settlers", "Bustling Village"],
         "Catapult": ["Catapult", "Rocks"],
         "Gladiator": ["Gladiator", "Fortune"],
         "Sauna": ["Sauna", "Avanto"],
-        "Zombie Apprentice":
-            ["Zombie Apprentice", "Zombie Mason", "Zombie Spy"]
+        "Zombie Apprentice": ["Zombie Apprentice", "Zombie Mason", "Zombie Spy"],
     }
     keyCard = getKeyCard(card)
     if keyCard in piles:
@@ -89,8 +110,13 @@ def getInitialZone(card):
 
 def isOrderedPile(card):
     orderedKeyCards = [
-        "Castles", "Encampment", "Patrician", "Settlers", "Catapult",
-        "Gladiator", "Sauna"
+        "Castles",
+        "Encampment",
+        "Patrician",
+        "Settlers",
+        "Catapult",
+        "Gladiator",
+        "Sauna",
     ]
     return getKeyCard(card) in orderedKeyCards
 

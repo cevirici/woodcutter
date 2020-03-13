@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from .Setup import *
 from .GenericActions import *
 
