@@ -18,6 +18,27 @@ class Action:
         return None
 
 
+class nothing(Action):
+    name = "Do Nothing"
+
+    def act(self, state, log):
+        state = deepcopy(state)
+        state.candidates = [state.stack.pop()]
+        return state
+
+
+class maybe(Action):
+    name = "Maybe"
+
+    def __init__(self, action):
+        self.action = action
+
+    def act(self, state, log):
+        state = deepcopy(state)
+        state.candidates = [nothing(), self.action]
+        return state
+
+
 class startGame(Action):
     name = "Start Game"
 
@@ -111,6 +132,38 @@ class drawN(Action):
         return state
 
 
+class revealN(Action):
+    name = "Reveal N"
+
+    def __init__(self, n):
+        self.n = n
+        self.name = "Reveal {}".format(n)
+
+    def act(self, state, log):
+        state = deepcopy(state)
+        logLine = log[state.logLine]
+        state.player = logLine.player
+        deckCount = state.zoneCount(PlayerZones.DECK)
+        discardCount = state.zoneCount(PlayerZones.DISCARD)
+
+        if deckCount < self.n and discardCount > 0:
+            # Shuffle then go again
+            state.candidates = [shuffle()]
+            state.stack += [self]
+            return state
+        elif deckCount > 0:
+            if log[state.logLine].pred == "REVEAL":
+                state.logLine += 1
+                if not state.moveCards(logLine.items,
+                                       PlayerZones.DECK,
+                                       PlayerZones.DECK):
+                    return None
+            else:
+                return None
+        state.candidates = [state.stack.pop()]
+        return state
+
+
 class newTurn(Action):
     name = "New Turn"
 
@@ -120,13 +173,9 @@ class newTurn(Action):
         if logLine.pred == "NEW_TURN":
             state.player = logLine.player
             state.logLine += 1
-            if int(logLine.args[0]) >= 6:
-                state.candidates = [forceEnd()]
-            else:
-                state.candidates = [actionPhase(), startOfTurn()]
+            state.candidates = [actionPhase(), startOfTurn()]
 
-            state.actions = 1
-            state.coins = 0
+            state.actions, state.buys, state.coins = (1, 1, 0)
             return state
         else:
             return None
@@ -161,7 +210,7 @@ class actionPhase(Action):
 
 
 class actionPlayNormal(Action):
-    name = "Play Action from Hand"
+    name = "Play Action Normally"
 
     def act(self, state, log):
         state = deepcopy(state)
@@ -324,6 +373,44 @@ class cleanupDraw(Action):
             return None
 
 
+class play(Action):
+    def __init__(self, src=PlayerZones.HAND):
+        self.name = "Play from {}".format(src)
+        self.src = src
+
+    def act(self, state, log):
+        state = deepcopy(state)
+        logLine = log[state.logLine]
+        state.player = logLine.player
+
+        if logLine.pred == "PLAY" and len(logLine.items) == 1:
+            target = logLine.items[0]
+            state.logLine += 1
+
+            if state.moveCards([target], src, PlayerZones.PLAY):
+                state.candidates = [onPlay(target)]
+                return state
+        return None
+
+
+class replay(Action):
+    name = "Replay"
+
+    def act(self, state, log):
+        state = deepcopy(state)
+        logLine = log[state.logLine]
+
+        if logLine.pred in ["PLAY", "PLAY_AGAIN", "PLAY_THIRD",
+                            "PLAY_AGAIN_CITADEL"]:
+            target = logLine.items[0]
+            state.logLine += 1
+
+            state.candidates = [onPlay(target)]
+            return state
+        else:
+            return None
+
+
 class onPlay(Action):
     def __init__(self, target):
         self.name = "On Play {}".format(target)
@@ -340,7 +427,7 @@ class onPlay(Action):
 
 
 class buy(Action):
-    def __init__(self, src, dest):
+    def __init__(self, src=NeutralZones.SUPPLY, dest=PlayerZones.DISCARD):
         self.name = "Buy from {} to {}".format(src, dest)
         self.src = src
         self.dest = dest
@@ -389,7 +476,7 @@ class onBuy(Action):
 
 
 class gain(Action):
-    def __init__(self, src, dest):
+    def __init__(self, src=NeutralZones.SUPPLY, dest=PlayerZones.DISCARD):
         self.name = "Gain from {} to {}".format(src, dest)
         self.src = src
         self.dest = dest
@@ -427,7 +514,7 @@ class onGain(Action):
 
 
 class discard(Action):
-    def __init__(self, src, dest):
+    def __init__(self, src=PlayerZones.HAND, dest=PlayerZones.DISCARD):
         self.name = "Discard from {} to {}".format(src, dest)
         self.src = src
         self.dest = dest
@@ -449,8 +536,61 @@ class discard(Action):
         return None
 
 
+class onDiscard(Action):
+    def __init__(self, target):
+        self.name = "On Discard {}".format(target)
+        self.target = target
+
+    def act(self, state, log):
+        state = deepcopy(state)
+        cardInfo = CI.getCardInfo(self.target)
+        if hasattr(cardInfo, "onDiscard"):
+            return cardInfo.onDiscard(state, log)
+        else:
+            state.candidates = [state.stack.pop()]
+            return state
+
+
+class trash(Action):
+    def __init__(self, src=PlayerZones.HAND, dest=NeutralZones.TRASH):
+        self.name = "Trash from {} to {}".format(src, dest)
+        self.src = src
+        self.dest = dest
+
+    def act(self, state, log):
+        state = deepcopy(state)
+        logLine = log[state.logLine]
+        state.player = logLine.player
+
+        if logLine.pred == "TRASH":
+            state.logLine += 1
+            if not state.moveCards(logLine.items, self.src, self.dest):
+                return None
+            else:
+                state.stack += [onTrash(target) for target in logLine.items]
+
+                state.candidates = [state.stack.pop()]
+                return state
+        return None
+
+
+class onTrash(Action):
+    def __init__(self, target):
+        self.name = "On Trash {}".format(target)
+        self.target = target
+
+    def act(self, state, log):
+        state = deepcopy(state)
+        cardInfo = CI.getCardInfo(self.target)
+        if hasattr(cardInfo, "onTrash"):
+            return cardInfo.onTrash(state, log)
+        else:
+            state.candidates = [state.stack.pop()]
+            return state
+
+
 class topdeck(Action):
-    def __init__(self, src, dest):
+    def __init__(self, src=PlayerZones.HAND, dest=PlayerZones.DECK):
         self.name = "Topdeck from {} to {}".format(src, dest)
         self.src = src
         self.dest = dest
@@ -472,21 +612,6 @@ class topdeck(Action):
         return None
 
 
-class onDiscard(Action):
-    def __init__(self, target):
-        self.name = "On Discard {}".format(target)
-        self.target = target
-
-    def act(self, state, log):
-        state = deepcopy(state)
-        cardInfo = CI.getCardInfo(self.target)
-        if hasattr(cardInfo, "onDiscard"):
-            return cardInfo.onDiscard(state, log)
-        else:
-            state.candidates = [state.stack.pop()]
-            return state
-
-
 class onTopdeck(Action):
     def __init__(self, target):
         self.name = "On Topdeck {}".format(target)
@@ -502,6 +627,85 @@ class onTopdeck(Action):
             return state
 
 
+class setAside(Action):
+    def __init__(self, src=PlayerZones.HAND, dest=PlayerZones.SET_ASIDE):
+        self.name = "Set Aside from {} to {}".format(src, dest)
+        self.src = src
+        self.dest = dest
+
+    def act(self, state, log):
+        state = deepcopy(state)
+        logLine = log[state.logLine]
+        state.player = logLine.player
+
+        if logLine.pred in ["SET_ASIDE", "SET_ASIDE_WITH"]:
+            state.logLine += 1
+            if state.moveCards(logLine.items, self.src, self.dest):
+                state.candidates = [state.stack.pop()]
+                return state
+        return None
+
+
+class revealHand(Action):
+    name = "Reveal Hand"
+
+    def act(self, state, log):
+        state = deepcopy(state)
+        logLine = log[state.logLine]
+        state.player = logLine.player
+
+        if logLine.pred == "REVEAL":
+            state.logLine += 1
+            if state.moveCards(logLine.items, PlayerZones.HAND,
+                               PlayerZones.HAND):
+                state.candidates = [state.stack.pop()]
+                return state
+
+
+class getAction(Action):
+    name = "Get Actions"
+
+    def act(self, state, log):
+        state = deepcopy(state)
+        logLine = log[state.logLine]
+
+        if logLine.pred in ["GETS_ACTIONS", "GETS_ACTIONS_FROM"]:
+            amount = int(logLine.args[0])
+            state.actions += amount
+            state.logLine += 1
+            state.candidates = [state.stack.pop()]
+            return state
+        elif logLine.pred in ["GETS_ACTION", "GETS_ACTION_FROM"]:
+            state.actions += 1
+            state.logLine += 1
+            state.candidates = [state.stack.pop()]
+            return state
+        else:
+            return None
+
+
+class getBuy(Action):
+    name = "Get Buys"
+
+    def act(self, state, log):
+        state = deepcopy(state)
+        logLine = log[state.logLine]
+
+        if logLine.pred in ["GETS_BUYS", "GETS_BUYS_FROM"]:
+            amount = int(logLine.args[0])
+            state.actions += amount
+            state.logLine += 1
+            state.candidates = [state.stack.pop()]
+            return state
+        elif logLine.pred in ["GETS_BUY", "GETS_BUY_FROM"]:
+            state.actions += 1
+            state.logLine += 1
+            state.candidates = [state.stack.pop()]
+            return state
+        else:
+            return None
+
+
 class getCoin(Action):
     name = "Get Coins"
 
@@ -509,14 +713,50 @@ class getCoin(Action):
         state = deepcopy(state)
         logLine = log[state.logLine]
 
-        if logLine.pred == "GETS_COINS":
+        if logLine.pred in ["GETS_COINS", "GETS_COINS_FROM"]:
             amount = int(logLine.args[0])
             state.coins += amount
             state.logLine += 1
             state.candidates = [state.stack.pop()]
             return state
+        elif logLine.pred in ["GETS_COIN", "GETS_COIN_FROM"]:
+            state.coins += 1
+            state.logLine += 1
+            state.candidates = [state.stack.pop()]
+            return state
         else:
             return None
+
+
+class lookAt(Action):
+    name = "Look At"
+
+    def act(self, state, log):
+        state = deepcopy(state)
+        logLine = log[state.logLine]
+
+        if logLine.pred == "LOOK_AT":
+            state.logLine += 1
+            state.candidates = [state.stack.pop()]
+            return state
+        else:
+            return None
+
+
+class reactToAttack(Action):
+    name = "React to Attack"
+
+    def act(self, state, log):
+        state = deepcopy(state)
+        logLine = log[state.logLine]
+
+        if logLine.pred == "REACTS_WITH":
+            state.logLine += 1
+            state.stack += [self]
+            state.stack += [onReact(target) for target in logLine.items]
+
+        state.candidates = [state.stack.pop()]
+        return state
 
 
 class forceEnd(Action):

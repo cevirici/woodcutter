@@ -18,6 +18,7 @@ class Gamestate:
         self.selectedMove = None
 
         self.actions = 0
+        self.buys = 0
         self.coins = 0
         self.coffers = [0 for p in range(PLAYER_COUNT)]
         self.debt = [0 for p in range(PLAYER_COUNT)]
