@@ -22,12 +22,14 @@ def simulate(gamelog):
             states[-1].move = states[-1].candidates.pop()
             attempt = states[-1].move.act(states[-1], log)
             # print(states[-1].logLine, states[-1].move)
-            # print(log[states[-1].logLine].pred)
-            # print(states[-1].actions, states[-1].player)
-            # print(states[-1].zones[PlayerZones.HAND])
+            # print(log[states[-1].logLine].pred, states[-1].player)
+            # print(states[-1].buys, states[-1].coins, states[-1].reductions)
+            # print(states[-1].zones[PlayerZones.DECK])
+            # print(states[-1].zones[PlayerZones.DISCARD])
+            # print(states[-1].stack)
             if attempt:
                 states.append(attempt)
-            # else:
-            #     print("Failed")
+            else:
+                print("Failed")
 
     return states

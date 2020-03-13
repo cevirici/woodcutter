@@ -105,14 +105,18 @@ class shuffle(Action):
 class drawN(Action):
     name = "Draw N"
 
-    def __init__(self, n):
+    def __init__(self, n, player=-1):
         self.n = n
-        self.name = "Draw {}".format(n)
+        self.name = "Draw {} {}".format(n, player)
+        self.player = player
 
     def act(self, state, log):
         state = deepcopy(state)
         logLine = log[state.logLine]
-        state.player = logLine.player
+        if self.player == -1:
+            state.player = logLine.player
+        else:
+            state.player = self.player
         deckCount = state.zoneCount(PlayerZones.DECK)
         discardCount = state.zoneCount(PlayerZones.DISCARD)
 
@@ -694,12 +698,12 @@ class getBuy(Action):
 
         if logLine.pred in ["GETS_BUYS", "GETS_BUYS_FROM"]:
             amount = int(logLine.args[0])
-            state.actions += amount
+            state.buys += amount
             state.logLine += 1
             state.candidates = [state.stack.pop()]
             return state
         elif logLine.pred in ["GETS_BUY", "GETS_BUY_FROM"]:
-            state.actions += 1
+            state.buys += 1
             state.logLine += 1
             state.candidates = [state.stack.pop()]
             return state
@@ -761,6 +765,38 @@ class lookAt(Action):
             return None
 
 
+class lookAtN(Action):
+    name = "Look At N"
+
+    def __init__(self, n):
+        self.n = n
+        self.name = "Look At {}".format(n)
+
+    def act(self, state, log):
+        state = deepcopy(state)
+        logLine = log[state.logLine]
+        state.player = logLine.player
+        deckCount = state.zoneCount(PlayerZones.DECK)
+        discardCount = state.zoneCount(PlayerZones.DISCARD)
+
+        if deckCount < self.n and discardCount > 0:
+            # Shuffle then go again
+            state.candidates = [shuffle()]
+            state.stack += [self]
+            return state
+        elif deckCount > 0:
+            if log[state.logLine].pred == "LOOK_AT":
+                state.logLine += 1
+                if not state.moveCards(logLine.items,
+                                       PlayerZones.DECK,
+                                       PlayerZones.DECK):
+                    return None
+            else:
+                return None
+        state.candidates = [state.stack.pop()]
+        return state
+
+
 class reactToAttack(Action):
     name = "React to Attack"
 
@@ -775,6 +811,21 @@ class reactToAttack(Action):
 
         state.candidates = [state.stack.pop()]
         return state
+
+
+class onReact(Action):
+    def __init__(self, target):
+        self.name = "On React {}".format(target)
+        self.target = target
+
+    def act(self, state, log):
+        state = deepcopy(state)
+        cardInfo = getCardInfo(self.target)
+        if hasattr(cardInfo, "onReact"):
+            return cardInfo.onReact(state, log)
+        else:
+            state.candidates = [state.stack.pop()]
+            return state
 
 
 class forceEnd(Action):
@@ -797,7 +848,7 @@ class CardInfo:
 
     def onBuy(self, state, log):
         state = deepcopy(state)
-        state.coins -= min(0, self.cost[0] - state.reductions)
+        state.coins -= max(0, self.cost[0] - state.reductions)
         state.potions -= self.cost[1]
         state.buys -= 1
         if self.cost[2] > 0:
@@ -946,7 +997,11 @@ class COUNCIL_ROOM(CardInfo):
 
     def onPlay(self, state, log):
         state = deepcopy(state)
-        state.stack += [drawN(1), getBuy(), drawN(4)]
+        logLine = log[state.logLine]
+        for p in range(PLAYER_COUNT):
+            if p != logLine.player:
+                state.stack += [drawN(1, p)]
+        state.stack += [getBuy(), drawN(4)]
         state.candidates = [state.stack.pop()]
         return state
 
@@ -1074,7 +1129,7 @@ class MOAT(CardInfo):
     # The reaction aspect of moat is baked into every attack -
     # The 'attack' parts are all maybe-d.
     names = ["Moat", "Moats", "a Moat"]
-    types = [Types.ACTION]
+    types = [Types.ACTION, Types.REACTION]
     cost = [2, 0, 0]
 
     def onPlay(self, state, log):
@@ -1133,9 +1188,9 @@ class SENTRY(CardInfo):
     def onPlay(self, state, log):
         state = deepcopy(state)
         state.stack += [maybe(topdeck(PlayerZones.DECK, PlayerZones.DECK)),
-                        maybe(discard(PlayerZones.DECK, PlayerZones.DECK)),
-                        maybe(trash(PlayerZones.DECK, PlayerZones.DECK)),
-                        maybe(lookAt()), getAction(), drawN(1)]
+                        maybe(discard(PlayerZones.DECK, PlayerZones.DISCARD)),
+                        maybe(trash(PlayerZones.DECK, NeutralZones.TRASH)),
+                        maybe(lookAtN(2)), getAction(), drawN(1)]
         state.candidates = [state.stack.pop()]
         return state
 
@@ -1197,7 +1252,8 @@ class WITCH(CardInfo):
 
     def onPlay(self, state, log):
         state = deepcopy(state)
-        state.stack += [maybe(gain()), drawN(2), reactToAttack()]
+        state.stack += [maybe(gain()), drawN(2, state.player),
+                        reactToAttack()]
         state.candidates = [state.stack.pop()]
         return state
 
@@ -1277,6 +1333,24 @@ class BRIDGE(CardInfo):
         return state
 
 
+class DIPLOMAT(CardInfo):
+    names = ["Diplomat", "Diplomats", "a Diplomat"]
+    types = [Types.ACTION, Types.REACTION]
+    cost = [4, 0, 0]
+
+    def onPlay(self, state, log):
+        state = deepcopy(state)
+        state.stack += [maybe(getAction()), drawN(2)]
+        state.candidates = [state.stack.pop()]
+        return state
+
+    def onReact(self, state, log):
+        state = deepcopy(state)
+        state.stack += [maybe(discard()), drawN(2)]
+        state.candidates = [state.stack.pop()]
+        return state
+
+
 def getCardInfo(card):
     correspondences = {
         "Curse": CURSE,
@@ -1311,7 +1385,13 @@ def getCardInfo(card):
         "Vassal": VASSAL,
         "Village": VILLAGE,
         "Witch": WITCH,
-        "Workshop": WORKSHOP
+        "Workshop": WORKSHOP,
+        "Courtyard": COURTYARD,
+        "Conspirator": CONSPIRATOR,
+        "Courtier": COURTIER,
+        "Baron": BARON,
+        "Bridge": BRIDGE,
+        "Diplomat": DIPLOMAT
     }
     if card in correspondences:
         return correspondences[card]()
