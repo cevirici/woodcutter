@@ -1,6 +1,6 @@
 from .Card import *
 from .Cards import *
-from .CardInfo import *
+import woodcutter.src.CardInfo
 from .Enums import *
 from .Gamestate import *
 from .GenericActions import *

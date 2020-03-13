@@ -176,6 +176,7 @@ class newTurn(Action):
             state.candidates = [actionPhase(), startOfTurn()]
 
             state.actions, state.buys, state.coins = (1, 1, 0)
+            state.potions, state.reductions = (0, 0)
             return state
         else:
             return None
@@ -437,13 +438,12 @@ class buy(Action):
         logLine = log[state.logLine]
         state.player = logLine.player
 
-        # ADD IN PAYING FOR STUFF
         if logLine.pred == "BUY_AND_GAIN":
             state.logLine += 1
             if not state.moveCards(logLine.items, self.src, self.dest):
                 return None
             for target in logLine.items:
-                state.stack += [onGain(target)]
+                state.stack += [onGain(target), onBuy(target)]
 
             state.candidates = [state.stack.pop()]
             return state
@@ -451,8 +451,7 @@ class buy(Action):
         elif logLine.pred == "BUY":
             state.logLine += 1
             for target in logLine.items:
-                state.stack += [gain(self.src, self.dest),
-                                onBuy(target)]
+                state.stack += [gain(self.src, self.dest), onBuy(target)]
 
             state.candidates = [state.stack.pop()]
             return state
@@ -721,6 +720,23 @@ class getCoin(Action):
             return state
         elif logLine.pred in ["GETS_COIN", "GETS_COIN_FROM"]:
             state.coins += 1
+            state.logLine += 1
+            state.candidates = [state.stack.pop()]
+            return state
+        else:
+            return None
+
+
+class takeDebt(Action):
+    name = "Take Debt"
+
+    def act(self, state, log):
+        state = deepcopy(state)
+        logLine = log[state.logLine]
+
+        if logLine.pred in ["TAX_TAKE_DEBT", "TAKES_DEBT"]:
+            amount = int(logLine.args[0])
+            state.debt[state.player] += amount
             state.logLine += 1
             state.candidates = [state.stack.pop()]
             return state

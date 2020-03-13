@@ -7,19 +7,33 @@ from .GenericActions import *
 class CardInfo:
     names = ["Back", "Backs", "a Back"]
     types = []
+    cost = [0, 0, 0]
 
     def hasType(self, cardType):
         return cardType in self.types
+
+    def onBuy(self, state, log):
+        state = deepcopy(state)
+        state.coins -= min(0, self.cost[0] - state.reductions)
+        state.potions -= self.cost[1]
+        state.buys -= 1
+        if self.cost[2] > 0:
+            state.stack.append(takeDebt())
+        if state.coins >= 0 and state.potions >= 0 and state.buys >= 0:
+            state.candidates = [state.stack.pop()]
+            return state
 
 
 class CURSE(CardInfo):
     names = ["Curse", "Curses", "a Curse"]
     types = [Types.CURSE]
+    cost = [0, 0, 0]
 
 
 class COPPER(CardInfo):
     names = ["Copper", "Coppers", "a Copper"]
     types = [Types.TREASURE]
+    cost = [0, 0, 0]
 
     def onPlay(self, state, log):
         state = deepcopy(state)
@@ -31,6 +45,7 @@ class COPPER(CardInfo):
 class SILVER(CardInfo):
     names = ["Silver", "Silvers", "a Silver"]
     types = [Types.TREASURE]
+    cost = [3, 0, 0]
 
     def onPlay(self, state, log):
         state = deepcopy(state)
@@ -42,6 +57,7 @@ class SILVER(CardInfo):
 class GOLD(CardInfo):
     names = ["Gold", "Golds", "a Gold"]
     types = [Types.TREASURE]
+    cost = [6, 0, 0]
 
     def onPlay(self, state, log):
         state = deepcopy(state)
@@ -53,21 +69,25 @@ class GOLD(CardInfo):
 class ESTATE(CardInfo):
     names = ["Estate", "Estates", "an Estate"]
     types = [Types.VICTORY]
+    cost = [2, 0, 0]
 
 
 class DUCHY(CardInfo):
     names = ["Duchy", "Duchies", "a Duchy"]
     types = [Types.VICTORY]
+    cost = [5, 0, 0]
 
 
 class PROVINCE(CardInfo):
     names = ["Province", "Provinces", "a Province"]
     types = [Types.VICTORY]
+    cost = [8, 0, 0]
 
 
 class ARTISAN(CardInfo):
     names = ["Artisan", "Artisans", "an Artisan"]
     types = [Types.ACTION]
+    cost = [6, 0, 0]
 
     def onPlay(self, state, log):
         state = deepcopy(state)
@@ -80,6 +100,7 @@ class ARTISAN(CardInfo):
 class BANDIT(CardInfo):
     names = ["Bandit", "Bandits", "a Bandit"]
     types = [Types.ACTION, Types.ATTACK]
+    cost = [5, 0, 0]
 
     def onPlay(self, state, log):
         state = deepcopy(state)
@@ -95,6 +116,7 @@ class BANDIT(CardInfo):
 class BUREAUCRAT(CardInfo):
     names = ["Bureaucrat", "Bureaucrats", "a Bureaucrat"]
     types = [Types.ACTION, Types.ATTACK]
+    cost = [4, 0, 0]
 
     def onPlay(self, state, log):
         state = deepcopy(state)
@@ -109,6 +131,7 @@ class BUREAUCRAT(CardInfo):
 class CELLAR(CardInfo):
     names = ["Cellar", "Cellars", "a Cellar"]
     types = [Types.ACTION]
+    cost = [2, 0, 0]
 
     def onPlay(self, state, log):
         state = deepcopy(state)
@@ -124,6 +147,7 @@ class CELLAR(CardInfo):
 class CHAPEL(CardInfo):
     names = ["Chapel", "Chapels", "a Chapel"]
     types = [Types.ACTION]
+    cost = [2, 0, 0]
 
     def onPlay(self, state, log):
         state = deepcopy(state)
@@ -135,6 +159,7 @@ class CHAPEL(CardInfo):
 class COUNCIL_ROOM(CardInfo):
     names = ["Council Room", "Council Rooms", "a Council Room"]
     types = [Types.ACTION]
+    cost = [5, 0, 0]
 
     def onPlay(self, state, log):
         state = deepcopy(state)
@@ -146,6 +171,7 @@ class COUNCIL_ROOM(CardInfo):
 class FESTIVAL(CardInfo):
     names = ["Festival", "Festivals", "a Festival"]
     types = [Types.ACTION]
+    cost = [5, 0, 0]
 
     def onPlay(self, state, log):
         state = deepcopy(state)
@@ -157,11 +183,13 @@ class FESTIVAL(CardInfo):
 class GARDENS(CardInfo):
     names = ["Gardens", "Gardens", "a Gardens"]
     types = [Types.VICTORY]
+    cost = [4, 0, 0]
 
 
 class HARBINGER(CardInfo):
     names = ["Harbinger", "Harbingers", "a Harbinger"]
     types = [Types.ACTION]
+    cost = [3, 0, 0]
 
     def onPlay(self, state, log):
         state = deepcopy(state)
@@ -176,6 +204,7 @@ class HARBINGER(CardInfo):
 class LABORATORY(CardInfo):
     names = ["Laboratory", "Laboratories", "a Laboratory"]
     types = [Types.ACTION]
+    cost = [5, 0, 0]
 
     def onPlay(self, state, log):
         state = deepcopy(state)
@@ -187,6 +216,7 @@ class LABORATORY(CardInfo):
 class LIBRARY(CardInfo):
     names = ["Library", "Libraries", "a Library"]
     types = [Types.ACTION]
+    cost = [5, 0, 0]
 
     def onPlay(self, state, log):
         state = deepcopy(state)
@@ -211,6 +241,7 @@ class LIBRARY(CardInfo):
 class MARKET(CardInfo):
     names = ["Market", "Markets", "a Market"]
     types = [Types.ACTION]
+    cost = [5, 0, 0]
 
     def onPlay(self, state, log):
         state = deepcopy(state)
@@ -222,6 +253,7 @@ class MARKET(CardInfo):
 class MERCHANT(CardInfo):
     names = ["Merchant", "Merchants", "a Merchant"]
     types = [Types.ACTION]
+    cost = [3, 0, 0]
 
     def onPlay(self, state, log):
         state = deepcopy(state)
@@ -233,6 +265,7 @@ class MERCHANT(CardInfo):
 class MILITIA(CardInfo):
     names = ["Militia", "Militias", "a Militia"]
     types = [Types.ACTION, Types.ATTACK]
+    cost = [4, 0, 0]
 
     def onPlay(self, state, log):
         state = deepcopy(state)
@@ -244,6 +277,7 @@ class MILITIA(CardInfo):
 class MINE(CardInfo):
     names = ["Mine", "Mines", "a Mine"]
     types = [Types.ACTION]
+    cost = [5, 0, 0]
 
     def onPlay(self, state, log):
         state = deepcopy(state)
@@ -258,6 +292,7 @@ class MOAT(CardInfo):
     # The 'attack' parts are all maybe-d.
     names = ["Moat", "Moats", "a Moat"]
     types = [Types.ACTION]
+    cost = [2, 0, 0]
 
     def onPlay(self, state, log):
         state = deepcopy(state)
@@ -274,6 +309,7 @@ class MOAT(CardInfo):
 class MONEYLENDER(CardInfo):
     names = ["Moneylender", "Moneylenders", "a Moneylender"]
     types = [Types.ACTION]
+    cost = [4, 0, 0]
 
     def onPlay(self, state, log):
         state = deepcopy(state)
@@ -285,6 +321,7 @@ class MONEYLENDER(CardInfo):
 class POACHER(CardInfo):
     names = ["Poacher", "Poachers", "a Poacher"]
     types = [Types.ACTION]
+    cost = [4, 0, 0]
 
     def onPlay(self, state, log):
         state = deepcopy(state)
@@ -296,6 +333,7 @@ class POACHER(CardInfo):
 class REMODEL(CardInfo):
     names = ["Remodel", "Remodels", "a Remodel"]
     types = [Types.ACTION]
+    cost = [4, 0, 0]
 
     def onPlay(self, state, log):
         state = deepcopy(state)
@@ -307,6 +345,7 @@ class REMODEL(CardInfo):
 class SENTRY(CardInfo):
     names = ["Sentry", "Sentries", "a Sentry"]
     types = [Types.ACTION]
+    cost = [5, 0, 0]
 
     def onPlay(self, state, log):
         state = deepcopy(state)
@@ -321,6 +360,7 @@ class SENTRY(CardInfo):
 class SMITHY(CardInfo):
     names = ["Smithy", "Smithies", "a Smithy"]
     types = [Types.ACTION]
+    cost = [4, 0, 0]
 
     def onPlay(self, state, log):
         state = deepcopy(state)
@@ -332,6 +372,7 @@ class SMITHY(CardInfo):
 class THRONE_ROOM(CardInfo):
     names = ["Throne Room", "Throne Rooms", "a Throne Room"]
     types = [Types.ACTION]
+    cost = [4, 0, 0]
 
     def onPlay(self, state, log):
         state = deepcopy(state)
@@ -343,6 +384,7 @@ class THRONE_ROOM(CardInfo):
 class VASSAL(CardInfo):
     names = ["Vassal", "Vassals", "a Vassal"]
     types = [Types.ACTION]
+    cost = [3, 0, 0]
 
     def onPlay(self, state, log):
         state = deepcopy(state)
@@ -356,6 +398,7 @@ class VASSAL(CardInfo):
 class VILLAGE(CardInfo):
     names = ["Village", "Villages", "a Village"]
     types = [Types.ACTION]
+    cost = [3, 0, 0]
 
     def onPlay(self, state, log):
         state = deepcopy(state)
@@ -367,6 +410,7 @@ class VILLAGE(CardInfo):
 class WITCH(CardInfo):
     names = ["Witch", "Witches", "a Witch"]
     types = [Types.ACTION, Types.ATTACK]
+    cost = [5, 0, 0]
 
     def onPlay(self, state, log):
         state = deepcopy(state)
@@ -378,10 +422,74 @@ class WITCH(CardInfo):
 class WORKSHOP(CardInfo):
     names = ["Workshop", "Workshops", "a Workshop"]
     types = [Types.ACTION]
+    cost = [3, 0, 0]
 
     def onPlay(self, state, log):
         state = deepcopy(state)
         state.stack += [maybe(gain())]
+        state.candidates = [state.stack.pop()]
+        return state
+
+
+class COURTYARD(CardInfo):
+    names = ["Couryard", "Courtyards", "a Courtyard"]
+    types = [Types.ACTION]
+    cost = [2, 0, 0]
+
+    def onPlay(self, state, log):
+        state = deepcopy(state)
+        state.stack += [maybe(topdeck()), drawN(3)]
+        state.candidates = [state.stack.pop()]
+        return state
+
+
+class CONSPIRATOR(CardInfo):
+    names = ["Conspirator", "Conspirators", "a Conspirator"]
+    types = [Types.ACTION]
+    cost = [4, 0, 0]
+
+    def onPlay(self, state, log):
+        state = deepcopy(state)
+        state.stack += [maybe(getAction()), maybe(drawN(1)), getCoin()]
+        state.candidates = [state.stack.pop()]
+        return state
+
+
+class COURTIER(CardInfo):
+    names = ["Courtier", "Courtiers", "a Courtier"]
+    types = [Types.ACTION]
+    cost = [5, 0, 0]
+
+    def onPlay(self, state, log):
+        state = deepcopy(state)
+        state.stack += [maybe(gain()), maybe(getCoin()), maybe(getBuy()),
+                        maybe(getAction()), revealHand()]
+        state.candidates = [state.stack.pop()]
+        return state
+
+
+class BARON(CardInfo):
+    names = ["Baron", "Barons", "a Baron"]
+    types = [Types.ACTION]
+    cost = [4, 0, 0]
+
+    def onPlay(self, state, log):
+        state = deepcopy(state)
+        state.stack += [maybe(gain()), maybe(getCoin()), maybe(getBuy()),
+                        maybe(discard())]
+        state.candidates = [state.stack.pop()]
+        return state
+
+
+class BRIDGE(CardInfo):
+    names = ["Bridge", "Bridges", "a Bridge"]
+    types = [Types.ACTION]
+    cost = [4, 0, 0]
+
+    def onPlay(self, state, log):
+        state = deepcopy(state)
+        state.reductions += 1
+        state.stack += [getCoin(), getBuy()]
         state.candidates = [state.stack.pop()]
         return state
 

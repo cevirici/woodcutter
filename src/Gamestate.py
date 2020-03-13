@@ -20,12 +20,14 @@ class Gamestate:
         self.actions = 0
         self.buys = 0
         self.coins = 0
+        self.potions = 0
         self.coffers = [0 for p in range(PLAYER_COUNT)]
         self.debt = [0 for p in range(PLAYER_COUNT)]
         self.villagers = [0 for p in range(PLAYER_COUNT)]
 
         self.turnStartEffects = []
         self.cleanupEffects = []
+        self.activeReductions = 0
 
     def zoneCount(self, zoneName, player=-1):
         if player == -1:
