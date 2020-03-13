@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 class Card:
     def __init__(self, name, index):
         self.name = name

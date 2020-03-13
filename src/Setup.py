@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from .Gamestate import *
 from .Pile import *
 from .Card import *
@@ -21,7 +22,7 @@ class Parser:
         piles = {}
         for item in supplyString.split("~"):
             if item:
-                c, i = item.split(':')
+                c, i = item.split(":")
                 piles[self.cards[int(i)]] = int(c)
 
         handled = set()
@@ -45,9 +46,11 @@ class Parser:
                             index += 1
 
                 if initialZone == NeutralZones.SUPPLY and len(associates) == 1:
-                    state.addCard(Card(cardName, index),
-                                  NeutralZones.BLACK_MARKET,
-                                  "Black Market Pile")
+                    state.addCard(
+                        Card(cardName, index),
+                        NeutralZones.BLACK_MARKET,
+                        "Black Market Pile",
+                    )
                     index += 1
                 else:
                     pile = Pile(cardInfo.getKeyCard(), associates)
@@ -74,7 +77,7 @@ class Parser:
             return int(arg)
 
     def parseLog(self, logString):
-        logLines = logString.split('~')
+        logLines = logString.split("~")
         parsedLines = []
         parseablePreds = ["WISH_CORRECT", "WISH_WRONG"]
 
@@ -82,14 +85,15 @@ class Parser:
             indent, pred, player, items, args = line.split("|")
             pred = self.preds[int(pred)]
             shouldParse = pred in parseablePreds
-            args = [self.parse_arg(a, shouldParse) for
-                    a in args.split("+")] if args else []
+            args = (
+                [self.parse_arg(a, shouldParse) for a in args.split("+")]
+                if args
+                else []
+            )
 
-            parsedLines.append(ParsedLine(
-                int(indent),
-                pred,
-                int(player) - 1,
-                self.parse_items(items),
-                args
-            ))
+            parsedLines.append(
+                ParsedLine(
+                    int(indent), pred, int(player) - 1, self.parse_items(items), args
+                )
+            )
         return parsedLines

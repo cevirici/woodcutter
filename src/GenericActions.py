@@ -1,5 +1,4 @@
-# HELP - I want to split this file up but I can't without breaking all
-# the dependencies.
+# -*- coding: utf-8 -*-
 from copy import copy, deepcopy
 from .Utils import *
 from .Enums import *
@@ -17,6 +16,7 @@ class Action:
 
     def act(self, state, log):
         return None
+
 
 # Conditionals and other stuff
 
@@ -58,6 +58,7 @@ class hasCards(Action):
 
 # Predicate-associated actions
 
+
 class startGame(Action):
     name = "Start Game"
 
@@ -80,7 +81,8 @@ class startDecks(Action):
             state = deepcopy(state)
             state.player = logLine.player
             if not state.moveCards(
-                    logLine.items, NeutralZones.SUPPLY, PlayerZones.DISCARD):
+                logLine.items, NeutralZones.SUPPLY, PlayerZones.DISCARD
+            ):
                 return None
 
             state.logLine += 1
@@ -145,9 +147,9 @@ class drawN(Action):
         elif deckCount > 0:
             if log[state.logLine].pred == "DRAW":
                 state.logLine += 1
-                if not state.moveCards(logLine.items,
-                                       PlayerZones.DECK,
-                                       PlayerZones.HAND):
+                if not state.moveCards(
+                    logLine.items, PlayerZones.DECK, PlayerZones.HAND
+                ):
                     return None
             else:
                 return None
@@ -177,9 +179,9 @@ class revealN(Action):
         elif deckCount > 0:
             if log[state.logLine].pred == "REVEAL":
                 state.logLine += 1
-                if not state.moveCards(logLine.items,
-                                       PlayerZones.DECK,
-                                       PlayerZones.DECK):
+                if not state.moveCards(
+                    logLine.items, PlayerZones.DECK, PlayerZones.DECK
+                ):
                     return None
             else:
                 return None
@@ -261,10 +263,8 @@ class actionPlayNormal(Action):
             cardInfo = getCardInfo(target)
             state.logLine += 1
 
-            if state.actions > 0 and \
-                    cardInfo.hasType(Types.ACTION):
-                if state.moveCards([target], PlayerZones.HAND,
-                                   PlayerZones.PLAY):
+            if state.actions > 0 and cardInfo.hasType(Types.ACTION):
+                if state.moveCards([target], PlayerZones.HAND, PlayerZones.PLAY):
                     state.actions -= 1
                     state.candidates = [onPlay(target)]
                     return state
@@ -278,9 +278,11 @@ class buyPhaseA(Action):
         state = deepcopy(state)
         state.player = log[state.logLine].player
         state.stack = [buyPhaseA()]
-        state.candidates = [buyPhaseB(),
-                            # repayDebt(), spendCoffers(),
-                            treasurePlayNormal()]
+        state.candidates = [
+            buyPhaseB(),
+            # repayDebt(), spendCoffers(),
+            treasurePlayNormal(),
+        ]
         return state
 
 
@@ -292,8 +294,7 @@ class treasurePlayNormal(Action):
         logLine = log[state.logLine]
 
         if logLine.pred in ["PLAY", "PLAY_TREASURES_FOR"]:
-            if state.moveCards(
-                    logLine.items, PlayerZones.HAND, PlayerZones.PLAY):
+            if state.moveCards(logLine.items, PlayerZones.HAND, PlayerZones.PLAY):
 
                 for target in logLine.items:
                     if not getCardInfo(target).hasType(Types.TREASURE):
@@ -373,8 +374,9 @@ class nightPlayNormal(Action):
             cardInfo = getCardInfo(target)
             state.logLine += 1
 
-            if cardInfo.hasType(Types.NIGHT) and \
-                    state.zoneContains(target, PlayerZones.HAND):
+            if cardInfo.hasType(Types.NIGHT) and state.zoneContains(
+                target, PlayerZones.HAND
+            ):
                 state.moveCards([target], PlayerZones.HAND, PlayerZones.PLAY)
                 state.candidates = [onPlay(target)]
                 return state
@@ -454,8 +456,7 @@ class replay(Action):
         state = deepcopy(state)
         logLine = log[state.logLine]
 
-        if logLine.pred in ["PLAY", "PLAY_AGAIN", "PLAY_THIRD",
-                            "PLAY_AGAIN_CITADEL"]:
+        if logLine.pred in ["PLAY", "PLAY_AGAIN", "PLAY_THIRD", "PLAY_AGAIN_CITADEL"]:
             target = logLine.items[0]
             state.logLine += 1
 
@@ -715,8 +716,7 @@ class revealHand(Action):
 
         if logLine.pred == "REVEAL":
             state.logLine += 1
-            if state.moveCards(logLine.items, PlayerZones.HAND,
-                               PlayerZones.HAND):
+            if state.moveCards(logLine.items, PlayerZones.HAND, PlayerZones.HAND):
                 state.candidates = [state.stack.pop()]
                 return state
         return None
@@ -732,8 +732,7 @@ class putInHand(Action):
 
         if logLine.pred == "PUT_IN_HAND":
             state.logLine += 1
-            if state.moveCards(logLine.items, PlayerZones.DECK,
-                               PlayerZones.HAND):
+            if state.moveCards(logLine.items, PlayerZones.DECK, PlayerZones.HAND):
                 state.candidates = [state.stack.pop()]
                 return state
         return None
@@ -859,9 +858,9 @@ class lookAtN(Action):
         elif deckCount > 0:
             if log[state.logLine].pred == "LOOK_AT":
                 state.logLine += 1
-                if not state.moveCards(logLine.items,
-                                       PlayerZones.DECK,
-                                       PlayerZones.DECK):
+                if not state.moveCards(
+                    logLine.items, PlayerZones.DECK, PlayerZones.DECK
+                ):
                     return None
             else:
                 return None
@@ -913,9 +912,9 @@ class passCard(Action):
             target = logLine.items[0]
             nextPlayer = (state.player + 1) % PLAYER_COUNT
 
-            if not state.moveCards([target], PlayerZones.HAND,
-                                   PlayerZones.HAND, state.player,
-                                   nextPlayer):
+            if not state.moveCards(
+                [target], PlayerZones.HAND, PlayerZones.HAND, state.player, nextPlayer
+            ):
                 return None
 
             state.candidates = [state.stack.pop()]
@@ -933,8 +932,9 @@ class wishRight(Action):
 
         if logLine.pred == "WISH_CORRECT":
             state.logLine += 1
-            if not state.moveCards([logLine.args[0]], PlayerZones.DECK,
-                                   PlayerZones.HAND):
+            if not state.moveCards(
+                [logLine.args[0]], PlayerZones.DECK, PlayerZones.HAND
+            ):
                 return None
             else:
                 state.candidates = [state.stack.pop()]
@@ -952,8 +952,9 @@ class wishWrong(Action):
 
         if logLine.pred == "WISH_WRONG":
             state.logLine += 1
-            if not state.moveCards([logLine.args[1]], PlayerZones.DECK,
-                                   PlayerZones.DECK):
+            if not state.moveCards(
+                [logLine.args[1]], PlayerZones.DECK, PlayerZones.DECK
+            ):
                 return None
             else:
                 state.candidates = [state.stack.pop()]
@@ -971,8 +972,9 @@ class returnCard(Action):
 
         if logLine.pred in ["RETURN", "RETURN TO"]:
             state.logLine += 1
-            if not state.moveCards(logLine.items, PlayerZones.HAND,
-                                   NeutralZones.SUPPLY):
+            if not state.moveCards(
+                logLine.items, PlayerZones.HAND, NeutralZones.SUPPLY
+            ):
                 return None
 
             state.candidates = [state.stack.pop()]
@@ -1005,13 +1007,13 @@ class CardInfo:
         return cardType in self.types
 
     def getKeyCard(self):
-        if hasattr(self, 'keyCard'):
+        if hasattr(self, "keyCard"):
             return self.keyCard
         else:
             return self.names[0]
 
     def getPileCards(self):
-        if hasattr(self, 'pileCard'):
+        if hasattr(self, "pileCard"):
             return self.pileCards
         else:
             return [self.names[0]]
@@ -1095,8 +1097,10 @@ class ARTISAN(CardInfo):
 
     def onPlay(self, state, log, realPlay):
         state = deepcopy(state)
-        state.stack += [hasCards(topdeck()),
-                        maybe(gain(NeutralZones.SUPPLY, PlayerZones.HAND))]
+        state.stack += [
+            hasCards(topdeck()),
+            maybe(gain(NeutralZones.SUPPLY, PlayerZones.HAND)),
+        ]
         state.candidates = [state.stack.pop()]
         return state
 
@@ -1108,11 +1112,13 @@ class BANDIT(CardInfo):
 
     def onPlay(self, state, log, realPlay):
         state = deepcopy(state)
-        state.stack += [maybe(discard(PlayerZones.DECK, PlayerZones.DISCARD)),
-                        maybe(trash(PlayerZones.DECK, NeutralZones.TRASH)),
-                        maybe(revealN(2)),
-                        maybe(gain()),
-                        reactToAttack()]
+        state.stack += [
+            maybe(discard(PlayerZones.DECK, PlayerZones.DISCARD)),
+            maybe(trash(PlayerZones.DECK, NeutralZones.TRASH)),
+            maybe(revealN(2)),
+            maybe(gain()),
+            reactToAttack(),
+        ]
         state.candidates = [state.stack.pop()]
         return state
 
@@ -1124,10 +1130,12 @@ class BUREAUCRAT(CardInfo):
 
     def onPlay(self, state, log, realPlay):
         state = deepcopy(state)
-        state.stack += [maybe(topdeck()),
-                        maybe(revealHand()),
-                        maybe(gain(NeutralZones.SUPPLY, PlayerZones.DECK)),
-                        reactToAttack()]
+        state.stack += [
+            maybe(topdeck()),
+            maybe(revealHand()),
+            maybe(gain(NeutralZones.SUPPLY, PlayerZones.DECK)),
+            reactToAttack(),
+        ]
         state.candidates = [state.stack.pop()]
         return state
 
@@ -1141,9 +1149,7 @@ class CELLAR(CardInfo):
         state = deepcopy(state)
         if state.logLine < len(log) - 1:
             amount = len(log[state.logLine + 1].items)
-        state.stack += [maybe(drawN(amount)),
-                        maybe(discard()),
-                        getAction()]
+        state.stack += [maybe(drawN(amount)), maybe(discard()), getAction()]
         state.candidates = [state.stack.pop()]
         return state
 
@@ -1202,9 +1208,13 @@ class HARBINGER(CardInfo):
     def onPlay(self, state, log, realPlay):
         state = deepcopy(state)
         # For some reason harbinger looks at discard twice
-        state.stack += [maybe(topdeck(PlayerZones.DISCARD, PlayerZones.DECK)),
-                        maybe(lookAt()), maybe(lookAt()),
-                        getAction(), drawN(1)]
+        state.stack += [
+            maybe(topdeck(PlayerZones.DISCARD, PlayerZones.DECK)),
+            maybe(lookAt()),
+            maybe(lookAt()),
+            getAction(),
+            drawN(1),
+        ]
         state.candidates = [state.stack.pop()]
         return state
 
@@ -1232,15 +1242,21 @@ class LIBRARY(CardInfo):
         state.player = logLine.player
 
         handCount = state.zoneCount(PlayerZones.HAND)
-        deckCount = state.zoneCount(PlayerZones.DECK) + \
-            state.zoneCount(PlayerZones.DISCARD)
+        deckCount = state.zoneCount(PlayerZones.DECK) + state.zoneCount(
+            PlayerZones.DISCARD
+        )
 
         if handCount >= 7 or deckCount == 0:
-            state.candidates = [maybe(discard(PlayerZones.SET_ASIDE,
-                                              PlayerZones.DISCARD))]
+            state.candidates = [
+                maybe(discard(PlayerZones.SET_ASIDE, PlayerZones.DISCARD))
+            ]
         else:
-            state.stack += [onPlay("Library"), maybe(setAside()),
-                            maybe(lookAt()), drawN(1)]
+            state.stack += [
+                onPlay("Library"),
+                maybe(setAside()),
+                maybe(lookAt()),
+                drawN(1),
+            ]
             state.candidates = [state.stack.pop()]
 
         return state
@@ -1289,8 +1305,7 @@ class MINE(CardInfo):
 
     def onPlay(self, state, log, realPlay):
         state = deepcopy(state)
-        state.stack += [gain(NeutralZones.SUPPLY, PlayerZones.HAND),
-                        trash()]
+        state.stack += [gain(NeutralZones.SUPPLY, PlayerZones.HAND), trash()]
         state.candidates = [state.stack.pop()]
         return state
 
@@ -1357,10 +1372,14 @@ class SENTRY(CardInfo):
 
     def onPlay(self, state, log, realPlay):
         state = deepcopy(state)
-        state.stack += [maybe(topdeck(PlayerZones.DECK, PlayerZones.DECK)),
-                        maybe(discard(PlayerZones.DECK, PlayerZones.DISCARD)),
-                        maybe(trash(PlayerZones.DECK, NeutralZones.TRASH)),
-                        maybe(lookAtN(2)), getAction(), drawN(1)]
+        state.stack += [
+            maybe(topdeck(PlayerZones.DECK, PlayerZones.DECK)),
+            maybe(discard(PlayerZones.DECK, PlayerZones.DISCARD)),
+            maybe(trash(PlayerZones.DECK, NeutralZones.TRASH)),
+            maybe(lookAtN(2)),
+            getAction(),
+            drawN(1),
+        ]
         state.candidates = [state.stack.pop()]
         return state
 
@@ -1396,9 +1415,11 @@ class VASSAL(CardInfo):
 
     def onPlay(self, state, log, realPlay):
         state = deepcopy(state)
-        state.stack += [maybe(play(PlayerZones.DISCARD)),
-                        maybe(discard(PlayerZones.DECK, PlayerZones.DISCARD)),
-                        getCoin()]
+        state.stack += [
+            maybe(play(PlayerZones.DISCARD)),
+            maybe(discard(PlayerZones.DECK, PlayerZones.DISCARD)),
+            getCoin(),
+        ]
         state.candidates = [state.stack.pop()]
         return state
 
@@ -1422,8 +1443,7 @@ class WITCH(CardInfo):
 
     def onPlay(self, state, log, realPlay):
         state = deepcopy(state)
-        state.stack += [maybe(gain()), drawN(2, state.player),
-                        reactToAttack()]
+        state.stack += [maybe(gain()), drawN(2, state.player), reactToAttack()]
         state.candidates = [state.stack.pop()]
         return state
 
@@ -1471,8 +1491,13 @@ class COURTIER(CardInfo):
 
     def onPlay(self, state, log, realPlay):
         state = deepcopy(state)
-        state.stack += [maybe(gain()), maybe(getCoin()), maybe(getBuy()),
-                        maybe(getAction()), revealHand()]
+        state.stack += [
+            maybe(gain()),
+            maybe(getCoin()),
+            maybe(getBuy()),
+            maybe(getAction()),
+            revealHand(),
+        ]
         state.candidates = [state.stack.pop()]
         return state
 
@@ -1484,8 +1509,12 @@ class BARON(CardInfo):
 
     def onPlay(self, state, log, realPlay):
         state = deepcopy(state)
-        state.stack += [maybe(gain()), maybe(getCoin()), maybe(getBuy()),
-                        maybe(discard())]
+        state.stack += [
+            maybe(gain()),
+            maybe(getCoin()),
+            maybe(getBuy()),
+            maybe(discard()),
+        ]
         state.candidates = [state.stack.pop()]
         return state
 
@@ -1557,8 +1586,12 @@ class IRONWORKS(CardInfo):
 
     def onPlay(self, state, log, realPlay):
         state = deepcopy(state)
-        state.stack += [maybe(drawN(1)), maybe(getCoin()),
-                        maybe(getAction()), maybe(gain())]
+        state.stack += [
+            maybe(drawN(1)),
+            maybe(getCoin()),
+            maybe(getAction()),
+            maybe(gain()),
+        ]
         state.candidates = [state.stack.pop()]
         return state
 
@@ -1570,8 +1603,10 @@ class LURKER(CardInfo):
 
     def onPlay(self, state, log, realPlay):
         state = deepcopy(state)
-        state.stack += [maybe(trash(NeutralZones.SUPPLY, NeutralZones.TRASH)),
-                        maybe(gain(NeutralZones.TRASH, None))]
+        state.stack += [
+            maybe(trash(NeutralZones.SUPPLY, NeutralZones.TRASH)),
+            maybe(gain(NeutralZones.TRASH, None)),
+        ]
         state.candidates = [state.stack.pop()]
         return state
 
@@ -1597,8 +1632,7 @@ class MILL(CardInfo):
 
     def onPlay(self, state, log, realPlay):
         state = deepcopy(state)
-        state.stack += [maybe(getCoin()), maybe(discard()), getActions(),
-                        drawN(1)]
+        state.stack += [maybe(getCoin()), maybe(discard()), getActions(), drawN(1)]
         state.candidates = [state.stack.pop()]
         return state
 
@@ -1610,9 +1644,12 @@ class MINING_VILLAGE(CardInfo):
 
     def onPlay(self, state, log, realPlay):
         state = deepcopy(state)
-        state.stack += [maybe(getCoin()),
-                        maybe(trash(PlayerZones.PLAY, NeutralZones.TRASH)),
-                        getActions(), drawN(1)]
+        state.stack += [
+            maybe(getCoin()),
+            maybe(trash(PlayerZones.PLAY, NeutralZones.TRASH)),
+            getActions(),
+            drawN(1),
+        ]
         state.candidates = [state.stack.pop()]
         return state
 
@@ -1638,8 +1675,12 @@ class PATROL(CardInfo):
 
     def onPlay(self, state, log, realPlay):
         state = deepcopy(state)
-        state.stack += [maybe(topdeck(PlayerZones.DECK, PlayerZones.DECK)),
-                        maybe(putInHand()), revealN(4), drawN(3)]
+        state.stack += [
+            maybe(topdeck(PlayerZones.DECK, PlayerZones.DECK)),
+            maybe(putInHand()),
+            revealN(4),
+            drawN(3),
+        ]
         state.candidates = [state.stack.pop()]
         return state
 
@@ -1651,8 +1692,12 @@ class PAWN(CardInfo):
 
     def onPlay(self, state, log, realPlay):
         state = deepcopy(state)
-        state.stack += [maybe(getCoin()), maybe(getBuy()),
-                        maybe(getAction()), maybe(drawN(1))]
+        state.stack += [
+            maybe(getCoin()),
+            maybe(getBuy()),
+            maybe(getAction()),
+            maybe(drawN(1)),
+        ]
         state.candidates = [state.stack.pop()]
         return state
 
@@ -1672,8 +1717,7 @@ class replaceGain(Action):
                 cardInfo = getCardInfo(target)
                 dest = cardInfo.gainDestination
 
-                if cardInfo.hasType(Type.TREASURE) or \
-                        cardInfo.hasType(Type.ACTION):
+                if cardInfo.hasType(Type.TREASURE) or cardInfo.hasType(Type.ACTION):
                     dest = PlayerZones.DECK
                 if cardInfo.hasType(Type.VICTORY):
                     state.stack.append(gain())
@@ -1694,8 +1738,7 @@ class REPLACE(CardInfo):
 
     def onPlay(self, state, log, realPlay):
         state = deepcopy(state)
-        state.stack += [maybe(replaceGain()), hasCards(trash()),
-                        reactToAttack()]
+        state.stack += [maybe(replaceGain()), hasCards(trash()), reactToAttack()]
         state.candidates = [state.stack.pop()]
         return state
 
@@ -1742,9 +1785,12 @@ class SWINDLER(CardInfo):
 
     def onPlay(self, state, log, realPlay):
         state = deepcopy(state)
-        state.stack += [maybe(gain()),
-                        maybe(trash(PlayerZones.DECK, NeutralZones.TRASH)),
-                        getCoin(), reactToAttack()]
+        state.stack += [
+            maybe(gain()),
+            maybe(trash(PlayerZones.DECK, NeutralZones.TRASH)),
+            getCoin(),
+            reactToAttack(),
+        ]
         state.candidates = [state.stack.pop()]
         return state
 
@@ -1756,9 +1802,12 @@ class TORTURER(CardInfo):
 
     def onPlay(self, state, log, realPlay):
         state = deepcopy(state)
-        state.stack += [maybe(discard()),
-                        maybe(gain(NeutralZones.SUPPLY, PlayerZones.HAND)),
-                        drawN(5), reactToAttack()]
+        state.stack += [
+            maybe(discard()),
+            maybe(gain(NeutralZones.SUPPLY, PlayerZones.HAND)),
+            drawN(5),
+            reactToAttack(),
+        ]
         state.candidates = [state.stack.pop()]
         return state
 
@@ -1770,8 +1819,10 @@ class TRADING_POST(CardInfo):
 
     def onPlay(self, state, log, realPlay):
         state = deepcopy(state)
-        state.stack += [maybe(gain(NeutralZones.SUPPLY, PlayerZones.HAND)),
-                        hasCards(trash())]
+        state.stack += [
+            maybe(gain(NeutralZones.SUPPLY, PlayerZones.HAND)),
+            hasCards(trash()),
+        ]
         state.candidates = [state.stack.pop()]
         return state
 
@@ -1783,8 +1834,7 @@ class UPGRADE(CardInfo):
 
     def onPlay(self, state, log, realPlay):
         state = deepcopy(state)
-        state.stack += [maybe(gain()), hasCards(trash()),
-                        getAction(), drawN(1)]
+        state.stack += [maybe(gain()), hasCards(trash()), getAction(), drawN(1)]
         state.candidates = [state.stack.pop()]
         return state
 
@@ -1796,8 +1846,7 @@ class WISHING_WELL(CardInfo):
 
     def onPlay(self, state, log, realPlay):
         state = deepcopy(state)
-        state.stack += [maybe(wishWrong()), maybe(wishRight()),
-                        getAction(), drawN(1)]
+        state.stack += [maybe(wishWrong()), maybe(wishRight()), getAction(), drawN(1)]
         state.candidates = [state.stack.pop()]
         return state
 
@@ -1809,8 +1858,7 @@ class AMBASSADOR(CardInfo):
 
     def onPlay(self, state, log, realPlay):
         state = deepcopy(state)
-        state.stack += [maybe(gain()), maybe(returnCards()),
-                        hasCards(revealHand())]
+        state.stack += [maybe(gain()), maybe(returnCards()), hasCards(revealHand())]
         state.candidates = [state.stack.pop()]
 
 
@@ -1854,9 +1902,7 @@ class CARAVAN(CardInfo):
         elif logLine.pred == "DRAW_FROM_CARAVAN":
             amount = len(logLine.items)
             state.logLine += 1
-            if not state.moveCards(logLine.items,
-                                   PlayerZones.DECK,
-                                   PlayerZones.HAND):
+            if not state.moveCards(logLine.items, PlayerZones.DECK, PlayerZones.HAND):
                 return None
 
             i = 0
@@ -2225,8 +2271,7 @@ class HERBALIST(CardInfo):
 
 
 class PHILOSOPHERS_STONE(CardInfo):
-    names = ["Philosopher's Stone", "Philosopher's Stones",
-             "a Philosopher's Stone"]
+    names = ["Philosopher's Stone", "Philosopher's Stones", "a Philosopher's Stone"]
     types = [Types.TREASURE]
     cost = [3, 1, 0]
 
@@ -3018,8 +3063,7 @@ class INN(CardInfo):
 
 
 class JACK_OF_ALL_TRADES(CardInfo):
-    names = ["Jack of All Trades", "Jacks of All Trades",
-             "a Jack of All Trades"]
+    names = ["Jack of All Trades", "Jacks of All Trades", "a Jack of All Trades"]
     types = [Types.ACTION]
     cost = [4, 0, 0]
 
@@ -3847,8 +3891,7 @@ class VAGRANT(CardInfo):
 
 
 class WANDERING_MINSTREL(CardInfo):
-    names = ["Wandering Minstrel", "Wandering Minstrels",
-             "a Wandering Minstrel"]
+    names = ["Wandering Minstrel", "Wandering Minstrels", "a Wandering Minstrel"]
     types = [Types.ACTION]
     cost = [4, 0, 0]
 
@@ -5624,8 +5667,7 @@ class THE_MOONS_GIFT(CardInfo):
 
 
 class THE_MOUNTAINS_GIFT(CardInfo):
-    names = ["The Mountain's Gift", "The Mountain's Gifts",
-             "The Mountain's Gift"]
+    names = ["The Mountain's Gift", "The Mountain's Gifts", "The Mountain's Gift"]
     types = [Types.BOON]
     cost = [0, 0, 0]
 
@@ -7617,8 +7659,7 @@ class HORSE(CardInfo):
 
 
 class WAY_OF_THE_BUTTERFLY(CardInfo):
-    names = ["Way of the Butterfly", "Way of the Butterfly",
-             "Way of the Butterfly"]
+    names = ["Way of the Butterfly", "Way of the Butterfly", "Way of the Butterfly"]
     types = [Types.WAY]
     cost = [0, 0, 0]
 
@@ -7642,8 +7683,7 @@ class WAY_OF_THE_CAMEL(CardInfo):
 
 
 class WAY_OF_THE_CHAMELEON(CardInfo):
-    names = ["Way of the Chameleon", "Way of the Chameleon",
-             "Way of the Chameleon"]
+    names = ["Way of the Chameleon", "Way of the Chameleon", "Way of the Chameleon"]
     types = [Types.WAY]
     cost = [0, 0, 0]
 
@@ -7823,8 +7863,7 @@ class WAY_OF_THE_SHEEP(CardInfo):
 
 
 class WAY_OF_THE_SQUIRREL(CardInfo):
-    names = ["Way of the Squirrel", "Way of the Squirrel",
-             "Way of the Squirrel"]
+    names = ["Way of the Squirrel", "Way of the Squirrel", "Way of the Squirrel"]
     types = [Types.WAY]
     cost = [0, 0, 0]
 

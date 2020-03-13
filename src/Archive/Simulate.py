@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from .classes import *
 from .Standards import *
 from .Actions import INTRINSIC_EXCEPTIONS
@@ -31,12 +32,12 @@ def parse_everything(gameMoves, blockLengths, supply):
     # Setup starting state
     startState = GameState()
     for card in supply:
-        destination = 'SUPPLY'
+        destination = "SUPPLY"
         for t in Cards[card].types:
-            if t in 'elpb':
+            if t in "elpb":
                 destination = None
-            elif t == 'z':
-                destination = 'TRASH'
+            elif t == "z":
+                destination = "TRASH"
         if destination:
             startState[destination] += Cardstack({card: supply[card]})
 
