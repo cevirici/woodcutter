@@ -105,7 +105,7 @@ $('.legendbox').on('mousedown',
 
                         let thisCard = $(legend).attr('card');
                         toggleVisibility(-1, thisCard);
-                    }                       
+                    }
                 }
             });
         } else {
@@ -155,7 +155,7 @@ $('.story-sidebar-block').click( function(){
 
 /*********** Controls Hovering ***********/
 
-$('.controlbox').click(function(){ 
+$('.controlbox').click(function(){
     $('.controlbox').addClass('faded');
     $(this).removeClass('faded');
 
@@ -168,7 +168,7 @@ $('.modalcontrolbox').click(function(){
     $('.modal.'+$(this).attr('control')).css('opacity', 1-$('.modal.'+$(this).attr('control')).css('opacity'));
 });
 
-$('.graph-control').click(function(){       
+$('.graph-control').click(function(){
     if ($(this).index('.graph-control')==0){
         $('.graph').toggleClass('topshifted');
         $('.graph').removeClass('downshifted');
@@ -240,10 +240,10 @@ $('.story-line')
             $('.story-edit').remove();
             var editClass = 'story-edit'
             if (!$(this).hasClass('alternate')){
-                editClass += ' alternate' 
+                editClass += ' alternate'
             }
-            $(this).after('<input type = "text" class = "'+editClass+'" value="' + 
-                           storyAll[$('.story-line').index(this)] + 
+            $(this).after('<input type = "text" class = "'+editClass+'" value="' +
+                           storyAll[$('.story-line').index(this)] +
                            '">');
         }
     });

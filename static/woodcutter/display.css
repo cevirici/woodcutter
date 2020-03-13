@@ -56,7 +56,7 @@ body {
   -webkit-touch-callout: none;
     -webkit-user-select: none;
      -khtml-user-select: none;
-       -moz-user-select: none; 
+       -moz-user-select: none;
         -ms-user-select: none;
             user-select: none;
 }
@@ -294,7 +294,7 @@ body {
     flex-shrink: 0;
 }
 
-.table-turn-label.first{   
+.table-turn-label.first{
     background: #210F0F;
 }
 
@@ -319,7 +319,7 @@ body {
     flex-flow: column nowrap;
 }
 
-.table-col.first{   
+.table-col.first{
     background: rgba(59, 24, 24, 0.4);
 }
 
@@ -503,7 +503,7 @@ body {
   -webkit-touch-callout: none;
     -webkit-user-select: none;
      -khtml-user-select: none;
-       -moz-user-select: none; 
+       -moz-user-select: none;
         -ms-user-select: none;
             user-select: none;
 }
@@ -855,7 +855,7 @@ body {
 
 
 .board-component.node.top {
-    background: #371B1B; 
+    background: #371B1B;
 }
 
 

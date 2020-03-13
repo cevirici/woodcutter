@@ -12,7 +12,7 @@ class Gamestate:
                       for z in PlayerZones}
         self.zones.update({z: [] for z in NeutralZones})
 
-        self.resolutionStack = []
+        self.stack = []
         self.logLine = 0
         self.candidates = []
         self.selectedMove = None

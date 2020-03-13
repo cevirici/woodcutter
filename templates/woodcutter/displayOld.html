@@ -39,7 +39,7 @@
                             {% endfor %}
                         </div>
                     </div>
-                    
+
                     <div class = 'graph-container' graphname = 'gained'>
                         <div class = 'row fullwidth'>
                             {% for layerString in graph_gained_top %}
@@ -190,7 +190,7 @@
                             {% endfor %}
                         </div>
                     </div>
-                    
+
                     <div class = 'story-sidebar'>
                         {% for sidebar_label in sidebar_labels %}
                         <div class = 'story-sidebar-block{% if sidebar_label.2 == 0 %} alternate{% endif %}' style = 'flex-grow:{{ sidebar_label.3 }}' turn = {{ sidebar_label.0 }}>
@@ -209,8 +209,8 @@
             <div class = 'kingdom-container longer'>
                 {% for card in kingdomCards.0 %}
                 <div class = 'kingdom-card' style = 'background: #{{ card.0.border_color }};' card = {{ card.1 }}>
-                    <div class = 'inner-color' style = 'background-image: url("{% static card.0.cardurl %}"); background-color: #{{ card.0.card_color }};'> 
-                        {{ card.0.simple_name }} 
+                    <div class = 'inner-color' style = 'background-image: url("{% static card.0.cardurl %}"); background-color: #{{ card.0.card_color }};'>
+                        {{ card.0.simple_name }}
                     </div>
                 </div>
                 {% endfor %}
@@ -219,8 +219,8 @@
             <div class = 'kingdom-container'>
                 {% for card in kingdomCards.1 %}
                 <div class = 'kingdom-card' style = 'background: #{{ card.0.border_color }};' card = {{ card.1 }}>
-                    <div class = 'inner-color' style = 'background-image: url("{% static card.0.cardurl %}"); background-color: #{{ card.0.card_color }};'> 
-                        {{ card.0.simple_name }} 
+                    <div class = 'inner-color' style = 'background-image: url("{% static card.0.cardurl %}"); background-color: #{{ card.0.card_color }};'>
+                        {{ card.0.simple_name }}
                     </div>
                 </div>
                 {% endfor %}
@@ -229,8 +229,8 @@
             <div class = 'kingdom-container'>
                 {% for card in kingdomCards.2 %}
                 <div class = 'kingdom-card' style = 'background: #{{ card.0.border_color }};' card = {{ card.1 }}>
-                    <div class = 'inner-color' style = 'background-image: url("{% static card.0.cardurl %}"); background-color: #{{ card.0.card_color }};'> 
-                        {{ card.0.simple_name }} 
+                    <div class = 'inner-color' style = 'background-image: url("{% static card.0.cardurl %}"); background-color: #{{ card.0.card_color }};'>
+                        {{ card.0.simple_name }}
                     </div>
                 </div>
                 {% endfor %}

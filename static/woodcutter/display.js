@@ -32,7 +32,7 @@ class Container extends React.Component{
         this.setState({index: i});
         let ypos = document.querySelectorAll('.story-line')[i].offsetTop - window.innerHeight / 3;
         document.querySelector('.story-container').scrollTo({
-            top: ypos, 
+            top: ypos,
             behavior: "smooth"
         });
     }
@@ -138,7 +138,7 @@ class Card extends React.Component {
         if (this.props.scale) {
             let size = (this.props.scale).toString();
             return {'height': size + 'vh'};
-        }    
+        }
     }
 
     hoverEvent() {
@@ -219,7 +219,7 @@ class Board extends React.Component{
         let board = boards[this.props.decision + 1].split('/').map(x => x.split('|'));
         return (
             <div className='board'>
-                <BoardComponent structure={['board-container', 
+                <BoardComponent structure={['board-container',
                                                 ['board-left',
                                                     ['board-basic-supply'],
                                                     ['board-other-supply'],
@@ -257,7 +257,7 @@ class Board extends React.Component{
                                                         ['board-misc bot']
                                                     ]
                                                 ]
-                                            ]} 
+                                            ]}
                  activePart={this.state.activePart} decision={this.props.decision}
                  index={'1'} activate={this.activate} tooltip={this.setToolTip}
                  board={board} />
@@ -722,7 +722,7 @@ class StoryLine extends React.Component {
             i++ ;
         }
 
-        let className = 'story-line' 
+        let className = 'story-line'
         if (this.props.num == this.props.index){
             className += ' highlight';
         }
@@ -816,7 +816,7 @@ class StoryLegend extends React.Component {
 
             let highlighted = turnPoints.filter(point => point <= this.props.index).length - 1;
             for (let i = 0; i < turnLabels.length; i++){
-                output.push(<LegendEntry key={i} point={turnPoints[i]} length={turnLengths[i]} label={turnLabels[i]} owner={owners[i]} 
+                output.push(<LegendEntry key={i} point={turnPoints[i]} length={turnLengths[i]} label={turnLabels[i]} owner={owners[i]}
                                          highlighted={i==highlighted} changeIndex={this.props.changeIndex}/>);
             }
         }
@@ -861,7 +861,7 @@ class BaseContainer extends React.Component {
                 <ControlButton name='forward-turn' buttonShift={this.props.buttonShift} />
             </div>
         );
-    }  
+    }
 }
 
 class ControlButton extends React.Component {

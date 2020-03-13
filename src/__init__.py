@@ -1,6 +1,6 @@
 from .Card import *
 from .Cards import *
-from .Card_Info import *
+from .CardInfo import *
 from .Enums import *
 from .Gamestate import *
 from .GenericActions import *
