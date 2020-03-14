@@ -19,42 +19,27 @@ class Parser:
         self.cards, self.preds = getInfo(version)
 
     def initializeSupply(self, supplyString):
-        piles = {}
+        supply = {}
         for item in supplyString.split("~"):
             if item:
                 c, i = item.split(":")
-                piles[self.cards[int(i)]] = int(c)
+                supply[self.cards[int(i)]] = int(c)
 
-        handled = set()
         state = Gamestate()
-        index = 0
 
-        for cardName in piles:
-            if cardName not in handled:
-                handled.add(cardName)
-                cardInfo = getCardInfo(cardName)
-                pileCards = cardInfo.getPileCards()
-                initialZone = cardInfo.initialZone
+        for cardName in supply:
+            cardInfo = getCardInfo(cardName)
+            pileCards = cardInfo.getPileCards()
+            initialZone = cardInfo.initialZone
 
-                # Look for BM cards
-                associates = []
-                for otherCard in piles:
-                    if otherCard in pileCards:
-                        handled.add(otherCard)
-                        for j in range(piles[otherCard]):
-                            associates.append(Card(otherCard, index))
-                            index += 1
+            # Look for BM cards
+            associates = sum([supply.get(other, 0) for other in pileCards])
 
-                if initialZone == NeutralZones.SUPPLY and len(associates) == 1:
-                    state.addCard(
-                        Card(cardName, index),
-                        NeutralZones.BLACK_MARKET,
-                        "Black Market Pile",
-                    )
-                    index += 1
-                else:
-                    pile = Pile(cardInfo.getKeyCard(), associates)
-                    state.newPile(pile, initialZone)
+            if initialZone == NeutralZones.SUPPLY and associates == 1:
+                state.addCard(cardName, NeutralZones.BLACK_MARKET)
+            else:
+                for i in range(supply[cardName]):
+                    state.addCard(cardName, initialZone)
         return state
 
     def parse_items(self, inString):

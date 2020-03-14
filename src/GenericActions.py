@@ -26,14 +26,13 @@ class nothing(Action):
 
     def act(self, state, log):
         state = deepcopy(state)
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop() if state.stack else []
         return state
 
 
 class maybe(Action):
-    name = "Maybe"
-
     def __init__(self, action):
+        self.name = "Maybe {}".format(action.name)
         self.action = action
 
     def act(self, state, log):
@@ -42,21 +41,28 @@ class maybe(Action):
         return state
 
 
-class hasCards(Action):
-    def __init__(self, action, zone=PlayerZones.HAND):
-        self.zone = zone
+class conditionally(Action):
+    def __init__(self, condition, action):
+        self.name = "Conditionally {}".format(action.name)
         self.action = action
 
     def act(self, state, log):
-        if state.zoneCount(self.zone) > 0:
-            return self.action.act(state, log)
+        state = deepcopy(state)
+        if condition(state, log):
+            state.candidates = [self.action]
         else:
-            state = deepcopy(state)
-            state.candidates = [state.stack.pop()]
-            return state
+            state.candidates = state.stack.pop()
+        return state
 
 
-# Predicate-associated actions
+def hasCards(action):
+    def hasCardsCondition(self, state, log):
+        return state.zoneCount(PlayerZones.HAND) > 0
+
+    return conditionally(hasCardsCondition, action)
+
+
+# Pregame
 
 
 class startGame(Action):
@@ -88,8 +94,6 @@ class startDecks(Action):
             state.logLine += 1
             state.candidates = [gameStartDraw(), startDecks()]
             return state
-        else:
-            return None
 
 
 class gameStartDraw(Action):
@@ -99,10 +103,222 @@ class gameStartDraw(Action):
         state = deepcopy(state)
         logLine = log[state.logLine]
         state.player = logLine.player
-        state.stack = [newTurn()]
-        state.stack += [drawN(5) for i in range(PLAYER_COUNT)]
-        state.candidates = [state.stack.pop()]
+        state.stack = [[newTurn()]]
+        state.stack += [[drawN(5)] for i in range(PLAYER_COUNT)]
+        state.candidates = state.stack.pop()
         return state
+
+
+# Normal Turn Loop
+
+
+class newTurn(Action):
+    name = "New Turn"
+
+    def act(self, state, log):
+        state = deepcopy(state)
+        logLine = log[state.logLine]
+        if logLine.pred == "NEW_TURN":
+            state.player = logLine.player
+            state.logLine += 1
+            state.candidates = [actionPhase(), startTurn()]
+
+            state.actions, state.buys, state.coins = (1, 1, 0)
+            state.potions, state.reductions = (0, 0)
+            return state
+
+
+class startTurn(Action):
+    name = "Turn Start Phase"
+
+    def act(self, state, log):
+        state = deepcopy(state)
+        logLine = log[state.logLine]
+        if logLine.pred == "STARTS_TURN":
+            state.player = logLine.player
+            state.logLine += 1
+            state.candidates = [startOfTurn()]
+            return state
+
+
+class startOfTurn(Action):
+    name = "Turn Start Phase"
+
+    def act(self, state, log):
+        state = deepcopy(state)
+        state.candidates = [actionPhase()]
+        state.candidates += [onDuration(d[0]) for d in state.turnStarts]
+        state.stack = [[startOfTurn()]]
+        return state
+
+
+class actionPhase(Action):
+    name = "Action Phase"
+
+    def act(self, state, log):
+        state = deepcopy(state)
+        state.player = log[state.logLine].player
+        state.candidates = [buyPhaseA(), actionPlayNormal()]
+        state.stack = [[actionPhase()]]
+        return state
+
+
+class actionPlayNormal(Action):
+    name = "Play Action Normally"
+
+    def act(self, state, log):
+        state = deepcopy(state)
+        logLine = log[state.logLine]
+
+        if logLine.pred == "PLAY" and len(logLine.items) == 1:
+            target = logLine.items[0]
+            cardInfo = getCardInfo(target)
+            state.logLine += 1
+
+            if state.actions > 0 and cardInfo.hasType(Types.ACTION):
+                card = state.moveCards([target], PlayerZones.HAND, PlayerZones.PLAY)
+                if card:
+                    state.actions -= 1
+                    card = card[0]
+                    state.candidates = [onPlay(card)]
+                    return state
+
+
+class buyPhaseA(Action):
+    name = "Buy Phase A"
+
+    def act(self, state, log):
+        state = deepcopy(state)
+        state.player = log[state.logLine].player
+        state.stack = [[buyPhaseA()]]
+        state.candidates = [
+            buyPhaseB(),
+            repayDebt(),
+            # spendCoffers(),
+            treasurePlayNormal(),
+        ]
+        return state
+
+
+class treasurePlayNormal(Action):
+    name = "Play Treasure(s) from Hand"
+
+    def act(self, state, log):
+        state = deepcopy(state)
+        logLine = log[state.logLine]
+
+        if logLine.pred in ["PLAY", "PLAY_TREASURES_FOR"]:
+            cards = state.moveCards(logLine.items, PlayerZones.HAND, PlayerZones.PLAY)
+            if cards:
+                for card in cards:
+                    if not getCardInfo(card.name).hasType(Types.TREASURE):
+                        return None
+                    state.stack.append([onPlay(card)])
+                state.logLine += 1
+                state.candidates = state.stack.pop()
+                return state
+
+
+class buyPhaseB(Action):
+    name = "Buy Phase B"
+
+    def act(self, state, log):
+        state = deepcopy(state)
+        state.player = log[state.logLine].player
+        state.stack = [[buyPhaseB()]]
+        state.candidates = [nightPhase(), repayDebt(), buy()]
+        return state
+
+
+class repayDebt(Action):
+    name = "Repay Debt"
+
+    def act(self, state, log):
+        state = deepcopy(state)
+        logLine = log[state.logLine]
+
+        if logLine.pred == "REPAYS_DEBT":
+            amount = int(logLine.args[1])
+        elif logLine.pred == "REPAYS_SOME_DEBT":
+            amount = int(logLine.args[0])
+        else:
+            return None
+
+        if state.coins < amount:
+            return None
+        state.coins -= amount
+        state.debt[state.player] -= amount
+        return state
+
+
+class nightPhase(Action):
+    name = "Night Phase"
+
+    def act(self, state, log):
+        state = deepcopy(state)
+        state.player = log[state.logLine].player
+        state.stack = [[nightPhase()]]
+        state.candidates = [cleanupPhase(), nightPlayNormal()]
+        return state
+
+
+class nightPlayNormal(Action):
+    name = "Play Night from Hand"
+
+    def act(self, state, log):
+        state = deepcopy(state)
+        logLine = log[state.logLine]
+
+        if logLine.pred == "PLAY" and len(logLine.items) == 1:
+            state.logLine += 1
+            target = logLine.items[0]
+            cardInfo = getCardInfo(target)
+
+            if cardInfo.hasType(Types.NIGHT) and state.zoneContains(
+                target, PlayerZones.HAND
+            ):
+                card = state.moveCards([target], PlayerZones.HAND, PlayerZones.PLAY)
+                state.candidates = [onPlay(card[0])]
+                return state
+
+
+class cleanupPhase(Action):
+    name = "Cleanup Phase"
+
+    def act(self, state, log):
+        state = deepcopy(state)
+        state.player = log[state.logLine].player
+        state.stack = [[cleanupPhase()]]
+        state.candidates = [cleanupDraw()] + state.cleanupEffects
+        return state
+
+
+class cleanupDraw(Action):
+    name = "Cleanup Draw"
+
+    def act(self, state, log):
+        state = deepcopy(state)
+        logLine = log[state.logLine]
+        state.player = logLine.player
+        # Discarding stuff from play / hands
+        state.moveAllCards(PlayerZones.HAND, PlayerZones.DISCARD)
+
+        remaining = []
+        for card in state.zones[PlayerZones.PLAY][state.player]:
+            if card.stayingOut != 0 or (card.slave and card.slave.stayingOut != 0):
+                card.stayingOut -= 1
+                remaining.append(card)
+            else:
+                state.zones[PlayerZones.DISCARD][state.player].append(card)
+                card.move(PlayerZones.DISCARD)
+        state.zones[PlayerZones.PLAY][state.player] = remaining
+
+        state.stack = [[newTurn()]]
+        state.candidates = [drawN(5)]
+        return state
+
+
+# Standard actions
 
 
 class shuffle(Action):
@@ -116,7 +332,7 @@ class shuffle(Action):
             state.moveAllCards(PlayerZones.DISCARD, PlayerZones.DECK)
             if state.stack:
                 state.logLine += 1
-                state.candidates = [state.stack.pop()]
+                state.candidates = state.stack.pop()
                 return state
         return None
 
@@ -142,19 +358,14 @@ class drawN(Action):
         if deckCount < self.n and discardCount > 0:
             # Shuffle then go again
             state.candidates = [shuffle()]
-            state.stack += [self]
+            state.stack.append([self])
             return state
         elif deckCount > 0:
             if log[state.logLine].pred == "DRAW":
                 state.logLine += 1
-                if not state.moveCards(
-                    logLine.items, PlayerZones.DECK, PlayerZones.HAND
-                ):
-                    return None
-            else:
-                return None
-        state.candidates = [state.stack.pop()]
-        return state
+                if state.moveCards(logLine.items, PlayerZones.DECK, PlayerZones.HAND):
+                    state.candidates = state.stack.pop()
+                    return state
 
 
 class revealN(Action):
@@ -174,259 +385,14 @@ class revealN(Action):
         if deckCount < self.n and discardCount > 0:
             # Shuffle then go again
             state.candidates = [shuffle()]
-            state.stack += [self]
+            state.stack.append([self])
             return state
         elif deckCount > 0:
             if log[state.logLine].pred == "REVEAL":
                 state.logLine += 1
-                if not state.moveCards(
-                    logLine.items, PlayerZones.DECK, PlayerZones.DECK
-                ):
-                    return None
-            else:
-                return None
-        state.candidates = [state.stack.pop()]
-        return state
-
-
-class newTurn(Action):
-    name = "New Turn"
-
-    def act(self, state, log):
-        state = deepcopy(state)
-        logLine = log[state.logLine]
-        if logLine.pred == "NEW_TURN":
-            state.player = logLine.player
-            state.logLine += 1
-            state.candidates = [actionPhase(), startOfTurn()]
-
-            state.actions, state.buys, state.coins = (1, 1, 0)
-            state.potions, state.reductions = (0, 0)
-            return state
-        else:
-            return None
-
-
-class startOfTurn(Action):
-    name = "Turn Start"
-
-    def act(self, state, log):
-        state = deepcopy(state)
-        logLine = log[state.logLine]
-        if logLine.pred == "STARTS_TURN":
-            state.player = logLine.player
-            state.logLine += 1
-            state.candidates = [actionPhase()]
-            state.candidates += [onDuration(d[0]) for d in state.turnStarts]
-            state.stack = [startOfTurn()]
-            return state
-        else:
-            return None
-
-
-class onDuration(Action):
-    def __init__(self, target):
-        self.name = "On Duration {}".format(target)
-        self.target = target
-
-    def act(self, state, log):
-        state = deepcopy(state)
-        cardInfo = getCardInfo(self.target)
-        if hasattr(cardInfo, "onDuration"):
-            return cardInfo.onDuration(state, log)
-        else:
-            state.candidates = [state.stack.pop()]
-            return state
-
-
-class actionPhase(Action):
-    name = "Action Phase"
-
-    def act(self, state, log):
-        state = deepcopy(state)
-        state.player = log[state.logLine].player
-        state.stack = [actionPhase()]
-        state.candidates = [buyPhaseA(), actionPlayNormal()]
-
-        return state
-
-
-class actionPlayNormal(Action):
-    name = "Play Action Normally"
-
-    def act(self, state, log):
-        state = deepcopy(state)
-        logLine = log[state.logLine]
-
-        if logLine.pred == "PLAY" and len(logLine.items) == 1:
-            target = logLine.items[0]
-            cardInfo = getCardInfo(target)
-            state.logLine += 1
-
-            if state.actions > 0 and cardInfo.hasType(Types.ACTION):
-                if state.moveCards([target], PlayerZones.HAND, PlayerZones.PLAY):
-                    state.actions -= 1
-                    state.candidates = [onPlay(target)]
+                if state.moveCards(logLine.items, PlayerZones.DECK, PlayerZones.DECK):
+                    state.candidates = state.stack.pop()
                     return state
-        return None
-
-
-class buyPhaseA(Action):
-    name = "Buy Phase A"
-
-    def act(self, state, log):
-        state = deepcopy(state)
-        state.player = log[state.logLine].player
-        state.stack = [buyPhaseA()]
-        state.candidates = [
-            buyPhaseB(),
-            # repayDebt(), spendCoffers(),
-            treasurePlayNormal(),
-        ]
-        return state
-
-
-class treasurePlayNormal(Action):
-    name = "Play Treasure(s) from Hand"
-
-    def act(self, state, log):
-        state = deepcopy(state)
-        logLine = log[state.logLine]
-
-        if logLine.pred in ["PLAY", "PLAY_TREASURES_FOR"]:
-            if state.moveCards(logLine.items, PlayerZones.HAND, PlayerZones.PLAY):
-
-                for target in logLine.items:
-                    if not getCardInfo(target).hasType(Types.TREASURE):
-                        return None
-                    state.stack.append(onPlay(target))
-                state.logLine += 1
-                state.candidates = [state.stack.pop()]
-                return state
-            else:
-                return None
-        else:
-            return None
-
-
-class buyPhaseB(Action):
-    name = "Buy Phase B"
-
-    def act(self, state, log):
-        state = deepcopy(state)
-        state.player = log[state.logLine].player
-        state.stack = [buyPhaseB()]
-        state.candidates = [nightPhase(), repayDebt(), buy()]
-        return state
-
-
-class repayDebt(Action):
-    name = "Repay Debt"
-
-    def act(self, state, log):
-        state = deepcopy(state)
-        logLine = log[state.logLine]
-
-        if logLine.pred == "REPAYS_DEBT":
-            state.candidates = [state.stack.pop()]
-            amount = int(logLine.args[1])
-
-            if state.coins < amount:
-                return None
-            state.coins -= amount
-            state.debt[state.player] -= amount
-            return state
-
-        elif logLine.pred == "REPAYS_SOME_DEBT":
-            state.candidates = [state.stack.pop()]
-            amount = int(logLine.args[0])
-
-            if state.coins < amount:
-                return None
-            state.coins -= amount
-            state.debt[state.player] -= amount
-            return state
-
-        else:
-            return None
-
-
-class nightPhase(Action):
-    name = "Night Phase"
-
-    def act(self, state, log):
-        state = deepcopy(state)
-        state.player = log[state.logLine].player
-        state.stack = [nightPhase()]
-        state.candidates = [cleanupPhase(), nightPlayNormal()]
-        return state
-
-
-class nightPlayNormal(Action):
-    name = "Play Night from Hand"
-
-    def act(self, state, log):
-        state = deepcopy(state)
-        logLine = log[state.logLine]
-
-        if logLine.pred == "PLAY" and len(logLine.items) == 1:
-            target = logLine.items[0]
-            cardInfo = getCardInfo(target)
-            state.logLine += 1
-
-            if cardInfo.hasType(Types.NIGHT) and state.zoneContains(
-                target, PlayerZones.HAND
-            ):
-                state.moveCards([target], PlayerZones.HAND, PlayerZones.PLAY)
-                state.candidates = [onPlay(target)]
-                return state
-            else:
-                return None
-        else:
-            return None
-
-
-class cleanupPhase(Action):
-    name = "Cleanup Phase"
-
-    def act(self, state, log):
-        state = deepcopy(state)
-        state.player = log[state.logLine].player
-        state.stack = [cleanupPhase()]
-        state.candidates = [cleanupDraw()] + state.cleanupEffects
-        return state
-
-
-class cleanupDraw(Action):
-    name = "Cleanup Draw"
-
-    def act(self, state, log):
-        state = deepcopy(state)
-        logLine = log[state.logLine]
-        state.player = logLine.player
-        # Discarding stuff from play / hands
-        if not state.moveAllCards(PlayerZones.HAND, PlayerZones.DISCARD):
-            return None
-
-        toMove = copy([s[0] for s in state.stayOuts])
-        toKeep = []
-        for card in state.zones[PlayerZones.PLAY][state.player]:
-            if card in toMove:
-                toMove.remove(card)
-                toKeep.append(card)
-
-        if not state.moveAllCards(PlayerZones.PLAY, PlayerZones.DISCARD):
-            return None
-        state.moveCards(toKeep, PlayerZones.DISCARD, PlayerZones.PLAY)
-
-        for s in state.stayOuts:
-            s[1] -= 1
-            if s[1] == 0:
-                state.stayOuts.remove(s)
-
-        state.stack = [newTurn()]
-        state.candidates = [drawN(5)]
-        return state
 
 
 class play(Action):
@@ -443,42 +409,101 @@ class play(Action):
             target = logLine.items[0]
             state.logLine += 1
 
-            if state.moveCards([target], src, PlayerZones.PLAY):
-                state.stack += [onPlay(target)]
+            card = state.moveCards([target], self.src, PlayerZones.PLAY)
+            if card:
+                state.stack.append([onPlay(card[0])])
+                state.candidates = state.stack.pop()
                 return state
-        return None
 
 
-class replay(Action):
-    name = "Replay"
+# class throne(Action):
+#     name = "Play (Throne)"
 
-    def act(self, state, log):
-        state = deepcopy(state)
-        logLine = log[state.logLine]
+#     def __init__(self, throne):
+#         self.throne = throne
 
-        if logLine.pred in ["PLAY", "PLAY_AGAIN", "PLAY_THIRD", "PLAY_AGAIN_CITADEL"]:
-            target = logLine.items[0]
-            state.logLine += 1
+#     def act(self, state, log):
+#         state = deepcopy(state)
+#         logLine = log[state.logLine]
+#         state.player = logLine.player
 
-            state.candidates = [onPlay(target, False)]
-            return state
-        else:
-            return None
+#         if logLine.pred == "PLAY" and len(logLine.items) == 1:
+#             target = logLine.items[0]
+#             state.logLine += 1
+
+#             card = state.moveCards([target], PlayerZones.HAND, PlayerZones.PLAY)
+#             if card:
+#                 card.master = self.throne
+#                 self.throne.slave = card
+
+#                 state.stack += [onPlay(card[0])]
+#                 state.candidates = state.stack.pop()
+#                 return state
+#         return None
+
+
+# class replay(Action):
+#     name = "Replay"
+
+#     def __init__(self, cardIndex):
+#         self.index = cardIndex
+
+#     def act(self, state, log):
+#         state = deepcopy(state)
+#         logLine = log[state.logLine]
+
+#         if logLine.pred in ["PLAY", "PLAY_AGAIN", "PLAY_THIRD", "PLAY_AGAIN_CITADEL"]:
+#             if self.index in state.thrones:
+#                 target = state.thrones[self.index]
+#                 state.logLine += 1
+
+#                 state.candidates = [onPlay(target)]
+#                 return state
+#         return None
+
+
+# class closeThrone(Action):
+#     name = "Finish Throne"
+
+#     def __init__(self, cardIndex):
+#         self.index = cardIndex
+
+#     def act(self, state, log):
+#         state = deepcopy(state)
+
+#         if self.index in state.thrones:
+#             del state.thrones[self.index]
+#         state.candidates = state.stack.pop()
+#         return state
 
 
 class onPlay(Action):
-    def __init__(self, target, realPlay=True):
-        self.name = "On Play {}".format(target)
+    def __init__(self, card):
+        self.name = "On Play {}".format(card.name)
+        self.card = card
+
+    def act(self, state, log):
+        state = deepcopy(state)
+        cardInfo = getCardInfo(self.card.name)
+        if hasattr(cardInfo, "onPlay"):
+            return cardInfo.onPlay(state, log, self.card.index)
+        else:
+            state.candidates = state.stack.pop()
+            return state
+
+
+class onDuration(Action):
+    def __init__(self, target):
+        self.name = "On Duration {}".format(target)
         self.target = target
-        self.realPlay = realPlay  # For duration tracking purposes
 
     def act(self, state, log):
         state = deepcopy(state)
         cardInfo = getCardInfo(self.target)
-        if hasattr(cardInfo, "onPlay"):
-            return cardInfo.onPlay(state, log, self.realPlay)
+        if hasattr(cardInfo, "onDuration"):
+            return cardInfo.onDuration(state, log)
         else:
-            state.candidates = [state.stack.pop()]
+            state.candidates = state.stack.pop()
             return state
 
 
@@ -501,17 +526,17 @@ class buy(Action):
                 if not state.moveCards([target], self.src, dest):
                     return None
 
-                state.stack += [onGain(target), onBuy(target)]
+                state.stack += [[onGain(target)], [onBuy(target)]]
 
-            state.candidates = [state.stack.pop()]
+            state.candidates = state.stack.pop()
             return state
 
         elif logLine.pred == "BUY":
             state.logLine += 1
             for target in logLine.items:
-                state.stack += [gain(self.src, self.dest), onBuy(target)]
+                state.stack += [[gain(self.src, self.dest)], [onBuy(target)]]
 
-            state.candidates = [state.stack.pop()]
+            state.candidates = state.stack.pop()
             return state
 
         return None
@@ -528,7 +553,7 @@ class onBuy(Action):
         if hasattr(cardInfo, "onBuy"):
             return cardInfo.onBuy(state, log)
         else:
-            state.candidates = [state.stack.pop()]
+            state.candidates = state.stack.pop()
             return state
 
 
@@ -551,11 +576,10 @@ class gain(Action):
                 if not state.moveCards([target], self.src, dest):
                     return None
 
-                state.stack.append(onGain(target))
+                state.stack.append([onGain(target)])
 
-            state.candidates = [state.stack.pop()]
+            state.candidates = state.stack.pop()
             return state
-        return None
 
 
 class onGain(Action):
@@ -569,7 +593,7 @@ class onGain(Action):
         if hasattr(cardInfo, "onGain"):
             return cardInfo.onGain(state, log)
         else:
-            state.candidates = [state.stack.pop()]
+            state.candidates = state.stack.pop()
             return state
 
 
@@ -586,14 +610,14 @@ class discard(Action):
 
         if logLine.pred == "DISCARD":
             state.logLine += 1
-            if not state.moveCards(logLine.items, self.src, self.dest):
-                return None
-            else:
-                state.stack += [onDiscard(target) for target in logLine.items]
+            for target in logLine.items:
+                if not state.moveCards([target], self.src, self.dest):
+                    return None
 
-                state.candidates = [state.stack.pop()]
-                return state
-        return None
+                state.stack.append([onDiscard(target)])
+
+            state.candidates = state.stack.pop()
+            return state
 
 
 class onDiscard(Action):
@@ -607,7 +631,7 @@ class onDiscard(Action):
         if hasattr(cardInfo, "onDiscard"):
             return cardInfo.onDiscard(state, log)
         else:
-            state.candidates = [state.stack.pop()]
+            state.candidates = state.stack.pop()
             return state
 
 
@@ -627,9 +651,9 @@ class trash(Action):
             if not state.moveCards(logLine.items, self.src, self.dest):
                 return None
             else:
-                state.stack += [onTrash(target) for target in logLine.items]
+                state.stack += [[onTrash(target)] for target in logLine.items]
 
-                state.candidates = [state.stack.pop()]
+                state.candidates = state.stack.pop()
                 return state
         return None
 
@@ -645,7 +669,7 @@ class onTrash(Action):
         if hasattr(cardInfo, "onTrash"):
             return cardInfo.onTrash(state, log)
         else:
-            state.candidates = [state.stack.pop()]
+            state.candidates = state.stack.pop()
             return state
 
 
@@ -665,9 +689,9 @@ class topdeck(Action):
             if not state.moveCards(logLine.items, self.src, self.dest):
                 return None
             else:
-                state.stack += [onTopdeck(target) for target in logLine.items]
+                state.stack += [[onTopdeck(target)] for target in logLine.items]
 
-                state.candidates = [state.stack.pop()]
+                state.candidates = state.stack.pop()
                 return state
         return None
 
@@ -683,7 +707,7 @@ class onTopdeck(Action):
         if hasattr(cardInfo, "onTopdeck"):
             return cardInfo.onTopdeck(state, log)
         else:
-            state.candidates = [state.stack.pop()]
+            state.candidates = state.stack.pop()
             return state
 
 
@@ -701,7 +725,7 @@ class setAside(Action):
         if logLine.pred in ["SET_ASIDE", "SET_ASIDE_WITH"]:
             state.logLine += 1
             if state.moveCards(logLine.items, self.src, self.dest):
-                state.candidates = [state.stack.pop()]
+                state.candidates = state.stack.pop()
                 return state
         return None
 
@@ -717,7 +741,7 @@ class revealHand(Action):
         if logLine.pred == "REVEAL":
             state.logLine += 1
             if state.moveCards(logLine.items, PlayerZones.HAND, PlayerZones.HAND):
-                state.candidates = [state.stack.pop()]
+                state.candidates = state.stack.pop()
                 return state
         return None
 
@@ -733,7 +757,7 @@ class putInHand(Action):
         if logLine.pred == "PUT_IN_HAND":
             state.logLine += 1
             if state.moveCards(logLine.items, PlayerZones.DECK, PlayerZones.HAND):
-                state.candidates = [state.stack.pop()]
+                state.candidates = state.stack.pop()
                 return state
         return None
 
@@ -749,12 +773,12 @@ class getAction(Action):
             amount = int(logLine.args[0])
             state.actions += amount
             state.logLine += 1
-            state.candidates = [state.stack.pop()]
+            state.candidates = state.stack.pop()
             return state
         elif logLine.pred in ["GETS_ACTION", "GETS_ACTION_FROM"]:
             state.actions += 1
             state.logLine += 1
-            state.candidates = [state.stack.pop()]
+            state.candidates = state.stack.pop()
             return state
         else:
             return None
@@ -771,12 +795,12 @@ class getBuy(Action):
             amount = int(logLine.args[0])
             state.buys += amount
             state.logLine += 1
-            state.candidates = [state.stack.pop()]
+            state.candidates = state.stack.pop()
             return state
         elif logLine.pred in ["GETS_BUY", "GETS_BUY_FROM"]:
             state.buys += 1
             state.logLine += 1
-            state.candidates = [state.stack.pop()]
+            state.candidates = state.stack.pop()
             return state
         else:
             return None
@@ -793,12 +817,12 @@ class getCoin(Action):
             amount = int(logLine.args[0])
             state.coins += amount
             state.logLine += 1
-            state.candidates = [state.stack.pop()]
+            state.candidates = state.stack.pop()
             return state
         elif logLine.pred in ["GETS_COIN", "GETS_COIN_FROM"]:
             state.coins += 1
             state.logLine += 1
-            state.candidates = [state.stack.pop()]
+            state.candidates = state.stack.pop()
             return state
         else:
             return None
@@ -815,7 +839,7 @@ class takeDebt(Action):
             amount = int(logLine.args[0])
             state.debt[state.player] += amount
             state.logLine += 1
-            state.candidates = [state.stack.pop()]
+            state.candidates = state.stack.pop()
             return state
         else:
             return None
@@ -830,7 +854,7 @@ class lookAt(Action):
 
         if logLine.pred == "LOOK_AT":
             state.logLine += 1
-            state.candidates = [state.stack.pop()]
+            state.candidates = state.stack.pop()
             return state
         else:
             return None
@@ -853,7 +877,7 @@ class lookAtN(Action):
         if deckCount < self.n and discardCount > 0:
             # Shuffle then go again
             state.candidates = [shuffle()]
-            state.stack += [self]
+            state.stack.append([self])
             return state
         elif deckCount > 0:
             if log[state.logLine].pred == "LOOK_AT":
@@ -864,7 +888,7 @@ class lookAtN(Action):
                     return None
             else:
                 return None
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -877,10 +901,10 @@ class reactToAttack(Action):
 
         if logLine.pred == "REACTS_WITH":
             state.logLine += 1
-            state.stack += [self]
-            state.stack += [onReact(target) for target in logLine.items]
+            state.stack.append([self])
+            state.stack += [[onReact(target)] for target in logLine.items]
 
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -895,7 +919,7 @@ class onReact(Action):
         if hasattr(cardInfo, "onReact"):
             return cardInfo.onReact(state, log)
         else:
-            state.candidates = [state.stack.pop()]
+            state.candidates = state.stack.pop()
             return state
 
 
@@ -910,14 +934,14 @@ class passCard(Action):
         if logLine.pred == "PASS":
             state.logLine += 1
             target = logLine.items[0]
-            nextPlayer = (state.player + 1) % PLAYER_COUNT
+            prevPlayer = (state.player - 1) % PLAYER_COUNT
 
             if not state.moveCards(
-                [target], PlayerZones.HAND, PlayerZones.HAND, state.player, nextPlayer
+                [target], PlayerZones.HAND, PlayerZones.HAND, prevPlayer, state.player
             ):
                 return None
 
-            state.candidates = [state.stack.pop()]
+            state.candidates = state.stack.pop()
             return state
         return None
 
@@ -930,16 +954,25 @@ class wishRight(Action):
         logLine = log[state.logLine]
         state.player = logLine.player
 
-        if logLine.pred == "WISH_CORRECT":
-            state.logLine += 1
-            if not state.moveCards(
-                [logLine.args[0]], PlayerZones.DECK, PlayerZones.HAND
-            ):
-                return None
-            else:
-                state.candidates = [state.stack.pop()]
-                return state
-        return None
+        deckCount = state.zoneCount(PlayerZones.DECK)
+        discardCount = state.zoneCount(PlayerZones.DISCARD)
+
+        if deckCount == 0 and discardCount > 0:
+            # Shuffle then go again
+            state.candidates = [shuffle()]
+            state.stack.append([self])
+            return state
+        else:
+            if logLine.pred == "WISH_CORRECT":
+                state.logLine += 1
+                if not state.moveCards(
+                    [logLine.args[0]], PlayerZones.DECK, PlayerZones.HAND
+                ):
+                    return None
+                else:
+                    state.candidates = state.stack.pop()
+                    return state
+            return None
 
 
 class wishWrong(Action):
@@ -950,16 +983,25 @@ class wishWrong(Action):
         logLine = log[state.logLine]
         state.player = logLine.player
 
-        if logLine.pred == "WISH_WRONG":
-            state.logLine += 1
-            if not state.moveCards(
-                [logLine.args[1]], PlayerZones.DECK, PlayerZones.DECK
-            ):
-                return None
-            else:
-                state.candidates = [state.stack.pop()]
-                return state
-        return None
+        deckCount = state.zoneCount(PlayerZones.DECK)
+        discardCount = state.zoneCount(PlayerZones.DISCARD)
+
+        if deckCount == 0 and discardCount > 0:
+            # Shuffle then go again
+            state.candidates = [shuffle()]
+            state.stack.append([self])
+            return state
+        else:
+            if logLine.pred == "WISH_WRONG":
+                state.logLine += 1
+                if not state.moveCards(
+                    [logLine.args[1]], PlayerZones.DECK, PlayerZones.DECK
+                ):
+                    return None
+                else:
+                    state.candidates = state.stack.pop()
+                    return state
+            return None
 
 
 class returnCard(Action):
@@ -977,7 +1019,7 @@ class returnCard(Action):
             ):
                 return None
 
-            state.candidates = [state.stack.pop()]
+            state.candidates = state.stack.pop()
             return state
         return None
 
@@ -1026,7 +1068,7 @@ class CardInfo:
         if self.cost[2] > 0:
             state.stack.append(takeDebt())
         if state.coins >= 0 and state.potions >= 0 and state.buys >= 0:
-            state.candidates = [state.stack.pop()]
+            state.candidates = state.stack.pop()
             return state
 
 
@@ -1041,9 +1083,9 @@ class COPPER(CardInfo):
     types = [Types.TREASURE]
     cost = [0, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         state.coins += 1
         return state
 
@@ -1053,9 +1095,9 @@ class SILVER(CardInfo):
     types = [Types.TREASURE]
     cost = [3, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         state.coins += 2
         return state
 
@@ -1065,9 +1107,9 @@ class GOLD(CardInfo):
     types = [Types.TREASURE]
     cost = [6, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         state.coins += 3
         return state
 
@@ -1095,13 +1137,13 @@ class ARTISAN(CardInfo):
     types = [Types.ACTION]
     cost = [6, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += [
-            hasCards(topdeck()),
-            maybe(gain(NeutralZones.SUPPLY, PlayerZones.HAND)),
+            [hasCards(topdeck())],
+            [maybe(gain(NeutralZones.SUPPLY, PlayerZones.HAND))],
         ]
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -1110,16 +1152,16 @@ class BANDIT(CardInfo):
     types = [Types.ACTION, Types.ATTACK]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += [
-            maybe(discard(PlayerZones.DECK, PlayerZones.DISCARD)),
-            maybe(trash(PlayerZones.DECK, NeutralZones.TRASH)),
-            maybe(revealN(2)),
-            maybe(gain()),
-            reactToAttack(),
+            [maybe(discard(PlayerZones.DECK, PlayerZones.DISCARD))],
+            [maybe(trash(PlayerZones.DECK, NeutralZones.TRASH))],
+            [maybe(revealN(2))],
+            [maybe(gain())],
+            [reactToAttack()],
         ]
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -1128,15 +1170,15 @@ class BUREAUCRAT(CardInfo):
     types = [Types.ACTION, Types.ATTACK]
     cost = [4, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += [
-            maybe(topdeck()),
-            maybe(revealHand()),
-            maybe(gain(NeutralZones.SUPPLY, PlayerZones.DECK)),
-            reactToAttack(),
+            [maybe(topdeck())],
+            [maybe(revealHand())],
+            [maybe(gain(NeutralZones.SUPPLY, PlayerZones.DECK))],
+            [reactToAttack()],
         ]
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -1145,12 +1187,12 @@ class CELLAR(CardInfo):
     types = [Types.ACTION]
     cost = [2, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         if state.logLine < len(log) - 1:
             amount = len(log[state.logLine + 1].items)
-        state.stack += [maybe(drawN(amount)), maybe(discard()), getAction()]
-        state.candidates = [state.stack.pop()]
+        state.stack += [[maybe(drawN(amount))], [maybe(discard())], [getAction()]]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -1159,10 +1201,10 @@ class CHAPEL(CardInfo):
     types = [Types.ACTION]
     cost = [2, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
-        state.stack += [maybe(trash())]
-        state.candidates = [state.stack.pop()]
+        state.stack += [[maybe(trash())]]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -1171,14 +1213,14 @@ class COUNCIL_ROOM(CardInfo):
     types = [Types.ACTION]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         logLine = log[state.logLine]
         for p in range(PLAYER_COUNT):
             if p != logLine.player:
-                state.stack += [drawN(1, p)]
-        state.stack += [getBuy(), drawN(4)]
-        state.candidates = [state.stack.pop()]
+                state.stack += [[drawN(1, p)]]
+        state.stack += [[getBuy()], [drawN(4)]]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -1187,10 +1229,10 @@ class FESTIVAL(CardInfo):
     types = [Types.ACTION]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
-        state.stack += [getCoin(), getBuy(), getAction()]
-        state.candidates = [state.stack.pop()]
+        state.stack += [[getCoin()], [getBuy()], [getAction()]]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -1205,17 +1247,17 @@ class HARBINGER(CardInfo):
     types = [Types.ACTION]
     cost = [3, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         # For some reason harbinger looks at discard twice
         state.stack += [
-            maybe(topdeck(PlayerZones.DISCARD, PlayerZones.DECK)),
-            maybe(lookAt()),
-            maybe(lookAt()),
-            getAction(),
-            drawN(1),
+            [maybe(topdeck(PlayerZones.DISCARD, PlayerZones.DECK))],
+            [maybe(lookAt())],
+            [maybe(lookAt())],
+            [getAction()],
+            [drawN(1)],
         ]
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -1224,19 +1266,17 @@ class LABORATORY(CardInfo):
     types = [Types.ACTION]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
-        state.stack += [getAction(), drawN(2)]
-        state.candidates = [state.stack.pop()]
+        state.stack += [[getAction()], [drawN(2)]]
+        state.candidates = state.stack.pop()
         return state
 
 
-class LIBRARY(CardInfo):
-    names = ["Library", "Libraries", "a Library"]
-    types = [Types.ACTION]
-    cost = [5, 0, 0]
+class libraryDraw(Action):
+    name = "Library Draw"
 
-    def onPlay(self, state, log, realPlay):
+    def act(self, state, log):
         state = deepcopy(state)
         logLine = log[state.logLine]
         state.player = logLine.player
@@ -1252,14 +1292,23 @@ class LIBRARY(CardInfo):
             ]
         else:
             state.stack += [
-                onPlay("Library"),
-                maybe(setAside()),
-                maybe(lookAt()),
-                drawN(1),
+                [libraryDraw()],
+                [maybe(setAside())],
+                [maybe(lookAt())],
+                [drawN(1)],
             ]
-            state.candidates = [state.stack.pop()]
+            state.candidates = state.stack.pop()
 
         return state
+
+
+class LIBRARY(CardInfo):
+    names = ["Library", "Libraries", "a Library"]
+    types = [Types.ACTION]
+    cost = [5, 0, 0]
+
+    def onPlay(self, state, log, cardIndex):
+        return libraryDraw().act(state, log)
 
 
 class MARKET(CardInfo):
@@ -1267,10 +1316,10 @@ class MARKET(CardInfo):
     types = [Types.ACTION]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
-        state.stack += [getCoin(), getBuy(), getAction(), drawN(1)]
-        state.candidates = [state.stack.pop()]
+        state.stack += [[getCoin()], [getBuy()], [getAction()], [drawN(1)]]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -1279,10 +1328,10 @@ class MERCHANT(CardInfo):
     types = [Types.ACTION]
     cost = [3, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
-        state.stack += [getAction(), drawN(1)]
-        state.candidates = [state.stack.pop()]
+        state.stack += [[getAction()], [drawN(1)]]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -1291,10 +1340,10 @@ class MILITIA(CardInfo):
     types = [Types.ACTION, Types.ATTACK]
     cost = [4, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
-        state.stack += [maybe(discard()), getCoin(), reactToAttack()]
-        state.candidates = [state.stack.pop()]
+        state.stack += [[maybe(discard())], [getCoin()], [reactToAttack()]]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -1303,10 +1352,13 @@ class MINE(CardInfo):
     types = [Types.ACTION]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
-        state.stack += [gain(NeutralZones.SUPPLY, PlayerZones.HAND), trash()]
-        state.candidates = [state.stack.pop()]
+        state.stack += [
+            maybe(gain(NeutralZones.SUPPLY, PlayerZones.HAND)),
+            maybe(trash()),
+        ]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -1317,15 +1369,15 @@ class MOAT(CardInfo):
     types = [Types.ACTION, Types.REACTION]
     cost = [2, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
-        state.stack += [drawN(2)]
-        state.candidates = [state.stack.pop()]
+        state.stack += [[drawN(2)]]
+        state.candidates = state.stack.pop()
         return state
 
     def onReact(self, state, log):
         state = deepcopy(state)
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -1334,10 +1386,10 @@ class MONEYLENDER(CardInfo):
     types = [Types.ACTION]
     cost = [4, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
-        state.stack += [maybe(getCoin()), maybe(trash())]
-        state.candidates = [state.stack.pop()]
+        state.stack += [[maybe(getCoin())], [maybe(trash())]]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -1346,10 +1398,10 @@ class POACHER(CardInfo):
     types = [Types.ACTION]
     cost = [4, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
-        state.stack += [maybe(discard()), getCoin(), getAction(), drawN(1)]
-        state.candidates = [state.stack.pop()]
+        state.stack += [[maybe(discard())], [getCoin()], [getAction()], [drawN(1)]]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -1358,10 +1410,10 @@ class REMODEL(CardInfo):
     types = [Types.ACTION]
     cost = [4, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
-        state.stack += [gain(), trash()]
-        state.candidates = [state.stack.pop()]
+        state.stack += [[gain()], [trash()]]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -1370,17 +1422,17 @@ class SENTRY(CardInfo):
     types = [Types.ACTION]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += [
-            maybe(topdeck(PlayerZones.DECK, PlayerZones.DECK)),
-            maybe(discard(PlayerZones.DECK, PlayerZones.DISCARD)),
-            maybe(trash(PlayerZones.DECK, NeutralZones.TRASH)),
-            maybe(lookAtN(2)),
-            getAction(),
-            drawN(1),
+            [maybe(topdeck(PlayerZones.DECK, PlayerZones.DECK))],
+            [maybe(discard(PlayerZones.DECK, PlayerZones.DISCARD))],
+            [maybe(trash(PlayerZones.DECK, NeutralZones.TRASH))],
+            [maybe(lookAtN(2))],
+            [getAction()],
+            [drawN(1)],
         ]
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -1389,10 +1441,10 @@ class SMITHY(CardInfo):
     types = [Types.ACTION]
     cost = [4, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
-        state.stack += [drawN(3)]
-        state.candidates = [state.stack.pop()]
+        state.stack += [[drawN(3)]]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -1401,10 +1453,18 @@ class THRONE_ROOM(CardInfo):
     types = [Types.ACTION]
     cost = [4, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
-        state.stack += [replay(), play()]
-        state.candidates = [state.stack.pop()]
+
+        logLine = log[state.logLine]
+        state.player = logLine.player
+
+        state.stack += [
+            closeThrone(cardIndex),
+            maybe(replay(cardIndex)),
+            maybe(throne(cardIndex)),
+        ]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -1413,14 +1473,14 @@ class VASSAL(CardInfo):
     types = [Types.ACTION]
     cost = [3, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += [
-            maybe(play(PlayerZones.DISCARD)),
-            maybe(discard(PlayerZones.DECK, PlayerZones.DISCARD)),
-            getCoin(),
+            [maybe(play(PlayerZones.DISCARD))],
+            [maybe(discard(PlayerZones.DECK, PlayerZones.DISCARD))],
+            [getCoin()],
         ]
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -1429,10 +1489,10 @@ class VILLAGE(CardInfo):
     types = [Types.ACTION]
     cost = [3, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
-        state.stack += [getAction(), drawN(1)]
-        state.candidates = [state.stack.pop()]
+        state.stack += [[getAction()], [drawN(1)]]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -1441,10 +1501,10 @@ class WITCH(CardInfo):
     types = [Types.ACTION, Types.ATTACK]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
-        state.stack += [maybe(gain()), drawN(2, state.player), reactToAttack()]
-        state.candidates = [state.stack.pop()]
+        state.stack += [[maybe(gain())], [drawN(2, state.player)], [reactToAttack()]]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -1453,10 +1513,10 @@ class WORKSHOP(CardInfo):
     types = [Types.ACTION]
     cost = [3, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
-        state.stack += [maybe(gain())]
-        state.candidates = [state.stack.pop()]
+        state.stack += [[maybe(gain())]]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -1465,10 +1525,10 @@ class COURTYARD(CardInfo):
     types = [Types.ACTION]
     cost = [2, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += [hasCards(topdeck()), drawN(3)]
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -1477,10 +1537,10 @@ class CONSPIRATOR(CardInfo):
     types = [Types.ACTION]
     cost = [4, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += [maybe(getAction()), maybe(drawN(1)), getCoin()]
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -1489,7 +1549,7 @@ class COURTIER(CardInfo):
     types = [Types.ACTION]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += [
             maybe(gain()),
@@ -1498,7 +1558,7 @@ class COURTIER(CardInfo):
             maybe(getAction()),
             revealHand(),
         ]
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -1507,7 +1567,7 @@ class BARON(CardInfo):
     types = [Types.ACTION]
     cost = [4, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += [
             maybe(gain()),
@@ -1515,7 +1575,7 @@ class BARON(CardInfo):
             maybe(getBuy()),
             maybe(discard()),
         ]
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -1524,11 +1584,11 @@ class BRIDGE(CardInfo):
     types = [Types.ACTION]
     cost = [4, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.reductions += 1
         state.stack += [getCoin(), getBuy()]
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -1537,16 +1597,16 @@ class DIPLOMAT(CardInfo):
     types = [Types.ACTION, Types.REACTION]
     cost = [4, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += [maybe(getAction()), drawN(2)]
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
     def onReact(self, state, log):
         state = deepcopy(state)
         state.stack += [hasCards(discard()), drawN(2)]
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -1561,9 +1621,9 @@ class HAREM(CardInfo):
     types = [Types.TREASURE, Types.VICTORY]
     cost = [6, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         state.coins += 2
         return state
 
@@ -1573,7 +1633,7 @@ class NOBLES(CardInfo):
     types = [Types.ACTION, Types.VICTORY]
     cost = [6, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.candidates = [getAction(), drawN(3)]
         return state
@@ -1584,7 +1644,7 @@ class IRONWORKS(CardInfo):
     types = [Types.ACTION]
     cost = [4, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += [
             maybe(drawN(1)),
@@ -1592,7 +1652,7 @@ class IRONWORKS(CardInfo):
             maybe(getAction()),
             maybe(gain()),
         ]
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -1601,13 +1661,14 @@ class LURKER(CardInfo):
     types = [Types.ACTION]
     cost = [2, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += [
             maybe(trash(NeutralZones.SUPPLY, NeutralZones.TRASH)),
             maybe(gain(NeutralZones.TRASH, None)),
+            getAction(),
         ]
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -1616,12 +1677,12 @@ class MASQUERADE(CardInfo):
     types = [Types.ACTION]
     cost = [3, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += [maybe(trash())]
         state.stack += [maybe(passCard()) for p in range(PLAYER_COUNT)]
         state.stack.append(drawN(2))
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -1630,10 +1691,10 @@ class MILL(CardInfo):
     types = [Types.ACTION, Types.VICTORY]
     cost = [4, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
-        state.stack += [maybe(getCoin()), maybe(discard()), getActions(), drawN(1)]
-        state.candidates = [state.stack.pop()]
+        state.stack += [maybe(getCoin()), maybe(discard()), getAction(), drawN(1)]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -1642,15 +1703,15 @@ class MINING_VILLAGE(CardInfo):
     types = [Types.ACTION]
     cost = [4, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += [
             maybe(getCoin()),
             maybe(trash(PlayerZones.PLAY, NeutralZones.TRASH)),
-            getActions(),
+            getAction(),
             drawN(1),
         ]
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -1659,12 +1720,12 @@ class MINION(CardInfo):
     types = [Types.ACTION, Types.ATTACK]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         for p in range(PLAYER_COUNT):
             state.stack += [maybe(drawN(4)), maybe(discard())]
         state.stack += [maybe(getCoin()), getAction(), reactToAttack()]
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -1673,7 +1734,7 @@ class PATROL(CardInfo):
     types = [Types.ACTION]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += [
             maybe(topdeck(PlayerZones.DECK, PlayerZones.DECK)),
@@ -1681,7 +1742,7 @@ class PATROL(CardInfo):
             revealN(4),
             drawN(3),
         ]
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -1690,7 +1751,7 @@ class PAWN(CardInfo):
     types = [Types.ACTION]
     cost = [2, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += [
             maybe(getCoin()),
@@ -1698,7 +1759,7 @@ class PAWN(CardInfo):
             maybe(getAction()),
             maybe(drawN(1)),
         ]
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -1726,7 +1787,7 @@ class replaceGain(Action):
 
                 state.stack.append(onGain(target))
 
-                state.candidates = [state.stack.pop()]
+                state.candidates = state.stack.pop()
                 return state
         return None
 
@@ -1736,10 +1797,10 @@ class REPLACE(CardInfo):
     types = [Types.ACTION, Types.ATTACK]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += [maybe(replaceGain()), hasCards(trash()), reactToAttack()]
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -1748,10 +1809,10 @@ class SECRET_PASSAGE(CardInfo):
     types = [Types.ACTION]
     cost = [4, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += [hasCards(topdeck()), getAction(), drawN(2)]
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -1760,10 +1821,10 @@ class SHANTY_TOWN(CardInfo):
     types = [Types.ACTION]
     cost = [3, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += [maybe(drawN(2)), revealHand(), getAction()]
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -1772,7 +1833,7 @@ class STEWARD(CardInfo):
     types = [Types.ACTION]
     cost = [3, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.candidates = [drawN(2), trash(), getCoin()]
         return state
@@ -1783,7 +1844,7 @@ class SWINDLER(CardInfo):
     types = [Types.ACTION, Types.ATTACK]
     cost = [3, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += [
             maybe(gain()),
@@ -1791,7 +1852,7 @@ class SWINDLER(CardInfo):
             getCoin(),
             reactToAttack(),
         ]
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -1800,7 +1861,7 @@ class TORTURER(CardInfo):
     types = [Types.ACTION, Types.ATTACK]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += [
             maybe(discard()),
@@ -1808,7 +1869,7 @@ class TORTURER(CardInfo):
             drawN(5),
             reactToAttack(),
         ]
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -1817,13 +1878,13 @@ class TRADING_POST(CardInfo):
     types = [Types.ACTION]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += [
             maybe(gain(NeutralZones.SUPPLY, PlayerZones.HAND)),
             hasCards(trash()),
         ]
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -1832,10 +1893,10 @@ class UPGRADE(CardInfo):
     types = [Types.ACTION]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += [maybe(gain()), hasCards(trash()), getAction(), drawN(1)]
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -1844,10 +1905,10 @@ class WISHING_WELL(CardInfo):
     types = [Types.ACTION]
     cost = [3, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += [maybe(wishWrong()), maybe(wishRight()), getAction(), drawN(1)]
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -1856,10 +1917,10 @@ class AMBASSADOR(CardInfo):
     types = [Types.ACTION, Types.ATTACK]
     cost = [3, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += [maybe(gain()), maybe(returnCards()), hasCards(revealHand())]
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
 
 
 class BAZAAR(CardInfo):
@@ -1867,10 +1928,10 @@ class BAZAAR(CardInfo):
     types = [Types.ACTION]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += [getCoin(), getAction(), drawN(1)]
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -1879,13 +1940,20 @@ class CARAVAN(CardInfo):
     types = [Types.ACTION, Types.DURATION]
     cost = [4, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
-        if realPlay:
-            state.stayOuts.append(["Caravan", 1])
+        targetThrone = -1
+        for throne in state.thrones:
+            if state.thrones[throne] == cardIndex:
+                targetThrone = throne
+
+        for card in state.zones[PlayerZones.PLAY][state.player][0].cards:
+            if card.index == cardIndex or card.index == targetThrone:
+                card.stayingOut = max(card.stayingOut, 1)
+
         state.turnStarts.append(["Caravan"])
         state.stack += [getAction(), drawN(1)]
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
     def onDuration(self, state, log):
@@ -1897,7 +1965,7 @@ class CARAVAN(CardInfo):
         if deckCount == 0 and discardCount > 0:
             # Shuffle then go again
             state.candidates = [shuffle()]
-            state.stack += [self]
+            state.stack += [onDuration(self)]
             return state
         elif logLine.pred == "DRAW_FROM_CARAVAN":
             amount = len(logLine.items)
@@ -1912,11 +1980,12 @@ class CARAVAN(CardInfo):
                     i += 1
                 else:
                     remaining.append(d)
+            state.turnStarts = remaining
 
             if i < amount:
                 return None
             else:
-                state.candidates = [state.stack.pop()]
+                state.candidates = state.stack.pop()
                 return state
         else:
             return None
@@ -1927,10 +1996,10 @@ class CUTPURSE(CardInfo):
     types = [Types.ACTION, Types.ATTACK]
     cost = [4, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -1939,10 +2008,10 @@ class EMBARGO(CardInfo):
     types = [Types.ACTION]
     cost = [2, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -1951,10 +2020,10 @@ class EXPLORER(CardInfo):
     types = [Types.ACTION]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -1963,10 +2032,10 @@ class FISHING_VILLAGE(CardInfo):
     types = [Types.ACTION, Types.DURATION]
     cost = [3, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -1975,10 +2044,10 @@ class GHOST_SHIP(CardInfo):
     types = [Types.ACTION, Types.ATTACK]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -1987,10 +2056,10 @@ class HAVEN(CardInfo):
     types = [Types.ACTION, Types.DURATION]
     cost = [2, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -1999,10 +2068,10 @@ class ISLAND(CardInfo):
     types = [Types.ACTION, Types.VICTORY]
     cost = [4, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -2011,10 +2080,10 @@ class LIGHTHOUSE(CardInfo):
     types = [Types.ACTION, Types.DURATION]
     cost = [2, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -2023,10 +2092,10 @@ class LOOKOUT(CardInfo):
     types = [Types.ACTION]
     cost = [3, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -2035,10 +2104,10 @@ class MERCHANT_SHIP(CardInfo):
     types = [Types.ACTION, Types.DURATION]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -2047,10 +2116,10 @@ class NATIVE_VILLAGE(CardInfo):
     types = [Types.ACTION]
     cost = [2, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -2059,10 +2128,10 @@ class NAVIGATOR(CardInfo):
     types = [Types.ACTION]
     cost = [4, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -2071,10 +2140,10 @@ class OUTPOST(CardInfo):
     types = [Types.ACTION, Types.DURATION]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -2083,10 +2152,10 @@ class PEARL_DIVER(CardInfo):
     types = [Types.ACTION]
     cost = [2, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -2095,10 +2164,10 @@ class PIRATE_SHIP(CardInfo):
     types = [Types.ACTION, Types.ATTACK]
     cost = [4, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -2107,10 +2176,10 @@ class SALVAGER(CardInfo):
     types = [Types.ACTION]
     cost = [4, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -2119,10 +2188,10 @@ class SEA_HAG(CardInfo):
     types = [Types.ACTION, Types.ATTACK]
     cost = [4, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -2131,10 +2200,10 @@ class SMUGGLERS(CardInfo):
     types = [Types.ACTION]
     cost = [3, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -2143,10 +2212,10 @@ class TACTICIAN(CardInfo):
     types = [Types.ACTION, Types.DURATION]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -2155,10 +2224,10 @@ class TREASURE_MAP(CardInfo):
     types = [Types.ACTION]
     cost = [4, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -2167,10 +2236,10 @@ class TREASURY(CardInfo):
     types = [Types.ACTION]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -2179,10 +2248,10 @@ class WAREHOUSE(CardInfo):
     types = [Types.ACTION]
     cost = [3, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -2191,10 +2260,10 @@ class WHARF(CardInfo):
     types = [Types.ACTION, Types.DURATION]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -2203,10 +2272,10 @@ class ALCHEMIST(CardInfo):
     types = [Types.ACTION]
     cost = [3, 1, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -2215,10 +2284,10 @@ class APOTHECARY(CardInfo):
     types = [Types.ACTION]
     cost = [2, 1, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -2227,10 +2296,10 @@ class APPRENTICE(CardInfo):
     types = [Types.ACTION]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -2239,10 +2308,10 @@ class FAMILIAR(CardInfo):
     types = [Types.ACTION, Types.ATTACK]
     cost = [3, 1, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -2251,10 +2320,10 @@ class GOLEM(CardInfo):
     types = [Types.ACTION]
     cost = [4, 1, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -2263,10 +2332,10 @@ class HERBALIST(CardInfo):
     types = [Types.ACTION]
     cost = [2, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -2275,10 +2344,10 @@ class PHILOSOPHERS_STONE(CardInfo):
     types = [Types.TREASURE]
     cost = [3, 1, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -2287,10 +2356,10 @@ class POSSESSION(CardInfo):
     types = [Types.ACTION]
     cost = [6, 1, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -2299,10 +2368,10 @@ class POTION(CardInfo):
     types = [Types.TREASURE]
     cost = [4, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -2311,10 +2380,10 @@ class SCRYING_POOL(CardInfo):
     types = [Types.ACTION, Types.ATTACK]
     cost = [2, 1, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -2323,10 +2392,10 @@ class TRANSMUTE(CardInfo):
     types = [Types.ACTION]
     cost = [0, 1, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -2335,10 +2404,10 @@ class UNIVERSITY(CardInfo):
     types = [Types.ACTION]
     cost = [2, 1, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -2347,10 +2416,10 @@ class VINEYARD(CardInfo):
     types = [Types.VICTORY]
     cost = [0, 1, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -2359,10 +2428,10 @@ class BANK(CardInfo):
     types = [Types.TREASURE]
     cost = [7, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -2371,10 +2440,10 @@ class BISHOP(CardInfo):
     types = [Types.ACTION]
     cost = [4, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -2383,10 +2452,10 @@ class COLONY(CardInfo):
     types = [Types.VICTORY]
     cost = [11, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -2395,10 +2464,10 @@ class CONTRABAND(CardInfo):
     types = [Types.TREASURE]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -2407,10 +2476,10 @@ class COUNTING_HOUSE(CardInfo):
     types = [Types.ACTION]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -2419,10 +2488,10 @@ class CITY(CardInfo):
     types = [Types.ACTION]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -2431,10 +2500,10 @@ class EXPAND(CardInfo):
     types = [Types.ACTION]
     cost = [7, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -2443,10 +2512,10 @@ class FORGE(CardInfo):
     types = [Types.ACTION]
     cost = [7, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -2455,10 +2524,10 @@ class GRAND_MARKET(CardInfo):
     types = [Types.ACTION]
     cost = [6, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -2467,10 +2536,10 @@ class GOONS(CardInfo):
     types = [Types.ACTION, Types.ATTACK]
     cost = [6, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -2479,10 +2548,10 @@ class HOARD(CardInfo):
     types = [Types.TREASURE]
     cost = [6, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -2491,10 +2560,10 @@ class KINGS_COURT(CardInfo):
     types = [Types.ACTION]
     cost = [7, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -2503,10 +2572,10 @@ class LOAN(CardInfo):
     types = [Types.TREASURE]
     cost = [3, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -2515,10 +2584,10 @@ class MINT(CardInfo):
     types = [Types.ACTION]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -2527,10 +2596,10 @@ class MONUMENT(CardInfo):
     types = [Types.ACTION]
     cost = [4, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -2539,10 +2608,10 @@ class MOUNTEBANK(CardInfo):
     types = [Types.ACTION, Types.ATTACK]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -2551,10 +2620,10 @@ class PEDDLER(CardInfo):
     types = [Types.ACTION]
     cost = [8, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -2563,10 +2632,10 @@ class PLATINUM(CardInfo):
     types = [Types.TREASURE]
     cost = [9, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -2575,10 +2644,10 @@ class QUARRY(CardInfo):
     types = [Types.TREASURE]
     cost = [4, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -2587,10 +2656,10 @@ class RABBLE(CardInfo):
     types = [Types.ACTION, Types.ATTACK]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -2599,10 +2668,10 @@ class ROYAL_SEAL(CardInfo):
     types = [Types.TREASURE]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -2611,10 +2680,10 @@ class TALISMAN(CardInfo):
     types = [Types.TREASURE]
     cost = [4, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -2623,10 +2692,10 @@ class TRADE_ROUTE(CardInfo):
     types = [Types.ACTION]
     cost = [3, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -2635,10 +2704,10 @@ class VAULT(CardInfo):
     types = [Types.ACTION]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -2647,10 +2716,10 @@ class VENTURE(CardInfo):
     types = [Types.TREASURE]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -2659,10 +2728,10 @@ class WATCHTOWER(CardInfo):
     types = [Types.ACTION, Types.REACTION]
     cost = [3, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -2671,10 +2740,10 @@ class WORKERS_VILLAGE(CardInfo):
     types = [Types.ACTION]
     cost = [4, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -2683,10 +2752,10 @@ class PRIZE(CardInfo):
     types = []
     cost = [0, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -2695,10 +2764,10 @@ class BAG_OF_GOLD(CardInfo):
     types = [Types.ACTION, Types.PRIZE]
     cost = [0, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -2707,10 +2776,10 @@ class DIADEM(CardInfo):
     types = [Types.TREASURE, Types.PRIZE]
     cost = [0, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -2719,10 +2788,10 @@ class FAIRGROUNDS(CardInfo):
     types = [Types.VICTORY]
     cost = [6, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -2731,10 +2800,10 @@ class FARMING_VILLAGE(CardInfo):
     types = [Types.ACTION]
     cost = [4, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -2743,10 +2812,10 @@ class FOLLOWERS(CardInfo):
     types = [Types.ACTION, Types.ATTACK, Types.PRIZE]
     cost = [0, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -2755,10 +2824,10 @@ class FORTUNE_TELLER(CardInfo):
     types = [Types.ACTION, Types.ATTACK]
     cost = [3, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -2767,10 +2836,10 @@ class HAMLET(CardInfo):
     types = [Types.ACTION]
     cost = [2, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -2779,10 +2848,10 @@ class HARVEST(CardInfo):
     types = [Types.ACTION]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -2791,10 +2860,10 @@ class HORSE_TRADERS(CardInfo):
     types = [Types.ACTION, Types.REACTION]
     cost = [4, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -2803,10 +2872,10 @@ class HORN_OF_PLENTY(CardInfo):
     types = [Types.TREASURE]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -2815,10 +2884,10 @@ class HUNTING_PARTY(CardInfo):
     types = [Types.ACTION]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -2827,10 +2896,10 @@ class JESTER(CardInfo):
     types = [Types.ACTION, Types.ATTACK]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -2839,10 +2908,10 @@ class MENAGERIE(CardInfo):
     types = [Types.ACTION]
     cost = [3, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -2851,10 +2920,10 @@ class PRINCESS(CardInfo):
     types = [Types.ACTION, Types.PRIZE]
     cost = [0, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -2863,10 +2932,10 @@ class REMAKE(CardInfo):
     types = [Types.ACTION]
     cost = [4, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -2875,10 +2944,10 @@ class TOURNAMENT(CardInfo):
     types = [Types.ACTION]
     cost = [4, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -2887,10 +2956,10 @@ class TRUSTY_STEED(CardInfo):
     types = [Types.ACTION, Types.PRIZE]
     cost = [0, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -2899,10 +2968,10 @@ class YOUNG_WITCH(CardInfo):
     types = [Types.ACTION, Types.ATTACK]
     cost = [4, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -2911,10 +2980,10 @@ class BORDER_VILLAGE(CardInfo):
     types = [Types.ACTION]
     cost = [6, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -2923,10 +2992,10 @@ class CACHE(CardInfo):
     types = [Types.TREASURE]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -2935,10 +3004,10 @@ class CARTOGRAPHER(CardInfo):
     types = [Types.ACTION]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -2947,10 +3016,10 @@ class CROSSROADS(CardInfo):
     types = [Types.ACTION]
     cost = [2, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -2959,10 +3028,10 @@ class DEVELOP(CardInfo):
     types = [Types.ACTION]
     cost = [3, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -2971,10 +3040,10 @@ class DUCHESS(CardInfo):
     types = [Types.ACTION]
     cost = [2, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -2983,10 +3052,10 @@ class EMBASSY(CardInfo):
     types = [Types.ACTION]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -2995,10 +3064,10 @@ class FARMLAND(CardInfo):
     types = [Types.VICTORY]
     cost = [6, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -3007,10 +3076,10 @@ class FOOLS_GOLD(CardInfo):
     types = [Types.TREASURE, Types.REACTION]
     cost = [2, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -3019,10 +3088,10 @@ class HAGGLER(CardInfo):
     types = [Types.ACTION]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -3031,10 +3100,10 @@ class HIGHWAY(CardInfo):
     types = [Types.ACTION]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -3043,10 +3112,10 @@ class ILL_GOTTEN_GAINS(CardInfo):
     types = [Types.TREASURE]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -3055,10 +3124,10 @@ class INN(CardInfo):
     types = [Types.ACTION]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -3067,10 +3136,10 @@ class JACK_OF_ALL_TRADES(CardInfo):
     types = [Types.ACTION]
     cost = [4, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -3079,10 +3148,10 @@ class MANDARIN(CardInfo):
     types = [Types.ACTION]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -3091,10 +3160,10 @@ class NOBLE_BRIGAND(CardInfo):
     types = [Types.ACTION, Types.ATTACK]
     cost = [4, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -3103,10 +3172,10 @@ class NOMAD_CAMP(CardInfo):
     types = [Types.ACTION]
     cost = [4, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -3115,10 +3184,10 @@ class OASIS(CardInfo):
     types = [Types.ACTION]
     cost = [3, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -3127,10 +3196,10 @@ class ORACLE(CardInfo):
     types = [Types.ACTION, Types.ATTACK]
     cost = [3, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -3139,10 +3208,10 @@ class MARGRAVE(CardInfo):
     types = [Types.ACTION, Types.ATTACK]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -3151,10 +3220,10 @@ class SCHEME(CardInfo):
     types = [Types.ACTION]
     cost = [3, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -3163,10 +3232,10 @@ class SILK_ROAD(CardInfo):
     types = [Types.VICTORY]
     cost = [4, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -3175,10 +3244,10 @@ class SPICE_MERCHANT(CardInfo):
     types = [Types.ACTION]
     cost = [4, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -3187,10 +3256,10 @@ class STABLES(CardInfo):
     types = [Types.ACTION]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -3199,10 +3268,10 @@ class TRADER(CardInfo):
     types = [Types.ACTION, Types.REACTION]
     cost = [4, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -3211,10 +3280,10 @@ class TUNNEL(CardInfo):
     types = [Types.VICTORY, Types.REACTION]
     cost = [3, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -3223,10 +3292,10 @@ class RUINS(CardInfo):
     types = [Types.ACTION, Types.RUINS]
     cost = [0, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -3235,10 +3304,10 @@ class KNIGHTS(CardInfo):
     types = [Types.ACTION, Types.ATTACK, Types.KNIGHT]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -3247,10 +3316,10 @@ class ABANDONED_MINE(CardInfo):
     types = [Types.ACTION, Types.RUINS]
     cost = [0, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -3259,10 +3328,10 @@ class ALTAR(CardInfo):
     types = [Types.ACTION]
     cost = [6, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -3271,10 +3340,10 @@ class ARMORY(CardInfo):
     types = [Types.ACTION]
     cost = [4, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -3283,10 +3352,10 @@ class BAND_OF_MISFITS(CardInfo):
     types = [Types.ACTION, Types.COMMAND]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -3295,10 +3364,10 @@ class BANDIT_CAMP(CardInfo):
     types = [Types.ACTION]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -3307,10 +3376,10 @@ class BEGGAR(CardInfo):
     types = [Types.ACTION, Types.REACTION]
     cost = [2, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -3319,10 +3388,10 @@ class CATACOMBS(CardInfo):
     types = [Types.ACTION]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -3331,10 +3400,10 @@ class COUNT(CardInfo):
     types = [Types.ACTION]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -3343,10 +3412,10 @@ class COUNTERFEIT(CardInfo):
     types = [Types.TREASURE]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -3355,10 +3424,10 @@ class CULTIST(CardInfo):
     types = [Types.ACTION, Types.ATTACK, Types.LOOTER]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -3367,10 +3436,10 @@ class DAME_ANNA(CardInfo):
     types = [Types.ACTION, Types.ATTACK, Types.KNIGHT]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -3379,10 +3448,10 @@ class DAME_JOSEPHINE(CardInfo):
     types = [Types.ACTION, Types.ATTACK, Types.KNIGHT, Types.VICTORY]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -3391,10 +3460,10 @@ class DAME_MOLLY(CardInfo):
     types = [Types.ACTION, Types.ATTACK, Types.KNIGHT]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -3403,10 +3472,10 @@ class DAME_NATALIE(CardInfo):
     types = [Types.ACTION, Types.ATTACK, Types.KNIGHT]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -3415,10 +3484,10 @@ class DAME_SYLVIA(CardInfo):
     types = [Types.ACTION, Types.ATTACK, Types.KNIGHT]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -3427,10 +3496,10 @@ class DEATH_CART(CardInfo):
     types = [Types.ACTION, Types.LOOTER]
     cost = [4, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -3439,10 +3508,10 @@ class FEODUM(CardInfo):
     types = [Types.VICTORY]
     cost = [4, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -3451,10 +3520,10 @@ class FORAGER(CardInfo):
     types = [Types.ACTION]
     cost = [3, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -3463,10 +3532,10 @@ class FORTRESS(CardInfo):
     types = [Types.ACTION]
     cost = [4, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -3475,10 +3544,10 @@ class GRAVEROBBER(CardInfo):
     types = [Types.ACTION]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -3487,10 +3556,10 @@ class HERMIT(CardInfo):
     types = [Types.ACTION]
     cost = [3, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -3499,10 +3568,10 @@ class HOVEL(CardInfo):
     types = [Types.REACTION, Types.SHELTER]
     cost = [1, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -3511,10 +3580,10 @@ class HUNTING_GROUNDS(CardInfo):
     types = [Types.ACTION]
     cost = [6, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -3523,10 +3592,10 @@ class IRONMONGER(CardInfo):
     types = [Types.ACTION]
     cost = [4, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -3535,10 +3604,10 @@ class JUNK_DEALER(CardInfo):
     types = [Types.ACTION]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -3547,10 +3616,10 @@ class MADMAN(CardInfo):
     types = [Types.ACTION]
     cost = [0, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -3559,10 +3628,10 @@ class MARKET_SQUARE(CardInfo):
     types = [Types.ACTION, Types.REACTION]
     cost = [3, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -3571,10 +3640,10 @@ class MARAUDER(CardInfo):
     types = [Types.ACTION, Types.ATTACK, Types.LOOTER]
     cost = [4, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -3583,10 +3652,10 @@ class MERCENARY(CardInfo):
     types = [Types.ACTION, Types.ATTACK]
     cost = [0, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -3595,10 +3664,10 @@ class MYSTIC(CardInfo):
     types = [Types.ACTION]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -3607,10 +3676,10 @@ class NECROPOLIS(CardInfo):
     types = [Types.ACTION, Types.SHELTER]
     cost = [1, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -3619,10 +3688,10 @@ class OVERGROWN_ESTATE(CardInfo):
     types = [Types.VICTORY, Types.SHELTER]
     cost = [1, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -3631,10 +3700,10 @@ class PILLAGE(CardInfo):
     types = [Types.ACTION, Types.ATTACK]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -3643,10 +3712,10 @@ class POOR_HOUSE(CardInfo):
     types = [Types.ACTION]
     cost = [1, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -3655,10 +3724,10 @@ class PROCESSION(CardInfo):
     types = [Types.ACTION]
     cost = [4, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -3667,10 +3736,10 @@ class RATS(CardInfo):
     types = [Types.ACTION]
     cost = [4, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -3679,10 +3748,10 @@ class REBUILD(CardInfo):
     types = [Types.ACTION]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -3691,10 +3760,10 @@ class ROGUE(CardInfo):
     types = [Types.ACTION, Types.ATTACK]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -3703,10 +3772,10 @@ class RUINED_LIBRARY(CardInfo):
     types = [Types.ACTION, Types.RUINS]
     cost = [0, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -3715,10 +3784,10 @@ class RUINED_MARKET(CardInfo):
     types = [Types.ACTION, Types.RUINS]
     cost = [0, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -3727,10 +3796,10 @@ class RUINED_VILLAGE(CardInfo):
     types = [Types.ACTION, Types.RUINS]
     cost = [0, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -3739,10 +3808,10 @@ class SAGE(CardInfo):
     types = [Types.ACTION]
     cost = [3, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -3751,10 +3820,10 @@ class SCAVENGER(CardInfo):
     types = [Types.ACTION]
     cost = [4, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -3763,10 +3832,10 @@ class SIR_BAILEY(CardInfo):
     types = [Types.ACTION, Types.ATTACK, Types.KNIGHT]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -3775,10 +3844,10 @@ class SIR_DESTRY(CardInfo):
     types = [Types.ACTION, Types.ATTACK, Types.KNIGHT]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -3787,10 +3856,10 @@ class SIR_MARTIN(CardInfo):
     types = [Types.ACTION, Types.ATTACK, Types.KNIGHT]
     cost = [4, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -3799,10 +3868,10 @@ class SIR_MICHAEL(CardInfo):
     types = [Types.ACTION, Types.ATTACK, Types.KNIGHT]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -3811,10 +3880,10 @@ class SIR_VANDER(CardInfo):
     types = [Types.ACTION, Types.ATTACK, Types.KNIGHT]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -3823,10 +3892,10 @@ class SPOILS(CardInfo):
     types = [Types.TREASURE]
     cost = [0, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -3835,10 +3904,10 @@ class STOREROOM(CardInfo):
     types = [Types.ACTION]
     cost = [3, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -3847,10 +3916,10 @@ class SQUIRE(CardInfo):
     types = [Types.ACTION]
     cost = [2, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -3859,10 +3928,10 @@ class SURVIVORS(CardInfo):
     types = [Types.ACTION, Types.RUINS]
     cost = [0, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -3871,10 +3940,10 @@ class URCHIN(CardInfo):
     types = [Types.ACTION, Types.ATTACK]
     cost = [3, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -3883,10 +3952,10 @@ class VAGRANT(CardInfo):
     types = [Types.ACTION]
     cost = [2, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -3895,10 +3964,10 @@ class WANDERING_MINSTREL(CardInfo):
     types = [Types.ACTION]
     cost = [4, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -3907,10 +3976,10 @@ class ADVISOR(CardInfo):
     types = [Types.ACTION]
     cost = [4, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -3919,10 +3988,10 @@ class BAKER(CardInfo):
     types = [Types.ACTION]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -3931,10 +4000,10 @@ class BUTCHER(CardInfo):
     types = [Types.ACTION]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -3943,10 +4012,10 @@ class CANDLESTICK_MAKER(CardInfo):
     types = [Types.ACTION]
     cost = [2, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -3955,10 +4024,10 @@ class DOCTOR(CardInfo):
     types = [Types.ACTION]
     cost = [3, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -3967,10 +4036,10 @@ class HERALD(CardInfo):
     types = [Types.ACTION]
     cost = [4, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -3979,10 +4048,10 @@ class JOURNEYMAN(CardInfo):
     types = [Types.ACTION]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -3991,10 +4060,10 @@ class MASTERPIECE(CardInfo):
     types = [Types.TREASURE]
     cost = [3, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -4003,10 +4072,10 @@ class MERCHANT_GUILD(CardInfo):
     types = [Types.ACTION]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -4015,10 +4084,10 @@ class PLAZA(CardInfo):
     types = [Types.ACTION]
     cost = [4, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -4027,10 +4096,10 @@ class TAXMAN(CardInfo):
     types = [Types.ACTION, Types.ATTACK]
     cost = [4, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -4039,10 +4108,10 @@ class SOOTHSAYER(CardInfo):
     types = [Types.ACTION, Types.ATTACK]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -4051,10 +4120,10 @@ class STONEMASON(CardInfo):
     types = [Types.ACTION]
     cost = [2, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -4063,10 +4132,10 @@ class ALMS(CardInfo):
     types = [Types.EVENT]
     cost = [0, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -4075,10 +4144,10 @@ class AMULET(CardInfo):
     types = [Types.ACTION, Types.DURATION]
     cost = [3, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -4087,10 +4156,10 @@ class ARTIFICER(CardInfo):
     types = [Types.ACTION]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -4099,10 +4168,10 @@ class BALL(CardInfo):
     types = [Types.EVENT]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -4111,10 +4180,10 @@ class BONFIRE(CardInfo):
     types = [Types.EVENT]
     cost = [3, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -4123,10 +4192,10 @@ class BORROW(CardInfo):
     types = [Types.EVENT]
     cost = [0, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -4135,10 +4204,10 @@ class BRIDGE_TROLL(CardInfo):
     types = [Types.ACTION, Types.DURATION, Types.ATTACK]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -4147,10 +4216,10 @@ class CARAVAN_GUARD(CardInfo):
     types = [Types.ACTION, Types.DURATION, Types.REACTION]
     cost = [3, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -4159,10 +4228,10 @@ class CHAMPION(CardInfo):
     types = [Types.ACTION, Types.DURATION]
     cost = [6, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -4171,10 +4240,10 @@ class COIN_OF_THE_REALM(CardInfo):
     types = [Types.TREASURE, Types.RESERVE]
     cost = [2, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -4183,10 +4252,10 @@ class DISCIPLE(CardInfo):
     types = [Types.ACTION, Types.TRAVELLER]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -4195,10 +4264,10 @@ class DISTANT_LANDS(CardInfo):
     types = [Types.ACTION, Types.RESERVE, Types.VICTORY]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -4207,10 +4276,10 @@ class DUNGEON(CardInfo):
     types = [Types.ACTION, Types.DURATION]
     cost = [3, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -4219,10 +4288,10 @@ class DUPLICATE(CardInfo):
     types = [Types.ACTION, Types.RESERVE]
     cost = [4, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -4231,10 +4300,10 @@ class EXPEDITION(CardInfo):
     types = [Types.EVENT]
     cost = [3, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -4243,10 +4312,10 @@ class FERRY(CardInfo):
     types = [Types.EVENT]
     cost = [3, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -4255,10 +4324,10 @@ class FUGITIVE(CardInfo):
     types = [Types.ACTION, Types.TRAVELLER]
     cost = [4, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -4267,10 +4336,10 @@ class GEAR(CardInfo):
     types = [Types.ACTION, Types.DURATION]
     cost = [3, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -4279,10 +4348,10 @@ class GIANT(CardInfo):
     types = [Types.ACTION, Types.ATTACK]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -4291,10 +4360,10 @@ class GUIDE(CardInfo):
     types = [Types.ACTION, Types.RESERVE]
     cost = [3, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -4303,10 +4372,10 @@ class HAUNTED_WOODS(CardInfo):
     types = [Types.ACTION, Types.DURATION, Types.ATTACK]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -4315,10 +4384,10 @@ class HERO(CardInfo):
     types = [Types.ACTION, Types.TRAVELLER]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -4327,10 +4396,10 @@ class HIRELING(CardInfo):
     types = [Types.ACTION, Types.DURATION]
     cost = [6, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -4339,10 +4408,10 @@ class INHERITANCE(CardInfo):
     types = [Types.EVENT]
     cost = [7, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -4351,10 +4420,10 @@ class LOST_ARTS(CardInfo):
     types = [Types.EVENT]
     cost = [6, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -4363,10 +4432,10 @@ class LOST_CITY(CardInfo):
     types = [Types.ACTION]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -4375,10 +4444,10 @@ class MAGPIE(CardInfo):
     types = [Types.ACTION]
     cost = [4, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -4387,10 +4456,10 @@ class MESSENGER(CardInfo):
     types = [Types.ACTION]
     cost = [4, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -4399,10 +4468,10 @@ class MISER(CardInfo):
     types = [Types.ACTION]
     cost = [4, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -4411,10 +4480,10 @@ class MISSION(CardInfo):
     types = [Types.EVENT]
     cost = [4, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -4423,10 +4492,10 @@ class PATHFINDING(CardInfo):
     types = [Types.EVENT]
     cost = [8, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -4435,10 +4504,10 @@ class PAGE(CardInfo):
     types = [Types.ACTION, Types.TRAVELLER]
     cost = [2, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -4447,10 +4516,10 @@ class PEASANT(CardInfo):
     types = [Types.ACTION, Types.TRAVELLER]
     cost = [2, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -4459,10 +4528,10 @@ class PILGRIMAGE(CardInfo):
     types = [Types.EVENT]
     cost = [4, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -4471,10 +4540,10 @@ class PLAN(CardInfo):
     types = [Types.EVENT]
     cost = [3, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -4483,10 +4552,10 @@ class PORT(CardInfo):
     types = [Types.ACTION]
     cost = [4, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -4495,10 +4564,10 @@ class QUEST(CardInfo):
     types = [Types.EVENT]
     cost = [0, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -4507,10 +4576,10 @@ class RANGER(CardInfo):
     types = [Types.ACTION]
     cost = [4, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -4519,10 +4588,10 @@ class RAID(CardInfo):
     types = [Types.EVENT]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -4531,10 +4600,10 @@ class RATCATCHER(CardInfo):
     types = [Types.ACTION, Types.RESERVE]
     cost = [2, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -4543,10 +4612,10 @@ class RAZE(CardInfo):
     types = [Types.ACTION]
     cost = [2, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -4555,10 +4624,10 @@ class RELIC(CardInfo):
     types = [Types.TREASURE, Types.ATTACK]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -4567,10 +4636,10 @@ class ROYAL_CARRIAGE(CardInfo):
     types = [Types.ACTION, Types.RESERVE]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -4579,10 +4648,10 @@ class SAVE(CardInfo):
     types = [Types.EVENT]
     cost = [1, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -4591,10 +4660,10 @@ class SCOUTING_PARTY(CardInfo):
     types = [Types.EVENT]
     cost = [2, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -4603,10 +4672,10 @@ class SEAWAY(CardInfo):
     types = [Types.EVENT]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -4615,10 +4684,10 @@ class SOLDIER(CardInfo):
     types = [Types.ACTION, Types.ATTACK, Types.TRAVELLER]
     cost = [3, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -4627,10 +4696,10 @@ class STORYTELLER(CardInfo):
     types = [Types.ACTION]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -4639,10 +4708,10 @@ class SWAMP_HAG(CardInfo):
     types = [Types.ACTION, Types.DURATION, Types.ATTACK]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -4651,10 +4720,10 @@ class TEACHER(CardInfo):
     types = [Types.ACTION, Types.RESERVE]
     cost = [6, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -4663,10 +4732,10 @@ class TRAVELLING_FAIR(CardInfo):
     types = [Types.EVENT]
     cost = [2, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -4675,10 +4744,10 @@ class TRADE(CardInfo):
     types = [Types.EVENT]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -4687,10 +4756,10 @@ class TRAINING(CardInfo):
     types = [Types.EVENT]
     cost = [6, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -4699,10 +4768,10 @@ class TRANSMOGRIFY(CardInfo):
     types = [Types.ACTION, Types.RESERVE]
     cost = [4, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -4711,10 +4780,10 @@ class TREASURE_TROVE(CardInfo):
     types = [Types.TREASURE]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -4723,10 +4792,10 @@ class TREASURE_HUNTER(CardInfo):
     types = [Types.ACTION, Types.TRAVELLER]
     cost = [3, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -4735,10 +4804,10 @@ class WARRIOR(CardInfo):
     types = [Types.ACTION, Types.ATTACK, Types.TRAVELLER]
     cost = [4, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -4747,10 +4816,10 @@ class WINE_MERCHANT(CardInfo):
     types = [Types.ACTION, Types.RESERVE]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -4759,10 +4828,10 @@ class ENCAMPMENT(CardInfo):
     types = [Types.ACTION]
     cost = [2, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -4771,10 +4840,10 @@ class PLUNDER(CardInfo):
     types = [Types.TREASURE]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -4783,10 +4852,10 @@ class PATRICIAN(CardInfo):
     types = [Types.ACTION]
     cost = [2, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -4795,10 +4864,10 @@ class EMPORIUM(CardInfo):
     types = [Types.ACTION]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -4807,10 +4876,10 @@ class SETTLERS(CardInfo):
     types = [Types.ACTION]
     cost = [2, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -4819,10 +4888,10 @@ class BUSTLING_VILLAGE(CardInfo):
     types = [Types.ACTION]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -4831,10 +4900,10 @@ class CATAPULT(CardInfo):
     types = [Types.ACTION, Types.ATTACK]
     cost = [3, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -4843,10 +4912,10 @@ class ROCKS(CardInfo):
     types = [Types.TREASURE]
     cost = [4, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -4855,10 +4924,10 @@ class GLADIATOR(CardInfo):
     types = [Types.ACTION]
     cost = [3, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -4867,10 +4936,10 @@ class FORTUNE(CardInfo):
     types = [Types.TREASURE]
     cost = [8, 0, 8]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -4879,10 +4948,10 @@ class CASTLES(CardInfo):
     types = [Types.VICTORY, Types.CASTLE]
     cost = [3, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -4891,10 +4960,10 @@ class HUMBLE_CASTLE(CardInfo):
     types = [Types.TREASURE, Types.VICTORY, Types.CASTLE]
     cost = [3, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -4903,10 +4972,10 @@ class CRUMBLING_CASTLE(CardInfo):
     types = [Types.VICTORY, Types.CASTLE]
     cost = [4, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -4915,10 +4984,10 @@ class SMALL_CASTLE(CardInfo):
     types = [Types.ACTION, Types.VICTORY, Types.CASTLE]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -4927,10 +4996,10 @@ class HAUNTED_CASTLE(CardInfo):
     types = [Types.VICTORY, Types.CASTLE]
     cost = [6, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -4939,10 +5008,10 @@ class OPULENT_CASTLE(CardInfo):
     types = [Types.ACTION, Types.VICTORY, Types.CASTLE]
     cost = [7, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -4951,10 +5020,10 @@ class SPRAWLING_CASTLE(CardInfo):
     types = [Types.VICTORY, Types.CASTLE]
     cost = [8, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -4963,10 +5032,10 @@ class GRAND_CASTLE(CardInfo):
     types = [Types.VICTORY, Types.CASTLE]
     cost = [9, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -4975,10 +5044,10 @@ class KINGS_CASTLE(CardInfo):
     types = [Types.VICTORY, Types.CASTLE]
     cost = [10, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -4987,10 +5056,10 @@ class ADVANCE(CardInfo):
     types = [Types.EVENT]
     cost = [0, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -4999,10 +5068,10 @@ class ANNEX(CardInfo):
     types = [Types.EVENT]
     cost = [0, 0, 8]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -5011,10 +5080,10 @@ class ARCHIVE(CardInfo):
     types = [Types.ACTION, Types.DURATION]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -5023,10 +5092,10 @@ class AQUEDUCT(CardInfo):
     types = [Types.LANDMARK]
     cost = [0, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -5035,10 +5104,10 @@ class ARENA(CardInfo):
     types = [Types.LANDMARK]
     cost = [0, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -5047,10 +5116,10 @@ class BANDIT_FORT(CardInfo):
     types = [Types.LANDMARK]
     cost = [0, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -5059,10 +5128,10 @@ class BANQUET(CardInfo):
     types = [Types.EVENT]
     cost = [3, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -5071,10 +5140,10 @@ class BASILICA(CardInfo):
     types = [Types.LANDMARK]
     cost = [0, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -5083,10 +5152,10 @@ class BATHS(CardInfo):
     types = [Types.LANDMARK]
     cost = [0, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -5095,10 +5164,10 @@ class BATTLEFIELD(CardInfo):
     types = [Types.LANDMARK]
     cost = [0, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -5107,10 +5176,10 @@ class CAPITAL(CardInfo):
     types = [Types.TREASURE]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -5119,10 +5188,10 @@ class CHARM(CardInfo):
     types = [Types.TREASURE]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -5131,10 +5200,10 @@ class CHARIOT_RACE(CardInfo):
     types = [Types.ACTION]
     cost = [3, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -5143,10 +5212,10 @@ class CITY_QUARTER(CardInfo):
     types = [Types.ACTION]
     cost = [0, 0, 8]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -5155,10 +5224,10 @@ class COLONNADE(CardInfo):
     types = [Types.LANDMARK]
     cost = [0, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -5167,10 +5236,10 @@ class CONQUEST(CardInfo):
     types = [Types.EVENT]
     cost = [6, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -5179,10 +5248,10 @@ class CROWN(CardInfo):
     types = [Types.ACTION, Types.TREASURE]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -5191,10 +5260,10 @@ class DELVE(CardInfo):
     types = [Types.EVENT]
     cost = [2, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -5203,10 +5272,10 @@ class DEFILED_SHRINE(CardInfo):
     types = [Types.LANDMARK]
     cost = [0, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -5215,10 +5284,10 @@ class DOMINATE(CardInfo):
     types = [Types.EVENT]
     cost = [14, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -5227,10 +5296,10 @@ class DONATE(CardInfo):
     types = [Types.EVENT]
     cost = [0, 0, 8]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -5239,10 +5308,10 @@ class ENCHANTRESS(CardInfo):
     types = [Types.ACTION, Types.DURATION, Types.ATTACK]
     cost = [3, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -5251,10 +5320,10 @@ class ENGINEER(CardInfo):
     types = [Types.ACTION]
     cost = [0, 0, 4]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -5263,10 +5332,10 @@ class FARMERS_MARKET(CardInfo):
     types = [Types.ACTION, Types.GATHERING]
     cost = [3, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -5275,10 +5344,10 @@ class FORUM(CardInfo):
     types = [Types.ACTION]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -5287,10 +5356,10 @@ class FOUNTAIN(CardInfo):
     types = [Types.LANDMARK]
     cost = [0, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -5299,10 +5368,10 @@ class GROUNDSKEEPER(CardInfo):
     types = [Types.ACTION]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -5311,10 +5380,10 @@ class KEEP(CardInfo):
     types = [Types.LANDMARK]
     cost = [0, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -5323,10 +5392,10 @@ class LABYRINTH(CardInfo):
     types = [Types.LANDMARK]
     cost = [0, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -5335,10 +5404,10 @@ class LEGIONARY(CardInfo):
     types = [Types.ACTION, Types.ATTACK]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -5347,10 +5416,10 @@ class MOUNTAIN_PASS(CardInfo):
     types = [Types.LANDMARK]
     cost = [0, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -5359,10 +5428,10 @@ class MUSEUM(CardInfo):
     types = [Types.LANDMARK]
     cost = [0, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -5371,10 +5440,10 @@ class OBELISK(CardInfo):
     types = [Types.LANDMARK]
     cost = [0, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -5383,10 +5452,10 @@ class ORCHARD(CardInfo):
     types = [Types.LANDMARK]
     cost = [0, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -5395,10 +5464,10 @@ class OVERLORD(CardInfo):
     types = [Types.ACTION, Types.COMMAND]
     cost = [0, 0, 8]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -5407,10 +5476,10 @@ class PALACE(CardInfo):
     types = [Types.LANDMARK]
     cost = [0, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -5419,10 +5488,10 @@ class RITUAL(CardInfo):
     types = [Types.EVENT]
     cost = [4, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -5431,10 +5500,10 @@ class ROYAL_BLACKSMITH(CardInfo):
     types = [Types.ACTION]
     cost = [0, 0, 8]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -5443,10 +5512,10 @@ class SACRIFICE(CardInfo):
     types = [Types.ACTION]
     cost = [4, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -5455,10 +5524,10 @@ class SALT_THE_EARTH(CardInfo):
     types = [Types.EVENT]
     cost = [4, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -5467,10 +5536,10 @@ class TAX(CardInfo):
     types = [Types.EVENT]
     cost = [2, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -5479,10 +5548,10 @@ class TEMPLE(CardInfo):
     types = [Types.ACTION, Types.GATHERING]
     cost = [4, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -5491,10 +5560,10 @@ class TOMB(CardInfo):
     types = [Types.LANDMARK]
     cost = [0, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -5503,10 +5572,10 @@ class TOWER(CardInfo):
     types = [Types.LANDMARK]
     cost = [0, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -5515,10 +5584,10 @@ class TRIUMPH(CardInfo):
     types = [Types.EVENT]
     cost = [0, 0, 5]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -5527,10 +5596,10 @@ class TRIUMPHAL_ARCH(CardInfo):
     types = [Types.LANDMARK]
     cost = [0, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -5539,10 +5608,10 @@ class VILLA(CardInfo):
     types = [Types.ACTION]
     cost = [4, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -5551,10 +5620,10 @@ class WALL(CardInfo):
     types = [Types.LANDMARK]
     cost = [0, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -5563,10 +5632,10 @@ class WOLF_DEN(CardInfo):
     types = [Types.LANDMARK]
     cost = [0, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -5575,10 +5644,10 @@ class WEDDING(CardInfo):
     types = [Types.EVENT]
     cost = [4, 0, 3]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -5587,10 +5656,10 @@ class WILD_HUNT(CardInfo):
     types = [Types.ACTION, Types.GATHERING]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -5599,10 +5668,10 @@ class WINDFALL(CardInfo):
     types = [Types.EVENT]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -5611,10 +5680,10 @@ class THE_EARTHS_GIFT(CardInfo):
     types = [Types.BOON]
     cost = [0, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -5623,10 +5692,10 @@ class THE_FIELDS_GIFT(CardInfo):
     types = [Types.BOON]
     cost = [0, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -5635,10 +5704,10 @@ class THE_FLAMES_GIFT(CardInfo):
     types = [Types.BOON]
     cost = [0, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -5647,10 +5716,10 @@ class THE_FORESTS_GIFT(CardInfo):
     types = [Types.BOON]
     cost = [0, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -5659,10 +5728,10 @@ class THE_MOONS_GIFT(CardInfo):
     types = [Types.BOON]
     cost = [0, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -5671,10 +5740,10 @@ class THE_MOUNTAINS_GIFT(CardInfo):
     types = [Types.BOON]
     cost = [0, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -5683,10 +5752,10 @@ class THE_RIVERS_GIFT(CardInfo):
     types = [Types.BOON]
     cost = [0, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -5695,10 +5764,10 @@ class THE_SEAS_GIFT(CardInfo):
     types = [Types.BOON]
     cost = [0, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -5707,10 +5776,10 @@ class THE_SKYS_GIFT(CardInfo):
     types = [Types.BOON]
     cost = [0, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -5719,10 +5788,10 @@ class THE_SUNS_GIFT(CardInfo):
     types = [Types.BOON]
     cost = [0, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -5731,10 +5800,10 @@ class THE_SWAMPS_GIFT(CardInfo):
     types = [Types.BOON]
     cost = [0, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -5743,10 +5812,10 @@ class THE_WINDS_GIFT(CardInfo):
     types = [Types.BOON]
     cost = [0, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -5755,10 +5824,10 @@ class BAD_OMENS(CardInfo):
     types = [Types.HEX]
     cost = [0, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -5767,10 +5836,10 @@ class DELUSION(CardInfo):
     types = [Types.HEX]
     cost = [0, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -5779,10 +5848,10 @@ class ENVY(CardInfo):
     types = [Types.HEX]
     cost = [0, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -5791,10 +5860,10 @@ class FAMINE(CardInfo):
     types = [Types.HEX]
     cost = [0, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -5803,10 +5872,10 @@ class FEAR(CardInfo):
     types = [Types.HEX]
     cost = [0, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -5815,10 +5884,10 @@ class GREED(CardInfo):
     types = [Types.HEX]
     cost = [0, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -5827,10 +5896,10 @@ class HAUNTING(CardInfo):
     types = [Types.HEX]
     cost = [0, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -5839,10 +5908,10 @@ class LOCUSTS(CardInfo):
     types = [Types.HEX]
     cost = [0, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -5851,10 +5920,10 @@ class MISERY(CardInfo):
     types = [Types.HEX]
     cost = [0, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -5863,10 +5932,10 @@ class PLAGUE(CardInfo):
     types = [Types.HEX]
     cost = [0, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -5875,10 +5944,10 @@ class POVERTY(CardInfo):
     types = [Types.HEX]
     cost = [0, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -5887,10 +5956,10 @@ class WAR(CardInfo):
     types = [Types.HEX]
     cost = [0, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -5899,10 +5968,10 @@ class MISERABLE(CardInfo):
     types = [Types.STATE]
     cost = [0, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -5911,10 +5980,10 @@ class TWICE_MISERABLE(CardInfo):
     types = [Types.STATE]
     cost = [0, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -5923,10 +5992,10 @@ class ENVIOUS(CardInfo):
     types = [Types.STATE]
     cost = [0, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -5935,10 +6004,10 @@ class DELUDED(CardInfo):
     types = [Types.STATE]
     cost = [0, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -5947,10 +6016,10 @@ class LOST_IN_THE_WOODS(CardInfo):
     types = [Types.STATE]
     cost = [0, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -5959,10 +6028,10 @@ class BARD(CardInfo):
     types = [Types.ACTION, Types.FATE]
     cost = [4, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -5971,10 +6040,10 @@ class BLESSED_VILLAGE(CardInfo):
     types = [Types.ACTION, Types.FATE]
     cost = [4, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -5983,10 +6052,10 @@ class CHANGELING(CardInfo):
     types = [Types.NIGHT]
     cost = [3, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -5995,10 +6064,10 @@ class CEMETERY(CardInfo):
     types = [Types.VICTORY]
     cost = [4, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -6007,10 +6076,10 @@ class COBBLER(CardInfo):
     types = [Types.NIGHT, Types.DURATION]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -6019,10 +6088,10 @@ class CONCLAVE(CardInfo):
     types = [Types.ACTION]
     cost = [4, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -6031,10 +6100,10 @@ class CRYPT(CardInfo):
     types = [Types.NIGHT, Types.DURATION]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -6043,10 +6112,10 @@ class CURSED_VILLAGE(CardInfo):
     types = [Types.ACTION, Types.DOOM]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -6055,10 +6124,10 @@ class DEN_OF_SIN(CardInfo):
     types = [Types.NIGHT, Types.DURATION]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -6067,10 +6136,10 @@ class DEVILS_WORKSHOP(CardInfo):
     types = [Types.NIGHT]
     cost = [4, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -6079,10 +6148,10 @@ class DRUID(CardInfo):
     types = [Types.ACTION, Types.FATE]
     cost = [2, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -6091,10 +6160,10 @@ class EXORCIST(CardInfo):
     types = [Types.NIGHT]
     cost = [4, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -6103,10 +6172,10 @@ class FAITHFUL_HOUND(CardInfo):
     types = [Types.ACTION, Types.REACTION]
     cost = [2, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -6115,10 +6184,10 @@ class FOOL(CardInfo):
     types = [Types.ACTION, Types.FATE]
     cost = [3, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -6127,10 +6196,10 @@ class GHOST_TOWN(CardInfo):
     types = [Types.NIGHT, Types.DURATION]
     cost = [3, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -6139,10 +6208,10 @@ class GUARDIAN(CardInfo):
     types = [Types.NIGHT, Types.DURATION]
     cost = [2, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -6151,10 +6220,10 @@ class IDOL(CardInfo):
     types = [Types.TREASURE, Types.ATTACK, Types.FATE]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -6163,10 +6232,10 @@ class LEPRECHAUN(CardInfo):
     types = [Types.ACTION, Types.DOOM]
     cost = [3, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -6175,10 +6244,10 @@ class MONASTERY(CardInfo):
     types = [Types.NIGHT]
     cost = [2, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -6187,10 +6256,10 @@ class NECROMANCER(CardInfo):
     types = [Types.ACTION]
     cost = [4, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -6199,10 +6268,10 @@ class NIGHT_WATCHMAN(CardInfo):
     types = [Types.NIGHT]
     cost = [3, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -6211,10 +6280,10 @@ class PIXIE(CardInfo):
     types = [Types.ACTION, Types.FATE]
     cost = [2, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -6223,10 +6292,10 @@ class POOKA(CardInfo):
     types = [Types.ACTION]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -6235,10 +6304,10 @@ class RAIDER(CardInfo):
     types = [Types.NIGHT, Types.DURATION, Types.ATTACK]
     cost = [6, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -6247,10 +6316,10 @@ class SACRED_GROVE(CardInfo):
     types = [Types.ACTION, Types.FATE]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -6259,10 +6328,10 @@ class SECRET_CAVE(CardInfo):
     types = [Types.ACTION, Types.DURATION]
     cost = [3, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -6271,10 +6340,10 @@ class SHEPHERD(CardInfo):
     types = [Types.ACTION]
     cost = [4, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -6283,10 +6352,10 @@ class SKULK(CardInfo):
     types = [Types.ACTION, Types.ATTACK, Types.DOOM]
     cost = [4, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -6295,10 +6364,10 @@ class TORMENTOR(CardInfo):
     types = [Types.ACTION, Types.ATTACK, Types.DOOM]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -6307,10 +6376,10 @@ class TRAGIC_HERO(CardInfo):
     types = [Types.ACTION]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -6319,10 +6388,10 @@ class TRACKER(CardInfo):
     types = [Types.ACTION, Types.FATE]
     cost = [2, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -6331,10 +6400,10 @@ class VAMPIRE(CardInfo):
     types = [Types.NIGHT, Types.ATTACK, Types.DOOM]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -6343,10 +6412,10 @@ class WEREWOLF(CardInfo):
     types = [Types.ACTION, Types.NIGHT, Types.ATTACK, Types.DOOM]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -6355,10 +6424,10 @@ class CURSED_GOLD(CardInfo):
     types = [Types.TREASURE, Types.HEIRLOOM]
     cost = [4, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -6367,10 +6436,10 @@ class GOAT(CardInfo):
     types = [Types.TREASURE, Types.HEIRLOOM]
     cost = [2, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -6379,10 +6448,10 @@ class HAUNTED_MIRROR(CardInfo):
     types = [Types.TREASURE, Types.HEIRLOOM]
     cost = [0, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -6391,10 +6460,10 @@ class LUCKY_COIN(CardInfo):
     types = [Types.TREASURE, Types.HEIRLOOM]
     cost = [4, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -6403,10 +6472,10 @@ class MAGIC_LAMP(CardInfo):
     types = [Types.TREASURE, Types.HEIRLOOM]
     cost = [0, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -6415,10 +6484,10 @@ class PASTURE(CardInfo):
     types = [Types.TREASURE, Types.VICTORY, Types.HEIRLOOM]
     cost = [2, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -6427,10 +6496,10 @@ class POUCH(CardInfo):
     types = [Types.TREASURE, Types.HEIRLOOM]
     cost = [2, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -6439,10 +6508,10 @@ class BAT(CardInfo):
     types = [Types.NIGHT]
     cost = [2, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -6451,10 +6520,10 @@ class GHOST(CardInfo):
     types = [Types.NIGHT, Types.DURATION, Types.SPIRIT]
     cost = [4, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -6463,10 +6532,10 @@ class IMP(CardInfo):
     types = [Types.ACTION, Types.SPIRIT]
     cost = [2, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -6475,10 +6544,10 @@ class WILL_O_WISP(CardInfo):
     types = [Types.ACTION, Types.SPIRIT]
     cost = [0, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -6487,10 +6556,10 @@ class WISH(CardInfo):
     types = [Types.ACTION]
     cost = [0, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -6499,10 +6568,10 @@ class ZOMBIE_APPRENTICE(CardInfo):
     types = [Types.ACTION, Types.ZOMBIE]
     cost = [3, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -6511,10 +6580,10 @@ class ZOMBIE_MASON(CardInfo):
     types = [Types.ACTION, Types.ZOMBIE]
     cost = [3, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -6523,10 +6592,10 @@ class ZOMBIE_SPY(CardInfo):
     types = [Types.ACTION, Types.ZOMBIE]
     cost = [3, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -6535,10 +6604,10 @@ class ACTING_TROUPE(CardInfo):
     types = [Types.ACTION]
     cost = [3, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -6547,10 +6616,10 @@ class BORDER_GUARD(CardInfo):
     types = [Types.ACTION]
     cost = [2, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -6559,10 +6628,10 @@ class CARGO_SHIP(CardInfo):
     types = [Types.ACTION, Types.DURATION]
     cost = [3, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -6571,10 +6640,10 @@ class DUCAT(CardInfo):
     types = [Types.TREASURE]
     cost = [2, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -6583,10 +6652,10 @@ class EXPERIMENT(CardInfo):
     types = [Types.ACTION]
     cost = [3, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -6595,10 +6664,10 @@ class FLAG_BEARER(CardInfo):
     types = [Types.ACTION]
     cost = [4, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -6607,10 +6676,10 @@ class HIDEOUT(CardInfo):
     types = [Types.ACTION]
     cost = [4, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -6619,10 +6688,10 @@ class INVENTOR(CardInfo):
     types = [Types.ACTION]
     cost = [4, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -6631,10 +6700,10 @@ class IMPROVE(CardInfo):
     types = [Types.ACTION]
     cost = [3, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -6643,10 +6712,10 @@ class LACKEYS(CardInfo):
     types = [Types.ACTION]
     cost = [2, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -6655,10 +6724,10 @@ class MOUNTAIN_VILLAGE(CardInfo):
     types = [Types.ACTION]
     cost = [4, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -6667,10 +6736,10 @@ class PATRON(CardInfo):
     types = [Types.ACTION, Types.REACTION]
     cost = [4, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -6679,10 +6748,10 @@ class PRIEST(CardInfo):
     types = [Types.ACTION]
     cost = [4, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -6691,10 +6760,10 @@ class RESEARCH(CardInfo):
     types = [Types.ACTION, Types.DURATION]
     cost = [4, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -6703,10 +6772,10 @@ class SILK_MERCHANT(CardInfo):
     types = [Types.ACTION]
     cost = [4, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -6715,10 +6784,10 @@ class OLD_WITCH(CardInfo):
     types = [Types.ACTION, Types.ATTACK]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -6727,10 +6796,10 @@ class RECRUITER(CardInfo):
     types = [Types.ACTION]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -6739,10 +6808,10 @@ class SCEPTER(CardInfo):
     types = [Types.TREASURE]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -6751,10 +6820,10 @@ class SCHOLAR(CardInfo):
     types = [Types.ACTION]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -6763,10 +6832,10 @@ class SCULPTOR(CardInfo):
     types = [Types.ACTION]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -6775,10 +6844,10 @@ class SEER(CardInfo):
     types = [Types.ACTION]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -6787,10 +6856,10 @@ class SPICES(CardInfo):
     types = [Types.TREASURE]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -6799,10 +6868,10 @@ class SWASHBUCKLER(CardInfo):
     types = [Types.ACTION]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -6811,10 +6880,10 @@ class TREASURER(CardInfo):
     types = [Types.ACTION]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -6823,10 +6892,10 @@ class VILLAIN(CardInfo):
     types = [Types.ACTION, Types.ATTACK]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -6835,10 +6904,10 @@ class FLAG(CardInfo):
     types = [Types.ARTIFACT]
     cost = [0, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -6847,10 +6916,10 @@ class HORN(CardInfo):
     types = [Types.ARTIFACT]
     cost = [0, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -6859,10 +6928,10 @@ class KEY(CardInfo):
     types = [Types.ARTIFACT]
     cost = [0, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -6871,10 +6940,10 @@ class LANTERN(CardInfo):
     types = [Types.ARTIFACT]
     cost = [0, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -6883,10 +6952,10 @@ class TREASURE_CHEST(CardInfo):
     types = [Types.ARTIFACT]
     cost = [0, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -6895,10 +6964,10 @@ class ACADEMY(CardInfo):
     types = [Types.PROJECT]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -6907,10 +6976,10 @@ class BARRACKS(CardInfo):
     types = [Types.PROJECT]
     cost = [6, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -6919,10 +6988,10 @@ class CANAL(CardInfo):
     types = [Types.PROJECT]
     cost = [7, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -6931,10 +7000,10 @@ class CAPITALISM(CardInfo):
     types = [Types.PROJECT]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -6943,10 +7012,10 @@ class CATHEDRAL(CardInfo):
     types = [Types.PROJECT]
     cost = [3, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -6955,10 +7024,10 @@ class CITADEL(CardInfo):
     types = [Types.PROJECT]
     cost = [8, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -6967,10 +7036,10 @@ class CITY_GATE(CardInfo):
     types = [Types.PROJECT]
     cost = [3, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -6979,10 +7048,10 @@ class CROP_ROTATION(CardInfo):
     types = [Types.PROJECT]
     cost = [6, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -6991,10 +7060,10 @@ class EXPLORATION(CardInfo):
     types = [Types.PROJECT]
     cost = [4, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -7003,10 +7072,10 @@ class FAIR(CardInfo):
     types = [Types.PROJECT]
     cost = [4, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -7015,10 +7084,10 @@ class FLEET(CardInfo):
     types = [Types.PROJECT]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -7027,10 +7096,10 @@ class GUILDHALL(CardInfo):
     types = [Types.PROJECT]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -7039,10 +7108,10 @@ class INNOVATION(CardInfo):
     types = [Types.PROJECT]
     cost = [6, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -7051,10 +7120,10 @@ class PAGEANT(CardInfo):
     types = [Types.PROJECT]
     cost = [3, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -7063,10 +7132,10 @@ class PIAZZA(CardInfo):
     types = [Types.PROJECT]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -7075,10 +7144,10 @@ class ROAD_NETWORK(CardInfo):
     types = [Types.PROJECT]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -7087,10 +7156,10 @@ class SEWERS(CardInfo):
     types = [Types.PROJECT]
     cost = [3, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -7099,10 +7168,10 @@ class SILOS(CardInfo):
     types = [Types.PROJECT]
     cost = [4, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -7111,10 +7180,10 @@ class SINISTER_PLOT(CardInfo):
     types = [Types.PROJECT]
     cost = [4, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -7123,10 +7192,10 @@ class STAR_CHART(CardInfo):
     types = [Types.PROJECT]
     cost = [3, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -7135,10 +7204,10 @@ class SAUNA(CardInfo):
     types = [Types.ACTION]
     cost = [4, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -7147,10 +7216,10 @@ class AVANTO(CardInfo):
     types = [Types.ACTION]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -7159,10 +7228,10 @@ class BLACK_MARKET(CardInfo):
     types = [Types.ACTION]
     cost = [3, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -7171,10 +7240,10 @@ class ENVOY(CardInfo):
     types = [Types.ACTION]
     cost = [4, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -7183,10 +7252,10 @@ class GOVERNOR(CardInfo):
     types = [Types.ACTION]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -7195,10 +7264,10 @@ class PRINCE(CardInfo):
     types = [Types.ACTION]
     cost = [8, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -7207,10 +7276,10 @@ class STASH(CardInfo):
     types = [Types.TREASURE]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -7219,10 +7288,10 @@ class SUMMON(CardInfo):
     types = [Types.EVENT]
     cost = [5, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -7231,10 +7300,10 @@ class WALLED_VILLAGE(CardInfo):
     types = [Types.ACTION]
     cost = [4, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -7243,10 +7312,10 @@ class BLACK_MARKET_DECK(CardInfo):
     types = []
     cost = [0, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -7255,10 +7324,10 @@ class DISMANTLE(CardInfo):
     types = [Types.ACTION]
     cost = [4, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -7267,10 +7336,10 @@ class CAPTAIN(CardInfo):
     types = [Types.ACTION, Types.DURATION, Types.COMMAND]
     cost = [6, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -7279,10 +7348,10 @@ class CHURCH(CardInfo):
     types = [Types.ACTION, Types.DURATION]
     cost = [3, 0, 0]
 
-    def onPlay(self, state, log, realPlay):
+    def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -7294,7 +7363,7 @@ class BLACK_CAT(CardInfo):
     def onPlay(self, state, log):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -7306,7 +7375,7 @@ class SLEIGH(CardInfo):
     def onPlay(self, state, log):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -7318,7 +7387,7 @@ class SUPPLIES(CardInfo):
     def onPlay(self, state, log):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -7330,7 +7399,7 @@ class CAMEL_TRAIN(CardInfo):
     def onPlay(self, state, log):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -7342,7 +7411,7 @@ class GOATHERD(CardInfo):
     def onPlay(self, state, log):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -7354,7 +7423,7 @@ class SCRAP(CardInfo):
     def onPlay(self, state, log):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -7366,7 +7435,7 @@ class SHEEPDOG(CardInfo):
     def onPlay(self, state, log):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -7378,7 +7447,7 @@ class SNOWY_VILLAGE(CardInfo):
     def onPlay(self, state, log):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -7390,7 +7459,7 @@ class STOCKPILE(CardInfo):
     def onPlay(self, state, log):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -7402,7 +7471,7 @@ class BOUNTY_HUNTER(CardInfo):
     def onPlay(self, state, log):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -7414,7 +7483,7 @@ class CARDINAL(CardInfo):
     def onPlay(self, state, log):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -7426,7 +7495,7 @@ class CAVALRY(CardInfo):
     def onPlay(self, state, log):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -7438,7 +7507,7 @@ class GROOM(CardInfo):
     def onPlay(self, state, log):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -7450,7 +7519,7 @@ class HOSTELRY(CardInfo):
     def onPlay(self, state, log):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -7462,7 +7531,7 @@ class VILLAGE_GREEN(CardInfo):
     def onPlay(self, state, log):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -7474,7 +7543,7 @@ class BARGE(CardInfo):
     def onPlay(self, state, log):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -7486,7 +7555,7 @@ class COVEN(CardInfo):
     def onPlay(self, state, log):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -7498,7 +7567,7 @@ class DISPLACE(CardInfo):
     def onPlay(self, state, log):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -7510,7 +7579,7 @@ class FALCONER(CardInfo):
     def onPlay(self, state, log):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -7522,7 +7591,7 @@ class FISHERMAN(CardInfo):
     def onPlay(self, state, log):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -7534,7 +7603,7 @@ class GATEKEEPER(CardInfo):
     def onPlay(self, state, log):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -7546,7 +7615,7 @@ class HUNTING_LODGE(CardInfo):
     def onPlay(self, state, log):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -7558,7 +7627,7 @@ class KILN(CardInfo):
     def onPlay(self, state, log):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -7570,7 +7639,7 @@ class LIVERY(CardInfo):
     def onPlay(self, state, log):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -7582,7 +7651,7 @@ class MASTERMIND(CardInfo):
     def onPlay(self, state, log):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -7594,7 +7663,7 @@ class PADDOCK(CardInfo):
     def onPlay(self, state, log):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -7606,7 +7675,7 @@ class SANCTUARY(CardInfo):
     def onPlay(self, state, log):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -7618,7 +7687,7 @@ class DESTRIER(CardInfo):
     def onPlay(self, state, log):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -7630,7 +7699,7 @@ class WAYFARER(CardInfo):
     def onPlay(self, state, log):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -7642,7 +7711,7 @@ class ANIMAL_FAIR(CardInfo):
     def onPlay(self, state, log):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -7654,7 +7723,7 @@ class HORSE(CardInfo):
     def onPlay(self, state, log):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -7666,7 +7735,7 @@ class WAY_OF_THE_BUTTERFLY(CardInfo):
     def onPlay(self, state, log):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -7678,7 +7747,7 @@ class WAY_OF_THE_CAMEL(CardInfo):
     def onPlay(self, state, log):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -7690,7 +7759,7 @@ class WAY_OF_THE_CHAMELEON(CardInfo):
     def onPlay(self, state, log):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -7702,7 +7771,7 @@ class WAY_OF_THE_FROG(CardInfo):
     def onPlay(self, state, log):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -7714,7 +7783,7 @@ class WAY_OF_THE_GOAT(CardInfo):
     def onPlay(self, state, log):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -7726,7 +7795,7 @@ class WAY_OF_THE_HORSE(CardInfo):
     def onPlay(self, state, log):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -7738,7 +7807,7 @@ class WAY_OF_THE_MOLE(CardInfo):
     def onPlay(self, state, log):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -7750,7 +7819,7 @@ class WAY_OF_THE_MONKEY(CardInfo):
     def onPlay(self, state, log):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -7762,7 +7831,7 @@ class WAY_OF_THE_MOUSE(CardInfo):
     def onPlay(self, state, log):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -7774,7 +7843,7 @@ class WAY_OF_THE_MULE(CardInfo):
     def onPlay(self, state, log):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -7786,7 +7855,7 @@ class WAY_OF_THE_OTTER(CardInfo):
     def onPlay(self, state, log):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -7798,7 +7867,7 @@ class WAY_OF_THE_OWL(CardInfo):
     def onPlay(self, state, log):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -7810,7 +7879,7 @@ class WAY_OF_THE_OX(CardInfo):
     def onPlay(self, state, log):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -7822,7 +7891,7 @@ class WAY_OF_THE_PIG(CardInfo):
     def onPlay(self, state, log):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -7834,7 +7903,7 @@ class WAY_OF_THE_RAT(CardInfo):
     def onPlay(self, state, log):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -7846,7 +7915,7 @@ class WAY_OF_THE_SEAL(CardInfo):
     def onPlay(self, state, log):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -7858,7 +7927,7 @@ class WAY_OF_THE_SHEEP(CardInfo):
     def onPlay(self, state, log):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -7870,7 +7939,7 @@ class WAY_OF_THE_SQUIRREL(CardInfo):
     def onPlay(self, state, log):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -7882,7 +7951,7 @@ class WAY_OF_THE_TURTLE(CardInfo):
     def onPlay(self, state, log):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -7894,7 +7963,7 @@ class WAY_OF_THE_WORM(CardInfo):
     def onPlay(self, state, log):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -7906,7 +7975,7 @@ class DELAY(CardInfo):
     def onPlay(self, state, log):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -7918,7 +7987,7 @@ class DESPERATION(CardInfo):
     def onPlay(self, state, log):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -7930,7 +7999,7 @@ class GAMBLE(CardInfo):
     def onPlay(self, state, log):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -7942,7 +8011,7 @@ class PURSUE(CardInfo):
     def onPlay(self, state, log):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -7954,7 +8023,7 @@ class RIDE(CardInfo):
     def onPlay(self, state, log):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -7966,7 +8035,7 @@ class TOIL(CardInfo):
     def onPlay(self, state, log):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -7978,7 +8047,7 @@ class ENHANCE(CardInfo):
     def onPlay(self, state, log):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -7990,7 +8059,7 @@ class MARCH(CardInfo):
     def onPlay(self, state, log):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -8002,7 +8071,7 @@ class TRANSPORT(CardInfo):
     def onPlay(self, state, log):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -8014,7 +8083,7 @@ class BANISH(CardInfo):
     def onPlay(self, state, log):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -8026,7 +8095,7 @@ class BARGAIN(CardInfo):
     def onPlay(self, state, log):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -8038,7 +8107,7 @@ class INVEST(CardInfo):
     def onPlay(self, state, log):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -8050,7 +8119,7 @@ class SEIZE_THE_DAY(CardInfo):
     def onPlay(self, state, log):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -8062,7 +8131,7 @@ class COMMERCE(CardInfo):
     def onPlay(self, state, log):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -8074,7 +8143,7 @@ class DEMAND(CardInfo):
     def onPlay(self, state, log):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -8086,7 +8155,7 @@ class STAMPEDE(CardInfo):
     def onPlay(self, state, log):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -8098,7 +8167,7 @@ class REAP(CardInfo):
     def onPlay(self, state, log):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -8110,7 +8179,7 @@ class ENCLAVE(CardInfo):
     def onPlay(self, state, log):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -8122,7 +8191,7 @@ class ALLIANCE(CardInfo):
     def onPlay(self, state, log):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -8134,7 +8203,7 @@ class POPULATE(CardInfo):
     def onPlay(self, state, log):
         state = deepcopy(state)
         state.stack += []
-        state.candidates = [state.stack.pop()]
+        state.candidates = state.stack.pop()
         return state
 
 
@@ -8199,6 +8268,526 @@ def getCardInfo(card):
         "Trading Post": TRADING_POST,
         "Upgrade": UPGRADE,
         "Wishing Well": WISHING_WELL,
+        "Ambassador": AMBASSADOR,
+        "Bazaar": BAZAAR,
+        "Caravan": CARAVAN,
+        "Cutpurse": CUTPURSE,
+        "Embargo": EMBARGO,
+        "Explorer": EXPLORER,
+        "Fishing Village": FISHING_VILLAGE,
+        "Ghost Ship": GHOST_SHIP,
+        "Haven": HAVEN,
+        "Island": ISLAND,
+        "Lighthouse": LIGHTHOUSE,
+        "Lookout": LOOKOUT,
+        "Merchant Ship": MERCHANT_SHIP,
+        "Native Village": NATIVE_VILLAGE,
+        "Navigator": NAVIGATOR,
+        "Outpost": OUTPOST,
+        "Pearl Diver": PEARL_DIVER,
+        "Pirate Ship": PIRATE_SHIP,
+        "Salvager": SALVAGER,
+        "Sea Hag": SEA_HAG,
+        "Smugglers": SMUGGLERS,
+        "Tactician": TACTICIAN,
+        "Treasure Map": TREASURE_MAP,
+        "Treasury": TREASURY,
+        "Warehouse": WAREHOUSE,
+        "Wharf": WHARF,
+        "Alchemist": ALCHEMIST,
+        "Apothecary": APOTHECARY,
+        "Apprentice": APPRENTICE,
+        "Familiar": FAMILIAR,
+        "Golem": GOLEM,
+        "Herbalist": HERBALIST,
+        "Philosophers Stone": PHILOSOPHERS_STONE,
+        "Possession": POSSESSION,
+        "Potion": POTION,
+        "Scrying Pool": SCRYING_POOL,
+        "Transmute": TRANSMUTE,
+        "University": UNIVERSITY,
+        "Vineyard": VINEYARD,
+        "Bank": BANK,
+        "Bishop": BISHOP,
+        "Colony": COLONY,
+        "Contraband": CONTRABAND,
+        "Counting House": COUNTING_HOUSE,
+        "City": CITY,
+        "Expand": EXPAND,
+        "Forge": FORGE,
+        "Grand Market": GRAND_MARKET,
+        "Goons": GOONS,
+        "Hoard": HOARD,
+        "Kings Court": KINGS_COURT,
+        "Loan": LOAN,
+        "Mint": MINT,
+        "Monument": MONUMENT,
+        "Mountebank": MOUNTEBANK,
+        "Peddler": PEDDLER,
+        "Platinum": PLATINUM,
+        "Quarry": QUARRY,
+        "Rabble": RABBLE,
+        "Royal Seal": ROYAL_SEAL,
+        "Talisman": TALISMAN,
+        "Trade Route": TRADE_ROUTE,
+        "Vault": VAULT,
+        "Venture": VENTURE,
+        "Watchtower": WATCHTOWER,
+        "Workers Village": WORKERS_VILLAGE,
+        "Bag Of Gold": BAG_OF_GOLD,
+        "Diadem": DIADEM,
+        "Fairgrounds": FAIRGROUNDS,
+        "Farming Village": FARMING_VILLAGE,
+        "Followers": FOLLOWERS,
+        "Fortune Teller": FORTUNE_TELLER,
+        "Hamlet": HAMLET,
+        "Harvest": HARVEST,
+        "Horse Traders": HORSE_TRADERS,
+        "Horn Of Plenty": HORN_OF_PLENTY,
+        "Hunting Party": HUNTING_PARTY,
+        "Jester": JESTER,
+        "Menagerie": MENAGERIE,
+        "Princess": PRINCESS,
+        "Remake": REMAKE,
+        "Tournament": TOURNAMENT,
+        "Trusty Steed": TRUSTY_STEED,
+        "Young Witch": YOUNG_WITCH,
+        "Border Village": BORDER_VILLAGE,
+        "Cache": CACHE,
+        "Cartographer": CARTOGRAPHER,
+        "Crossroads": CROSSROADS,
+        "Develop": DEVELOP,
+        "Duchess": DUCHESS,
+        "Embassy": EMBASSY,
+        "Farmland": FARMLAND,
+        "Fools Gold": FOOLS_GOLD,
+        "Haggler": HAGGLER,
+        "Highway": HIGHWAY,
+        "Ill Gotten Gains": ILL_GOTTEN_GAINS,
+        "Inn": INN,
+        "Jack Of All Trades": JACK_OF_ALL_TRADES,
+        "Mandarin": MANDARIN,
+        "Noble Brigand": NOBLE_BRIGAND,
+        "Nomad Camp": NOMAD_CAMP,
+        "Oasis": OASIS,
+        "Oracle": ORACLE,
+        "Margrave": MARGRAVE,
+        "Scheme": SCHEME,
+        "Silk Road": SILK_ROAD,
+        "Spice Merchant": SPICE_MERCHANT,
+        "Stables": STABLES,
+        "Trader": TRADER,
+        "Tunnel": TUNNEL,
+        "Ruin Pile": RUINS,
+        "Knights": KNIGHTS,
+        "Abandoned Mine": ABANDONED_MINE,
+        "Altar": ALTAR,
+        "Armory": ARMORY,
+        "Band Of Misfits": BAND_OF_MISFITS,
+        "Bandit Camp": BANDIT_CAMP,
+        "Beggar": BEGGAR,
+        "Catacombs": CATACOMBS,
+        "Count": COUNT,
+        "Counterfeit": COUNTERFEIT,
+        "Cultist": CULTIST,
+        "Dame Anna": DAME_ANNA,
+        "Dame Josephine": DAME_JOSEPHINE,
+        "Dame Molly": DAME_MOLLY,
+        "Dame Natalie": DAME_NATALIE,
+        "Dame Sylvia": DAME_SYLVIA,
+        "Death Cart": DEATH_CART,
+        "Feodum": FEODUM,
+        "Forager": FORAGER,
+        "Fortress": FORTRESS,
+        "Graverobber": GRAVEROBBER,
+        "Hermit": HERMIT,
+        "Hovel": HOVEL,
+        "Hunting Grounds": HUNTING_GROUNDS,
+        "Ironmonger": IRONMONGER,
+        "Junk Dealer": JUNK_DEALER,
+        "Madman": MADMAN,
+        "Market Square": MARKET_SQUARE,
+        "Marauder": MARAUDER,
+        "Mercenary": MERCENARY,
+        "Mystic": MYSTIC,
+        "Necropolis": NECROPOLIS,
+        "Overgrown Estate": OVERGROWN_ESTATE,
+        "Pillage": PILLAGE,
+        "Poor House": POOR_HOUSE,
+        "Procession": PROCESSION,
+        "Rats": RATS,
+        "Rebuild": REBUILD,
+        "Rogue": ROGUE,
+        "Ruined Library": RUINED_LIBRARY,
+        "Ruined Market": RUINED_MARKET,
+        "Ruined Village": RUINED_VILLAGE,
+        "Sage": SAGE,
+        "Scavenger": SCAVENGER,
+        "Sir Bailey": SIR_BAILEY,
+        "Sir Destry": SIR_DESTRY,
+        "Sir Martin": SIR_MARTIN,
+        "Sir Michael": SIR_MICHAEL,
+        "Sir Vander": SIR_VANDER,
+        "Spoils": SPOILS,
+        "Storeroom": STOREROOM,
+        "Squire": SQUIRE,
+        "Survivors": SURVIVORS,
+        "Urchin": URCHIN,
+        "Vagrant": VAGRANT,
+        "Wandering Minstrel": WANDERING_MINSTREL,
+        "Advisor": ADVISOR,
+        "Baker": BAKER,
+        "Butcher": BUTCHER,
+        "Candlestick Maker": CANDLESTICK_MAKER,
+        "Doctor": DOCTOR,
+        "Herald": HERALD,
+        "Journeyman": JOURNEYMAN,
+        "Masterpiece": MASTERPIECE,
+        "Merchant Guild": MERCHANT_GUILD,
+        "Plaza": PLAZA,
+        "Taxman": TAXMAN,
+        "Soothsayer": SOOTHSAYER,
+        "Stonemason": STONEMASON,
+        "Alms": ALMS,
+        "Amulet": AMULET,
+        "Artificer": ARTIFICER,
+        "Ball": BALL,
+        "Bonfire": BONFIRE,
+        "Borrow": BORROW,
+        "Bridge Troll": BRIDGE_TROLL,
+        "Caravan Guard": CARAVAN_GUARD,
+        "Champion": CHAMPION,
+        "Coin Of The Realm": COIN_OF_THE_REALM,
+        "Disciple": DISCIPLE,
+        "Distant Lands": DISTANT_LANDS,
+        "Dungeon": DUNGEON,
+        "Duplicate": DUPLICATE,
+        "Expedition": EXPEDITION,
+        "Ferry": FERRY,
+        "Fugitive": FUGITIVE,
+        "Gear": GEAR,
+        "Giant": GIANT,
+        "Guide": GUIDE,
+        "Haunted Woods": HAUNTED_WOODS,
+        "Hero": HERO,
+        "Hireling": HIRELING,
+        "Inheritance": INHERITANCE,
+        "Lost Arts": LOST_ARTS,
+        "Lost City": LOST_CITY,
+        "Magpie": MAGPIE,
+        "Messenger": MESSENGER,
+        "Miser": MISER,
+        "Mission": MISSION,
+        "Pathfinding": PATHFINDING,
+        "Page": PAGE,
+        "Peasant": PEASANT,
+        "Pilgrimage": PILGRIMAGE,
+        "Plan": PLAN,
+        "Port": PORT,
+        "Quest": QUEST,
+        "Ranger": RANGER,
+        "Raid": RAID,
+        "Ratcatcher": RATCATCHER,
+        "Raze": RAZE,
+        "Relic": RELIC,
+        "Royal Carriage": ROYAL_CARRIAGE,
+        "Save": SAVE,
+        "Scouting Party": SCOUTING_PARTY,
+        "Seaway": SEAWAY,
+        "Soldier": SOLDIER,
+        "Storyteller": STORYTELLER,
+        "Swamp Hag": SWAMP_HAG,
+        "Teacher": TEACHER,
+        "Travelling Fair": TRAVELLING_FAIR,
+        "Trade": TRADE,
+        "Training": TRAINING,
+        "Transmogrify": TRANSMOGRIFY,
+        "Treasure Trove": TREASURE_TROVE,
+        "Treasure Hunter": TREASURE_HUNTER,
+        "Warrior": WARRIOR,
+        "Wine Merchant": WINE_MERCHANT,
+        "Encampment": ENCAMPMENT,
+        "Plunder": PLUNDER,
+        "Patrician": PATRICIAN,
+        "Emporium": EMPORIUM,
+        "Settlers": SETTLERS,
+        "Bustling Village": BUSTLING_VILLAGE,
+        "Catapult": CATAPULT,
+        "Rocks": ROCKS,
+        "Gladiator": GLADIATOR,
+        "Fortune": FORTUNE,
+        "Castles": CASTLES,
+        "Humble Castle": HUMBLE_CASTLE,
+        "Crumbling Castle": CRUMBLING_CASTLE,
+        "Small Castle": SMALL_CASTLE,
+        "Haunted Castle": HAUNTED_CASTLE,
+        "Opulent Castle": OPULENT_CASTLE,
+        "Sprawling Castle": SPRAWLING_CASTLE,
+        "Grand Castle": GRAND_CASTLE,
+        "Kings Castle": KINGS_CASTLE,
+        "Advance": ADVANCE,
+        "Annex": ANNEX,
+        "Archive": ARCHIVE,
+        "Aqueduct": AQUEDUCT,
+        "Arena": ARENA,
+        "Bandit Fort": BANDIT_FORT,
+        "Banquet": BANQUET,
+        "Basilica": BASILICA,
+        "Baths": BATHS,
+        "Battlefield": BATTLEFIELD,
+        "Capital": CAPITAL,
+        "Charm": CHARM,
+        "Chariot Race": CHARIOT_RACE,
+        "City Quarter": CITY_QUARTER,
+        "Colonnade": COLONNADE,
+        "Conquest": CONQUEST,
+        "Crown": CROWN,
+        "Delve": DELVE,
+        "Defiled Shrine": DEFILED_SHRINE,
+        "Dominate": DOMINATE,
+        "Donate": DONATE,
+        "Enchantress": ENCHANTRESS,
+        "Engineer": ENGINEER,
+        "Farmers Market": FARMERS_MARKET,
+        "Forum": FORUM,
+        "Fountain": FOUNTAIN,
+        "Groundskeeper": GROUNDSKEEPER,
+        "Keep": KEEP,
+        "Labyrinth": LABYRINTH,
+        "Legionary": LEGIONARY,
+        "Mountain Pass": MOUNTAIN_PASS,
+        "Museum": MUSEUM,
+        "Obelisk": OBELISK,
+        "Orchard": ORCHARD,
+        "Overlord": OVERLORD,
+        "Palace": PALACE,
+        "Ritual": RITUAL,
+        "Royal Blacksmith": ROYAL_BLACKSMITH,
+        "Sacrifice": SACRIFICE,
+        "Salt The Earth": SALT_THE_EARTH,
+        "Tax": TAX,
+        "Temple": TEMPLE,
+        "Tomb": TOMB,
+        "Tower": TOWER,
+        "Triumph": TRIUMPH,
+        "Triumphal Arch": TRIUMPHAL_ARCH,
+        "Villa": VILLA,
+        "Wall": WALL,
+        "Wolf Den": WOLF_DEN,
+        "Wedding": WEDDING,
+        "Wild Hunt": WILD_HUNT,
+        "Windfall": WINDFALL,
+        "The Earths Gift": THE_EARTHS_GIFT,
+        "The Fields Gift": THE_FIELDS_GIFT,
+        "The Flames Gift": THE_FLAMES_GIFT,
+        "The Forests Gift": THE_FORESTS_GIFT,
+        "The Moons Gift": THE_MOONS_GIFT,
+        "The Mountains Gift": THE_MOUNTAINS_GIFT,
+        "The Rivers Gift": THE_RIVERS_GIFT,
+        "The Seas Gift": THE_SEAS_GIFT,
+        "The Skys Gift": THE_SKYS_GIFT,
+        "The Suns Gift": THE_SUNS_GIFT,
+        "The Swamps Gift": THE_SWAMPS_GIFT,
+        "The Winds Gift": THE_WINDS_GIFT,
+        "Bad Omens": BAD_OMENS,
+        "Delusion": DELUSION,
+        "Envy": ENVY,
+        "Famine": FAMINE,
+        "Fear": FEAR,
+        "Greed": GREED,
+        "Haunting": HAUNTING,
+        "Locusts": LOCUSTS,
+        "Misery": MISERY,
+        "Plague": PLAGUE,
+        "Poverty": POVERTY,
+        "War": WAR,
+        "Miserable": MISERABLE,
+        "Twice Miserable": TWICE_MISERABLE,
+        "Envious": ENVIOUS,
+        "Deluded": DELUDED,
+        "Lost In The Woods": LOST_IN_THE_WOODS,
+        "Bard": BARD,
+        "Blessed Village": BLESSED_VILLAGE,
+        "Changeling": CHANGELING,
+        "Cemetery": CEMETERY,
+        "Cobbler": COBBLER,
+        "Conclave": CONCLAVE,
+        "Crypt": CRYPT,
+        "Cursed Village": CURSED_VILLAGE,
+        "Den Of Sin": DEN_OF_SIN,
+        "Devils Workshop": DEVILS_WORKSHOP,
+        "Druid": DRUID,
+        "Exorcist": EXORCIST,
+        "Faithful Hound": FAITHFUL_HOUND,
+        "Fool": FOOL,
+        "Ghost Town": GHOST_TOWN,
+        "Guardian": GUARDIAN,
+        "Idol": IDOL,
+        "Leprechaun": LEPRECHAUN,
+        "Monastery": MONASTERY,
+        "Necromancer": NECROMANCER,
+        "Night Watchman": NIGHT_WATCHMAN,
+        "Pixie": PIXIE,
+        "Pooka": POOKA,
+        "Raider": RAIDER,
+        "Sacred Grove": SACRED_GROVE,
+        "Secret Cave": SECRET_CAVE,
+        "Shepherd": SHEPHERD,
+        "Skulk": SKULK,
+        "Tormentor": TORMENTOR,
+        "Tragic Hero": TRAGIC_HERO,
+        "Tracker": TRACKER,
+        "Vampire": VAMPIRE,
+        "Werewolf": WEREWOLF,
+        "Cursed Gold": CURSED_GOLD,
+        "Goat": GOAT,
+        "Haunted Mirror": HAUNTED_MIRROR,
+        "Lucky Coin": LUCKY_COIN,
+        "Magic Lamp": MAGIC_LAMP,
+        "Pasture": PASTURE,
+        "Pouch": POUCH,
+        "Bat": BAT,
+        "Ghost": GHOST,
+        "Imp": IMP,
+        "Will O Wisp": WILL_O_WISP,
+        "Wish": WISH,
+        "Zombie Apprentice": ZOMBIE_APPRENTICE,
+        "Zombie Mason": ZOMBIE_MASON,
+        "Zombie Spy": ZOMBIE_SPY,
+        "Acting Troupe": ACTING_TROUPE,
+        "Border Guard": BORDER_GUARD,
+        "Cargo Ship": CARGO_SHIP,
+        "Ducat": DUCAT,
+        "Experiment": EXPERIMENT,
+        "Flag Bearer": FLAG_BEARER,
+        "Hideout": HIDEOUT,
+        "Inventor": INVENTOR,
+        "Improve": IMPROVE,
+        "Lackeys": LACKEYS,
+        "Mountain Village": MOUNTAIN_VILLAGE,
+        "Patron": PATRON,
+        "Priest": PRIEST,
+        "Research": RESEARCH,
+        "Silk Merchant": SILK_MERCHANT,
+        "Old Witch": OLD_WITCH,
+        "Recruiter": RECRUITER,
+        "Scepter": SCEPTER,
+        "Scholar": SCHOLAR,
+        "Sculptor": SCULPTOR,
+        "Seer": SEER,
+        "Spices": SPICES,
+        "Swashbuckler": SWASHBUCKLER,
+        "Treasurer": TREASURER,
+        "Villain": VILLAIN,
+        "Flag": FLAG,
+        "Horn": HORN,
+        "Key": KEY,
+        "Lantern": LANTERN,
+        "Treasure Chest": TREASURE_CHEST,
+        "Academy": ACADEMY,
+        "Barracks": BARRACKS,
+        "Canal": CANAL,
+        "Capitalism": CAPITALISM,
+        "Cathedral": CATHEDRAL,
+        "Citadel": CITADEL,
+        "City Gate": CITY_GATE,
+        "Crop Rotation": CROP_ROTATION,
+        "Exploration": EXPLORATION,
+        "Fair": FAIR,
+        "Fleet": FLEET,
+        "Guildhall": GUILDHALL,
+        "Innovation": INNOVATION,
+        "Pageant": PAGEANT,
+        "Piazza": PIAZZA,
+        "Road Network": ROAD_NETWORK,
+        "Sewers": SEWERS,
+        "Silos": SILOS,
+        "Sinister Plot": SINISTER_PLOT,
+        "Star Chart": STAR_CHART,
+        "Sauna": SAUNA,
+        "Avanto": AVANTO,
+        "Black Market": BLACK_MARKET,
+        "Envoy": ENVOY,
+        "Governor": GOVERNOR,
+        "Prince": PRINCE,
+        "Stash": STASH,
+        "Summon": SUMMON,
+        "Walled Village": WALLED_VILLAGE,
+        "Black Market Pile": BLACK_MARKET_DECK,
+        "Dismantle": DISMANTLE,
+        "Captain": CAPTAIN,
+        "Church": CHURCH,
+        "Black Cat": BLACK_CAT,
+        "Sleigh": SLEIGH,
+        "Supplies": SUPPLIES,
+        "Camel Train": CAMEL_TRAIN,
+        "Goatherd": GOATHERD,
+        "Scrap": SCRAP,
+        "Sheepdog": SHEEPDOG,
+        "Snowy Village": SNOWY_VILLAGE,
+        "Stockpile": STOCKPILE,
+        "Bounty Hunter": BOUNTY_HUNTER,
+        "Cardinal": CARDINAL,
+        "Cavalry": CAVALRY,
+        "Groom": GROOM,
+        "Hostelry": HOSTELRY,
+        "Village Green": VILLAGE_GREEN,
+        "Barge": BARGE,
+        "Coven": COVEN,
+        "Displace": DISPLACE,
+        "Falconer": FALCONER,
+        "Fisherman": FISHERMAN,
+        "Gatekeeper": GATEKEEPER,
+        "Hunting Lodge": HUNTING_LODGE,
+        "Kiln": KILN,
+        "Livery": LIVERY,
+        "Mastermind": MASTERMIND,
+        "Paddock": PADDOCK,
+        "Sanctuary": SANCTUARY,
+        "Destrier": DESTRIER,
+        "Wayfarer": WAYFARER,
+        "Animal Fair": ANIMAL_FAIR,
+        "Horse": HORSE,
+        "Way Of The Butterfly": WAY_OF_THE_BUTTERFLY,
+        "Way Of The Camel": WAY_OF_THE_CAMEL,
+        "Way Of The Chameleon": WAY_OF_THE_CHAMELEON,
+        "Way Of The Frog": WAY_OF_THE_FROG,
+        "Way Of The Goat": WAY_OF_THE_GOAT,
+        "Way Of The Horse": WAY_OF_THE_HORSE,
+        "Way Of The Mole": WAY_OF_THE_MOLE,
+        "Way Of The Monkey": WAY_OF_THE_MONKEY,
+        "Way Of The Mouse": WAY_OF_THE_MOUSE,
+        "Way Of The Mule": WAY_OF_THE_MULE,
+        "Way Of The Otter": WAY_OF_THE_OTTER,
+        "Way Of The Owl": WAY_OF_THE_OWL,
+        "Way Of The Ox": WAY_OF_THE_OX,
+        "Way Of The Pig": WAY_OF_THE_PIG,
+        "Way Of The Rat": WAY_OF_THE_RAT,
+        "Way Of The Seal": WAY_OF_THE_SEAL,
+        "Way Of The Sheep": WAY_OF_THE_SHEEP,
+        "Way Of The Squirrel": WAY_OF_THE_SQUIRREL,
+        "Way Of The Turtle": WAY_OF_THE_TURTLE,
+        "Way Of The Worm": WAY_OF_THE_WORM,
+        "Delay": DELAY,
+        "Desperation": DESPERATION,
+        "Gamble": GAMBLE,
+        "Pursue": PURSUE,
+        "Ride": RIDE,
+        "Toil": TOIL,
+        "Enhance": ENHANCE,
+        "March": MARCH,
+        "Transport": TRANSPORT,
+        "Banish": BANISH,
+        "Bargain": BARGAIN,
+        "Invest": INVEST,
+        "Seize The Day": SEIZE_THE_DAY,
+        "Commerce": COMMERCE,
+        "Demand": DEMAND,
+        "Stampede": STAMPEDE,
+        "Reap": REAP,
+        "Enclave": ENCLAVE,
+        "Alliance": ALLIANCE,
+        "Populate": POPULATE,
     }
     if card in correspondences:
         return correspondences[card]()

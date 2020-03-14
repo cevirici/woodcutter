@@ -6,11 +6,13 @@ from .Utils import *
 
 class Gamestate:
     def __init__(self):
+        self.cards = []
+        self.zones = {z: [[] for p in range(PLAYER_COUNT)] for z in PlayerZones}
+        self.zones.update({z: [] for z in NeutralZones})
+
         self.player = 0
         self.turnNumber = 0
         self.turnType = TurnTypes.PREGAME
-        self.zones = {z: [[] for p in range(PLAYER_COUNT)] for z in PlayerZones}
-        self.zones.update({z: [] for z in NeutralZones})
 
         self.stack = []
         self.logLine = 0
@@ -25,111 +27,64 @@ class Gamestate:
         self.debt = [0 for p in range(PLAYER_COUNT)]
         self.villagers = [0 for p in range(PLAYER_COUNT)]
 
-        self.cleanupEffects = []
         self.reductions = 0
         self.turnStarts = []
-        self.stayOuts = []
+        self.cleanupEffects = []
+
+    def __repr__(self):
+        return repr(self.move)
+
+    def getZone(self, zoneName, player):
+        if player == -1:
+            player = self.player
+        if isinstance(zoneName, PlayerZones):
+            return self.zones[zoneName][player]
+        else:
+            return self.zones[zoneName]
 
     def zoneCount(self, zoneName, player=-1):
-        if player == -1:
-            player = self.player
-        if isinstance(zoneName, PlayerZones):
-            return sum([pile.count() for pile in self.zones[zoneName][player]])
-        else:
-            return sum([pile.count() for pile in self.zones[zoneName]])
+        return len(self.getZone(zoneName, player))
 
-    def zoneContains(self, card, zoneName, player=-1):
-        if player == -1:
-            player = self.player
-        if isinstance(zoneName, PlayerZones):
-            zone = self.zones[zoneName][player]
-        else:
-            zone = self.zones[zoneName]
-
-        for pile in zone:
-            if pile.contains(card):
+    def zoneContains(self, cardName, zoneName, player=-1):
+        for card in self.getZone(zoneName, player):
+            if card.name == cardName:
                 return True
         return False
 
-    def newPile(self, pile, zoneName, player=-1):
-        if player == -1:
-            player = self.player
-        if isinstance(zoneName, PlayerZones):
-            self.zones[zoneName][player].append(pile)
-        else:
-            self.zones[zoneName].append(pile)
-
-    def add(self, card, zone, keyCard=None):
-        # Adds a card to a zone
-        if len(zone) == 0:
-            zone.append(Pile(keyCard if keyCard else card, []))
-        zone[0].addCard(card)
-
-    def addCard(self, card, zoneName, keyCard=None, player=0):
-        # This doesn't care about piles. If there isn't a pile, make a pile.
-        if isinstance(zoneName, PlayerZones):
-            zone = self.zones[zoneName][player]
-        else:
-            zone = self.zones[zoneName]
-        self.add(card, zone, keyCard)
+    def addCard(self, card, zoneName, player=-1):
+        zone = self.getZone(zoneName, player)
+        newCard = Card(card, len(self.cards), zoneName, player)
+        self.cards.append(newCard)
+        zone.append(newCard)
 
     def moveCards(self, cardList, src, dest, srcP=-1, destP=-1):
-        cardList = copy(cardList)
-        if isinstance(src, PlayerZones):
-            if srcP >= 0:
-                srcZone = self.zones[src][srcP]
-            else:
-                srcZone = self.zones[src][self.player]
-        else:
-            srcZone = self.zones[src]
+        srcZone = self.getZone(src, srcP)
+        destZone = self.getZone(dest, destP)
 
-        if isinstance(dest, PlayerZones):
-            if destP >= 0:
-                destZone = self.zones[dest][destP]
-            else:
-                destZone = self.zones[dest][self.player]
-        else:
-            destZone = self.zones[dest]
+        movedCards = []
+        for cardName in cardList:
+            moved = False
+            for target in srcZone:
+                if target.name == cardName:
+                    srcZone.remove(target)
+                    destZone.append(target)
+                    target.move(dest)
+                    target.player = self.player if destP == -1 else destP
 
-        while cardList:
-            removedSomething = False
-            for card in cardList:
-                for pile in srcZone:
-                    if pile.contains(card):
-                        self.add(pile.remove(card), destZone)
-                        removedSomething = True
-                        cardList.remove(card)
-                        # Avoid double removal
-                        break
-                if removedSomething:
-                    # We need to break here as otherwise we'd mutate
-                    # the list we're iterating in
+                    moved = True
+                    movedCards.append(target)
                     break
-
-            if not removedSomething:
+            if not moved:
                 return False
-        return True
+
+        return movedCards
 
     def moveAllCards(self, src, dest, srcP=-1, destP=-1):
-        if isinstance(src, PlayerZones):
-            if srcP >= 0:
-                srcZone = self.zones[src][srcP]
-            else:
-                srcZone = self.zones[src][self.player]
-        else:
-            srcZone = self.zones[src]
+        srcZone = self.getZone(src, srcP)
+        destZone = self.getZone(dest, destP)
+        for card in srcZone:
+            card.location = dest
+            card.player = self.player if destP == -1 else destP
 
-        if isinstance(dest, PlayerZones):
-            if destP >= 0:
-                destZone = self.zones[dest][destP]
-            else:
-                destZone = self.zones[dest][self.player]
-        else:
-            destZone = self.zones[dest]
-
-        for pile in srcZone:
-            for card in pile.cards:
-                self.add(card, destZone)
-            pile.removeAll()
-
-        return True
+        destZone += srcZone
+        srcZone.clear()

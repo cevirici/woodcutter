@@ -85,7 +85,7 @@ def submit(request):
 def dump(request, game_id):
     log = get_object_or_404(GameLog, game_id=game_id)
     states = simulate(log)
-    return HttpResponse("<br>".join([repr(s.move) for s in states]))
+    return HttpResponse("<br>".join([repr(s) for s in states]))
 
 
 def plaintext(request, game_id):
@@ -93,7 +93,10 @@ def plaintext(request, game_id):
     cards, preds = getInfo(log.version)
 
     printer = Printer(log.version)
-    printedLog = [printer.print_line(line) for line in log.log.split("~")]
+    lines = log.log.split("~")
+    printedLog = [
+        str(i) + ":" + printer.print_line(lines[i]) for i in range(len(lines))
+    ]
     return HttpResponse(
         printer.print_supply(log.supply) + "<br>" + "<br>".join(printedLog)
     )
