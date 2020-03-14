@@ -45,10 +45,11 @@ class conditionally(Action):
     def __init__(self, condition, action):
         self.name = "Conditionally {}".format(action.name)
         self.action = action
+        self.condition = condition
 
     def act(self, state, log):
         state = deepcopy(state)
-        if condition(state, log):
+        if self.condition(state, log):
             state.candidates = [self.action]
         else:
             state.candidates = state.stack.pop()
@@ -56,7 +57,7 @@ class conditionally(Action):
 
 
 def hasCards(action):
-    def hasCardsCondition(self, state, log):
+    def hasCardsCondition(state, log):
         return state.zoneCount(PlayerZones.HAND) > 0
 
     return conditionally(hasCardsCondition, action)
@@ -124,7 +125,7 @@ class newTurn(Action):
             state.candidates = [actionPhase(), startTurn()]
 
             state.actions, state.buys, state.coins = (1, 1, 0)
-            state.potions, state.reductions = (0, 0)
+            state.potions, state.reductions = (0, [])
             return state
 
 
@@ -363,9 +364,12 @@ class drawN(Action):
         elif deckCount > 0:
             if log[state.logLine].pred == "DRAW":
                 state.logLine += 1
-                if state.moveCards(logLine.items, PlayerZones.DECK, PlayerZones.HAND):
-                    state.candidates = state.stack.pop()
-                    return state
+                if not state.moveCards(
+                    logLine.items, PlayerZones.DECK, PlayerZones.HAND
+                ):
+                    return None
+        state.candidates = state.stack.pop()
+        return state
 
 
 class revealN(Action):
@@ -390,9 +394,12 @@ class revealN(Action):
         elif deckCount > 0:
             if log[state.logLine].pred == "REVEAL":
                 state.logLine += 1
-                if state.moveCards(logLine.items, PlayerZones.DECK, PlayerZones.DECK):
-                    state.candidates = state.stack.pop()
-                    return state
+                if not state.moveCards(
+                    logLine.items, PlayerZones.DECK, PlayerZones.DECK
+                ):
+                    return None
+        state.candidates = state.stack.pop()
+        return state
 
 
 class play(Action):
@@ -416,65 +423,21 @@ class play(Action):
                 return state
 
 
-# class throne(Action):
-#     name = "Play (Throne)"
+class replay(Action):
+    name = "Replay"
 
-#     def __init__(self, throne):
-#         self.throne = throne
+    def __init__(self, card):
+        self.card = card
 
-#     def act(self, state, log):
-#         state = deepcopy(state)
-#         logLine = log[state.logLine]
-#         state.player = logLine.player
+    def act(self, state, log):
+        state = deepcopy(state)
+        logLine = log[state.logLine]
 
-#         if logLine.pred == "PLAY" and len(logLine.items) == 1:
-#             target = logLine.items[0]
-#             state.logLine += 1
+        if logLine.pred in ["PLAY", "PLAY_AGAIN", "PLAY_THIRD", "PLAY_AGAIN_CITADEL"]:
+            state.logLine += 1
 
-#             card = state.moveCards([target], PlayerZones.HAND, PlayerZones.PLAY)
-#             if card:
-#                 card.master = self.throne
-#                 self.throne.slave = card
-
-#                 state.stack += [onPlay(card[0])]
-#                 state.candidates = state.stack.pop()
-#                 return state
-#         return None
-
-
-# class replay(Action):
-#     name = "Replay"
-
-#     def __init__(self, cardIndex):
-#         self.index = cardIndex
-
-#     def act(self, state, log):
-#         state = deepcopy(state)
-#         logLine = log[state.logLine]
-
-#         if logLine.pred in ["PLAY", "PLAY_AGAIN", "PLAY_THIRD", "PLAY_AGAIN_CITADEL"]:
-#             if self.index in state.thrones:
-#                 target = state.thrones[self.index]
-#                 state.logLine += 1
-
-#                 state.candidates = [onPlay(target)]
-#                 return state
-#         return None
-
-
-# class closeThrone(Action):
-#     name = "Finish Throne"
-
-#     def __init__(self, cardIndex):
-#         self.index = cardIndex
-
-#     def act(self, state, log):
-#         state = deepcopy(state)
-
-#         if self.index in state.thrones:
-#             del state.thrones[self.index]
-#         state.candidates = state.stack.pop()
-#         return state
+            state.candidates = [onPlay(self.card)]
+            return state
 
 
 class onPlay(Action):
@@ -1062,7 +1025,11 @@ class CardInfo:
 
     def onBuy(self, state, log):
         state = deepcopy(state)
-        state.coins -= max(0, self.cost[0] - state.reductions)
+        coinCost = self.cost[0]
+        for (card, amount) in state.reductions:
+            if card == None or card == self.names[0]:
+                coinCost -= amount
+        state.coins -= max(0, coinCost)
         state.potions -= self.cost[1]
         state.buys -= 1
         if self.cost[2] > 0:
@@ -1459,11 +1426,20 @@ class THRONE_ROOM(CardInfo):
         logLine = log[state.logLine]
         state.player = logLine.player
 
-        state.stack += [
-            closeThrone(cardIndex),
-            maybe(replay(cardIndex)),
-            maybe(throne(cardIndex)),
-        ]
+        if logLine.pred == "PLAY" and len(logLine.items) == 1:
+            target = logLine.items[0]
+            state.logLine += 1
+
+            card = state.moveCards([target], PlayerZones.HAND, PlayerZones.PLAY)[0]
+            if card:
+                card.master = self.throne
+                self.throne.slave = card
+
+                state.stack += [
+                    [replay(card)],
+                    [onPlay(card)],
+                ]
+
         state.candidates = state.stack.pop()
         return state
 
@@ -1527,7 +1503,7 @@ class COURTYARD(CardInfo):
 
     def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
-        state.stack += [hasCards(topdeck()), drawN(3)]
+        state.stack += [[hasCards(topdeck())], [drawN(3)]]
         state.candidates = state.stack.pop()
         return state
 
@@ -1539,7 +1515,7 @@ class CONSPIRATOR(CardInfo):
 
     def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
-        state.stack += [maybe(getAction()), maybe(drawN(1)), getCoin()]
+        state.stack += [[maybe(getAction())], [maybe(drawN(1))], [getCoin()]]
         state.candidates = state.stack.pop()
         return state
 
@@ -1552,13 +1528,32 @@ class COURTIER(CardInfo):
     def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += [
-            maybe(gain()),
-            maybe(getCoin()),
-            maybe(getBuy()),
-            maybe(getAction()),
-            revealHand(),
+            [maybe(gain())],
+            [maybe(getCoin())],
+            [maybe(getBuy())],
+            [maybe(getAction())],
+            [revealHand()],
         ]
         state.candidates = state.stack.pop()
+        return state
+
+
+class baronAccepted(Action):
+    name = "Baron Accepted"
+
+    def act(self, state, log):
+        state = deepcopy(state)
+        state.stack += [[getCoin()], [getBuy()], [discard()]]
+        state.candidates = state.stack.pop()
+        return state
+
+
+class baronDeclined(Action):
+    name = "Baron Declined"
+
+    def act(self, state, log):
+        state = deepcopy(state)
+        state.candidates = [maybe(gain())]
         return state
 
 
@@ -1569,13 +1564,7 @@ class BARON(CardInfo):
 
     def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
-        state.stack += [
-            maybe(gain()),
-            maybe(getCoin()),
-            maybe(getBuy()),
-            maybe(discard()),
-        ]
-        state.candidates = state.stack.pop()
+        state.candidates = [baronAccepted(), baronDeclined()]
         return state
 
 
@@ -1586,10 +1575,14 @@ class BRIDGE(CardInfo):
 
     def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
-        state.reductions += 1
-        state.stack += [getCoin(), getBuy()]
+        state.reductions.append([None, 1])
+        state.stack += [[getCoin()], [getBuy()]]
         state.candidates = state.stack.pop()
         return state
+
+
+def diplomatCheck(state, log):
+    return state.zoneCount(PlayerZones.HAND) <= 5
 
 
 class DIPLOMAT(CardInfo):
@@ -1599,13 +1592,13 @@ class DIPLOMAT(CardInfo):
 
     def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
-        state.stack += [maybe(getAction()), drawN(2)]
+        state.stack += [[conditionally(diplomatCheck, getAction())], [drawN(2)]]
         state.candidates = state.stack.pop()
         return state
 
     def onReact(self, state, log):
         state = deepcopy(state)
-        state.stack += [hasCards(discard()), drawN(2)]
+        state.stack += [[hasCards(discard())], [drawN(2)]]
         state.candidates = state.stack.pop()
         return state
 

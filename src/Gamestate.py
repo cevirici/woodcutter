@@ -27,7 +27,7 @@ class Gamestate:
         self.debt = [0 for p in range(PLAYER_COUNT)]
         self.villagers = [0 for p in range(PLAYER_COUNT)]
 
-        self.reductions = 0
+        self.reductions = []
         self.turnStarts = []
         self.cleanupEffects = []
 
