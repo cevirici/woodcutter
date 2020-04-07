@@ -3,6 +3,7 @@ from .Gamestate import *
 from .Pile import *
 from .Card import *
 from .GenericActions import *
+from .CardActions.GetCardInfo import *
 
 
 class ParsedLine:
