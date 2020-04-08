@@ -572,7 +572,8 @@ class SEA_HAG(CardInfo):
     def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += [
-            [hasCard("Curse", gain())][maybe(discard(PlayerZones.DECK))],
+            [maybe(gain())],
+            [maybe(discard(PlayerZones.DECK))],
             [reactToAttack()],
         ]
         state.candidates = state.stack.pop()

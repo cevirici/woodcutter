@@ -215,6 +215,9 @@ class treasurePlayNormal(Action):
         logLine = log[state.logLine]
 
         if logLine.pred in ["PLAY", "PLAY_TREASURES_FOR"]:
+            if logLine.pred == "PLAY_TREASURES_FOR":
+                state.coins += int(logLine.args[0])
+
             cards = state.moveCards(logLine.items, PlayerZones.HAND, PlayerZones.PLAY)
             if cards:
                 for card in cards:
@@ -1022,6 +1025,22 @@ class trashAttack(Action):
             [maybe(discard(PlayerZones.DECK, PlayerZones.DISCARD))],
             [trash(PlayerZones.DECK, NeutralZones.TRASH)],
             [revealN(self.count)],
+        ]
+        state.candidates = state.stack.pop()
+        return state
+
+
+class scry(Action):
+    name = "Scry"
+
+    def act(self, state, log):
+        state = deepcopy(state)
+        state.stack += [
+            [
+                discard(PlayerZones.DECK, PlayerZones.DISCARD),
+                topdeck(PlayerZones.DECK, PlayerZones.DECK),
+            ],
+            [revealN(1)],
         ]
         state.candidates = state.stack.pop()
         return state

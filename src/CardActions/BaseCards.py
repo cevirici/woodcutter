@@ -17,35 +17,17 @@ class COPPER(CardInfo):
     types = [Types.TREASURE]
     cost = [0, 0, 0]
 
-    def onPlay(self, state, log, cardIndex):
-        state = deepcopy(state)
-        state.candidates = state.stack.pop()
-        state.coins += 1
-        return state
-
 
 class SILVER(CardInfo):
     names = ["Silver", "Silvers", "a Silver"]
     types = [Types.TREASURE]
     cost = [3, 0, 0]
 
-    def onPlay(self, state, log, cardIndex):
-        state = deepcopy(state)
-        state.candidates = state.stack.pop()
-        state.coins += 2
-        return state
-
 
 class GOLD(CardInfo):
     names = ["Gold", "Golds", "a Gold"]
     types = [Types.TREASURE]
     cost = [6, 0, 0]
-
-    def onPlay(self, state, log, cardIndex):
-        state = deepcopy(state)
-        state.candidates = state.stack.pop()
-        state.coins += 3
-        return state
 
 
 class ESTATE(CardInfo):
