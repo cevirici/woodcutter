@@ -9,6 +9,7 @@ class Gamestate:
         self.cards = []
         self.zones = {z: [[] for p in range(PLAYER_COUNT)] for z in PlayerZones}
         self.zones.update({z: [] for z in NeutralZones})
+        self.piles = []
 
         self.player = 0
         self.turnNumber = 0
@@ -28,8 +29,7 @@ class Gamestate:
         self.villagers = [0 for p in range(PLAYER_COUNT)]
 
         self.reductions = []
-        self.turnStarts = []
-        self.cleanupEffects = []
+        self.flags = []
 
     def __repr__(self):
         return repr(self.move)

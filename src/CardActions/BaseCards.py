@@ -89,10 +89,8 @@ class BANDIT(CardInfo):
     def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += [
-            [maybe(discard(PlayerZones.DECK, PlayerZones.DISCARD))],
-            [maybe(trash(PlayerZones.DECK, NeutralZones.TRASH))],
-            [maybe(revealN(2))],
-            [maybe(gain())],
+            [maybe(trashAttack())],
+            [hasCard("Gold", gain())],
             [reactToAttack()],
         ]
         state.candidates = state.stack.pop()
@@ -346,7 +344,7 @@ class REMODEL(CardInfo):
 
     def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
-        state.stack += [[gain()], [trash()]]
+        state.stack += [[maybe(gain())], [trash()]]
         state.candidates = state.stack.pop()
         return state
 
@@ -392,6 +390,7 @@ class THRONE_ROOM(CardInfo):
 
         logLine = log[state.logLine]
         state.player = logLine.player
+        throne = state.cards[cardIndex]
 
         if logLine.pred == "PLAY" and len(logLine.items) == 1:
             target = logLine.items[0]
@@ -399,8 +398,8 @@ class THRONE_ROOM(CardInfo):
 
             card = state.moveCards([target], PlayerZones.HAND, PlayerZones.PLAY)[0]
             if card:
-                card.master = self.throne
-                self.throne.slave = card
+                card.master = throne
+                throne.slaves.append(card)
 
                 state.stack += [
                     [replay(card)],
@@ -458,6 +457,6 @@ class WORKSHOP(CardInfo):
 
     def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
-        state.stack += [[maybe(gain())]]
+        state.stack += [[hasSupply(gain())]]
         state.candidates = state.stack.pop()
         return state

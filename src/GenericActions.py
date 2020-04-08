@@ -45,10 +45,28 @@ class conditionally(Action):
 
 
 def hasCards(action):
+    # Conditional upon the player having cards in hand
     def hasCardsCondition(state, log):
         return state.zoneCount(PlayerZones.HAND) > 0
 
     return conditionally(hasCardsCondition, action)
+
+
+def hasSupply(action):
+    def hasSupplyCondition(state, log):
+        return state.zoneCount(NeutralZones.SUPPLY) > 0
+
+    return conditionally(hasSupplyCondition, action)
+
+
+def hasCard(cardName, action):
+    def hasCardCondition(state, log):
+        for card in state.zones[NeutralZones.SUPPLY]:
+            if card.name == cardName:
+                return True
+        return False
+
+    return conditionally(hasSupplyCondition, action)
 
 
 # Pregame
@@ -136,7 +154,7 @@ class startOfTurn(Action):
     def act(self, state, log):
         state = deepcopy(state)
         state.candidates = [actionPhase()]
-        state.candidates += [onDuration(d[0]) for d in state.turnStarts]
+        state.candidates += [d[2] for d in state.flags if d[0] == "STARTS_TURN"]
         state.stack = [[startOfTurn()]]
         return state
 
@@ -278,7 +296,8 @@ class cleanupPhase(Action):
         state = deepcopy(state)
         state.player = log[state.logLine].player
         state.stack = [[cleanupPhase()]]
-        state.candidates = [cleanupDraw()] + state.cleanupEffects
+        state.candidates = [cleanupDraw()]
+        state.candidates += [d[2] for d in state.flags if d[0] == "CLEANUP"]
         return state
 
 
@@ -289,13 +308,22 @@ class cleanupDraw(Action):
         state = deepcopy(state)
         logLine = log[state.logLine]
         state.player = logLine.player
+
+        remaining = []
+        for d in state.flags:
+            if d[0] != "CLEANUP":
+                remaining.append(d)
+        state.flags = remaining
+
         # Discarding stuff from play / hands
         state.moveAllCards(PlayerZones.HAND, PlayerZones.DISCARD)
 
         remaining = []
         for card in state.zones[PlayerZones.PLAY][state.player]:
-            if card.stayingOut != 0 or (card.slave and card.slave.stayingOut != 0):
+            if card.stayingOut != 0:
                 card.stayingOut -= 1
+                remaining.append(card)
+            elif [s for s in card.slaves if s.stayingOut != 0]:
                 remaining.append(card)
             else:
                 state.zones[PlayerZones.DISCARD][state.player].append(card)
@@ -501,6 +529,13 @@ class onBuy(Action):
     def act(self, state, log):
         state = deepcopy(state)
         cardInfo = getCardInfo(self.target)
+
+        for pile in state.piles:
+            if self.target in pile:
+                if pile.embargoTokens > 0:
+                    state.stack += [[conditionally(hasCard("Curse"), gain())]]
+                break
+
         if hasattr(cardInfo, "onBuy"):
             return cardInfo.onBuy(state, log)
         else:
@@ -973,6 +1008,23 @@ class returnCard(Action):
             state.candidates = state.stack.pop()
             return state
         return None
+
+
+class trashAttack(Action):
+    name = "Trash Attack"
+
+    def __init__(self, count=2):
+        self.count = count
+
+    def act(self, state, log):
+        state = deepcopy(state)
+        state.stack += [
+            [maybe(discard(PlayerZones.DECK, PlayerZones.DISCARD))],
+            [trash(PlayerZones.DECK, NeutralZones.TRASH)],
+            [revealN(self.count)],
+        ]
+        state.candidates = state.stack.pop()
+        return state
 
 
 class forceEnd(Action):

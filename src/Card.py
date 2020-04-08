@@ -10,7 +10,7 @@ class Card:
         self.player = player
         self.stayingOut = 0
         self.master = None
-        self.slave = None
+        self.slaves = []
 
     def __repr__(self):
         return "{}({})".format(self.index, self.name)
@@ -20,5 +20,11 @@ class Card:
 
     def move(self, dest):
         if self.location == PlayerZones.PLAY:
-            self.master, self.slave = (None, None)
+            if self.master:
+                self.master.slaves.remove(self)
+                self.master = None
+            if self.slaves:
+                for slave in self.slaves:
+                    slave.master = None
+                self.slaves = []
         self.location = dest
