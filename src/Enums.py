@@ -44,7 +44,7 @@ class Phases(Enum):
     START_OF_TURN = 0
     ACTION = 1
     TREASURE_PLAYING = 2
-    BUYS = 3
+    BUY = 3
     NIGHT = 4
     CLEANUP = 5
     PREGAME = 6
@@ -53,6 +53,8 @@ class Phases(Enum):
 class FlagTypes(Enum):
     START_OF_TURN = 0
     CLEANUP = 1
+    BUY = 2
+    GAIN = 3
 
 
 class Types(Enum):

@@ -2,7 +2,6 @@
 from copy import deepcopy
 from .Utils import *
 from .Enums import *
-from .Card import *
 from .CardActions import *
 from .Action import *
 
@@ -140,6 +139,7 @@ class startTurn(Action):
 
     def act(self, state, log):
         state = deepcopy(state)
+        state.phase = Phases.START_OF_TURN
         logLine = log[state.logLine]
         if logLine.pred == "STARTS_TURN":
             state.player = logLine.player
@@ -164,6 +164,7 @@ class actionPhase(Action):
 
     def act(self, state, log):
         state = deepcopy(state)
+        state.phase = Phases.ACTION
         state.player = log[state.logLine].player
         state.candidates = [buyPhaseA(), actionPlayNormal()]
         state.stack = [[actionPhase()]]
@@ -196,6 +197,7 @@ class buyPhaseA(Action):
 
     def act(self, state, log):
         state = deepcopy(state)
+        state.phase = Phases.TREASURE_PLAYING
         state.player = log[state.logLine].player
         state.stack = [[buyPhaseA()]]
         state.candidates = [
@@ -234,6 +236,7 @@ class buyPhaseB(Action):
 
     def act(self, state, log):
         state = deepcopy(state)
+        state.phase = Phases.BUY
         state.player = log[state.logLine].player
         state.stack = [[buyPhaseB()]]
         state.candidates = [nightPhase(), repayDebt(), buy()]
@@ -266,6 +269,7 @@ class nightPhase(Action):
 
     def act(self, state, log):
         state = deepcopy(state)
+        state.phase = Phases.NIGHT
         state.player = log[state.logLine].player
         state.stack = [[nightPhase()]]
         state.candidates = [cleanupPhase(), nightPlayNormal()]
@@ -297,6 +301,7 @@ class cleanupPhase(Action):
 
     def act(self, state, log):
         state = deepcopy(state)
+        state.phase = Phases.CLEANUP
         state.player = log[state.logLine].player
         state.stack = [[cleanupPhase()]]
         state.candidates = [cleanupDraw()]
@@ -329,7 +334,7 @@ class cleanupDraw(Action):
                 remaining.append(card)
             else:
                 state.zones[PlayerZones.DISCARD][state.player].append(card)
-                card.move(PlayerZones.DISCARD)
+                card.move(PlayerZones.DISCARD, state)
         state.zones[PlayerZones.PLAY][state.player] = remaining
 
         state.stack = [[newTurn()]]
@@ -532,17 +537,16 @@ class onBuy(Action):
         state = deepcopy(state)
         cardInfo = getCardInfo(self.target)
 
-        for pile in state.piles:
-            if self.target in pile.cards:
-                if pile.embargoTokens > 0:
-                    state.stack += [[conditionally(hasCard("Curse"), gain())]]
-                break
+        state.candidates = [
+            f[2](self.target) for f in state.flags if f[0] == FlagTypes.BUY
+        ]
+        state.stack += [[self]]
 
-        if hasattr(cardInfo, "onBuy"):
-            return cardInfo.onBuy(state, log)
-        else:
+        if not state.candidates:
+            if hasattr(cardInfo, "onBuy"):
+                state = cardInfo.onBuy(state, log)
             state.candidates = state.stack.pop()
-            return state
+        return state
 
 
 class gain(Action):
@@ -578,11 +582,17 @@ class onGain(Action):
     def act(self, state, log):
         state = deepcopy(state)
         cardInfo = getCardInfo(self.target)
-        if hasattr(cardInfo, "onGain"):
-            return cardInfo.onGain(state, log)
-        else:
+
+        state.candidates = [
+            f[2](self.target) for f in state.flags if f[0] == FlagTypes.GAIN
+        ]
+        state.stack += [[self]]
+
+        if not state.candidates:
+            if hasattr(cardInfo, "onGain"):
+                state = cardInfo.onGain(state, log)
             state.candidates = state.stack.pop()
-            return state
+        return state
 
 
 class discard(Action):
@@ -672,7 +682,7 @@ class topdeck(Action):
         logLine = log[state.logLine]
         state.player = logLine.player
 
-        if logLine.pred in ["TOPDECK", "INSERT_IN_DECK", "BOTTOMDECKS"]:
+        if logLine.pred in ["TOPDECK", "INSERT_IN_DECK", "BOTTOMDECKS", "TOPDECK_WITH"]:
             state.logLine += 1
             if not state.moveCards(logLine.items, self.src, self.dest):
                 return None
@@ -820,6 +830,27 @@ class getCoin(Action):
             return None
 
 
+class getVP(Action):
+    name = "Get VP"
+
+    def act(self, state, log):
+        state = deepcopy(state)
+        logLine = log[state.logLine]
+
+        if logLine.pred in [
+            "TAKE_VP_FROM",
+            "PLAYER_GETS_VP",
+            "PLAYER_GETS_VP_FROM",
+            "GET_VP_FROM_GROUNDSKEEPER",
+            "GET_VP_FROM_GOONS",
+        ]:
+            amount = int(logLine.args[0])
+            state.vp[logLine.player] += amount
+            state.logLine += 1
+        state.candidates = state.stack.pop()
+        return state
+
+
 class takeDebt(Action):
     name = "Take Debt"
 
@@ -882,6 +913,21 @@ class lookAtN(Action):
                 return None
         state.candidates = state.stack.pop()
         return state
+
+
+class name(Action):
+    name = "Name"
+
+    def act(self, state, log):
+        state = deepcopy(state)
+        logLine = log[state.logLine]
+
+        if logLine.pred == "NAMES":
+            state.logLine += 1
+            state.candidates = state.stack.pop()
+            return state
+        else:
+            return None
 
 
 class reactToAttack(Action):
@@ -1068,6 +1114,9 @@ class seek(Action):
     # Scrying Pool-esque draw
     name = "Seek"
 
+    def __init__(self, endAction=putInHand):
+        self.endAction = endAction
+
     def act(self, state, log):
         state = deepcopy(state)
         deckCount = state.zoneCount(PlayerZones.DECK)
@@ -1096,11 +1145,29 @@ class seek(Action):
                     return None
 
         state.stack += [
-            maybe(discard(PlayerZones.DECK, PlayerZones.DISCARD)),
-            maybe(putInHand()),
+            [maybe(discard(PlayerZones.DECK, PlayerZones.DISCARD))],
+            [maybe(self.endAction())],
         ]
 
         state.candidates = state.stack.pop()
+        return state
+
+
+class mayTopdeckGain(Action):
+    name = "May Topdeck Gained Card"
+
+    def act(self, state, log):
+        state = deepcopy(state)
+        state.candidates = [maybe(topdeck())]
+        return state
+
+
+class mayGainAnother(Action):
+    name = "May Gain Another"
+
+    def act(self, state, log):
+        state = deepcopy(state)
+        state.candidates = [maybe(gain())]
         return state
 
 

@@ -43,7 +43,7 @@ class FARMING_VILLAGE(CardInfo):
 
     def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
-        state.stack += [[scry()], [getAction()]]
+        state.stack += [[seek()], [getAction()]]
         state.candidates = state.stack.pop()
         return state
 
@@ -73,7 +73,11 @@ class FORTUNE_TELLER(CardInfo):
 
     def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
-        state.stack += [[maybe(scry())], [getCoin()], [reactToAttack()]]
+        state.stack += [
+            [maybe(seek(topdeck(PlayerZones.DECK, PlayerZones.DECK)))],
+            [getCoin()],
+            [reactToAttack()],
+        ]
         state.candidates = state.stack.pop()
         return state
 
@@ -245,10 +249,17 @@ class PRINCESS(CardInfo):
 
     def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
-        state.reductions.append([None, 2])
         state.stack += [[getBuy()]]
         state.candidates = state.stack.pop()
         return state
+
+    def onEnterPlay(self, state, cardIndex):
+        state.reductions.append((None, 2, cardIndex))
+
+    def onLeavePlay(self, state, cardIndex):
+        for r in state.reductions:
+            if r[2] == cardIndex:
+                state.reductions.remove(r)
 
 
 class REMAKE(CardInfo):

@@ -24,6 +24,7 @@ class Gamestate:
         self.buys = 0
         self.coins = 0
         self.potions = 0
+        self.vp = [0 for p in range(PLAYER_COUNT)]
         self.coffers = [0 for p in range(PLAYER_COUNT)]
         self.debt = [0 for p in range(PLAYER_COUNT)]
         self.villagers = [0 for p in range(PLAYER_COUNT)]
@@ -51,9 +52,9 @@ class Gamestate:
                 return True
         return False
 
-    def addCard(self, card, zoneName, player=-1):
+    def addCard(self, cardInfo, zoneName, player=-1):
         zone = self.getZone(zoneName, player)
-        newCard = Card(card, len(self.cards), zoneName, player)
+        newCard = Card(cardInfo, len(self.cards), zoneName, player)
         self.cards.append(newCard)
         zone.append(newCard)
 
@@ -68,7 +69,7 @@ class Gamestate:
                 if target.name == cardName:
                     srcZone.remove(target)
                     destZone.append(target)
-                    target.move(dest)
+                    target.move(dest, self)
                     target.player = self.player if destP == -1 else destP
 
                     moved = True

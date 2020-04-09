@@ -3,8 +3,9 @@ from .Enums import *
 
 
 class Card:
-    def __init__(self, name, index, startingLocation, player):
-        self.name = name
+    def __init__(self, cardInfo, index, startingLocation, player):
+        self.name = cardInfo.names[0]
+        self.info = cardInfo
         self.index = index
         self.location = startingLocation
         self.player = player
@@ -18,7 +19,7 @@ class Card:
     def __hash__(self):
         return self.index
 
-    def move(self, dest):
+    def move(self, dest, state):
         if self.location == PlayerZones.PLAY:
             if self.master:
                 self.master.slaves.remove(self)
@@ -27,4 +28,10 @@ class Card:
                 for slave in self.slaves:
                     slave.master = None
                 self.slaves = []
+
+            if hasattr(self.info, "onLeavePlay"):
+                self.info.onLeavePlay(state, self.index)
+        elif dest == PlayerZones.PLAY:
+            if hasattr(self.info, "onEnterPlay"):
+                self.info.onEnterPlay(state, self.index)
         self.location = dest

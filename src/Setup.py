@@ -39,11 +39,11 @@ class Parser:
             if initialZone == NeutralZones.SUPPLY:
                 state.piles.append(Pile(pileCards))
                 if associates == 1:
-                    state.addCard(cardName, NeutralZones.BLACK_MARKET)
+                    state.addCard(cardInfo, NeutralZones.BLACK_MARKET)
                     continue
 
             for i in range(supply[cardName]):
-                state.addCard(cardName, initialZone)
+                state.addCard(cardInfo, initialZone)
 
         return state
 

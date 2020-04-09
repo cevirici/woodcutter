@@ -30,13 +30,13 @@ class CardInfo:
         state = deepcopy(state)
         coinCost = self.cost[0]
         for (card, amount) in state.reductions:
-            if card is None or card == self.names[0]:
+            if card is None or card(self.names[0]):
                 coinCost -= amount
         state.coins -= max(0, coinCost)
         state.potions -= self.cost[1]
         state.buys -= 1
         if self.cost[2] > 0:
-            state.stack.append(takeDebt())
+            state.stack.append([takeDebt()])
         if state.coins >= 0 and state.potions >= 0 and state.buys >= 0:
             state.candidates = state.stack.pop()
             return state

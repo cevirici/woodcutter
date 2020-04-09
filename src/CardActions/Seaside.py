@@ -103,6 +103,24 @@ class CUTPURSE(CardInfo):
         return state
 
 
+class embargoOnBuy(Action):
+    name = "Embargo On Buy"
+
+    def __init__(self, target):
+        self.target = target
+
+    def act(self, state, log):
+        state = deepcopy(state)
+        for pile in state.piles:
+            if self.target in pile.cards:
+                if pile.embargoTokens > 0:
+                    state.stack += [[conditionally(hasCard("Curse"), gain())]]
+                break
+
+        state.candidates = state.stack.pop()
+        return state
+
+
 class embargoPile(Action):
     def __init__(self, pile):
         self.name = "Embargo {} Pile".format(pile.cards[0])
@@ -111,6 +129,7 @@ class embargoPile(Action):
     def act(self, state, log):
         state = deepcopy(state)
         self.pile.embargoTokens += 1
+        state.flags.append((FlagTypes.BUY, "Embargo", embargoOnBuy))
         state.candidates = state.stack.pop()
         return state
 
