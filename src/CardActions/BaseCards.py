@@ -269,8 +269,8 @@ class MINE(CardInfo):
     def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.stack += [
-            maybe(gain(NeutralZones.SUPPLY, PlayerZones.HAND)),
-            maybe(trash()),
+            [maybe(gain(NeutralZones.SUPPLY, PlayerZones.HAND))],
+            [maybe(trash())],
         ]
         state.candidates = state.stack.pop()
         return state

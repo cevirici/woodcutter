@@ -50,6 +50,11 @@ class Phases(Enum):
     PREGAME = 6
 
 
+class FlagTypes(Enum):
+    START_OF_TURN = 0
+    CLEANUP = 1
+
+
 class Types(Enum):
     ACTION = 0
     NIGHT = 1

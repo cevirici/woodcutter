@@ -40,9 +40,11 @@ class Parser:
                 state.piles.append(Pile(pileCards))
                 if associates == 1:
                     state.addCard(cardName, NeutralZones.BLACK_MARKET)
-            else:
-                for i in range(supply[cardName]):
-                    state.addCard(cardName, initialZone)
+                    continue
+
+            for i in range(supply[cardName]):
+                state.addCard(cardName, initialZone)
+
         return state
 
     def parse_items(self, inString):

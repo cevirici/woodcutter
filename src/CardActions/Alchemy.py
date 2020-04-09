@@ -46,7 +46,7 @@ class ALCHEMIST(CardInfo):
 
     def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
-        state.flags.append(("CLEANUP", "Alchemist", alchemistCleanup()))
+        state.flags.append((FlagTypes.CLEANUP, "Alchemist", alchemistCleanup()))
         state.stack += [[getAction()], [drawN(2)]]
         state.candidates = state.stack.pop()
         return state
@@ -199,7 +199,7 @@ class HERBALIST(CardInfo):
 
     def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
-        state.flags.append(("CLEANUP", "Herbalist", herbalistCleanup()))
+        state.flags.append((FlagTypes.CLEANUP, "Herbalist", herbalistCleanup()))
         state.stack += [[getCoin()], [getBuy()]]
         state.candidates = state.stack.pop()
         return state
@@ -236,53 +236,6 @@ class POTION(CardInfo):
         return state
 
 
-class poolDraw(Action):
-    name = "Scrying Pool Draw"
-
-    def act(self, state, log):
-        state = deepcopy(state)
-        deckCount = state.zoneCount(PlayerZones.DECK)
-        discardCount = state.zoneCount(PlayerZones.DISCARD)
-        keepDrawing = True
-
-        if deckCount > 0:
-            if log[state.logLine].pred == "REVEAL":
-                state.logLine += 1
-                if not state.moveCards(
-                    logLine.items, PlayerZones.DECK, PlayerZones.DECK
-                ):
-                    return None
-
-                for card in logLine.items:
-                    cardInfo = getCardInfo(card)
-                    if Types.ACTION not in cardInfo.types:
-                        keepDrawing = False
-
-            else:
-                return None
-
-        if keepDrawing:
-            if discardCount > 0:
-                if log[state.logLine].pred == "SHUFFLES":
-                    state.moveAllCards(PlayerZones.DISCARD, PlayerZones.DECK)
-                    state.logLine += 1
-
-                if log[state.logLine].pred == "REVEAL":
-                    state.logLine += 1
-                    if not state.moveCards(
-                        logLine.items, PlayerZones.DECK, PlayerZones.DECK
-                    ):
-                        return None
-                else:
-                    return None
-
-        if deckCount > 0 or discardCount > 0:
-            state.stack.append([putInHand()])
-
-        state.candidates = state.stack.pop()
-        return state
-
-
 class SCRYING_POOL(CardInfo):
     names = ["Scrying Pool", "Scrying Pools", "a Scrying Pool"]
     types = [Types.ACTION, Types.ATTACK]
@@ -290,7 +243,7 @@ class SCRYING_POOL(CardInfo):
 
     def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
-        state.stack += [poolDraw()]
+        state.stack += [seek()]
         state.stack += [maybe(scry()) for p in range(PLAYER_COUNT)]
         state.stack += [[getAction()], [reactToAttack()]]
         state.candidates = state.stack.pop()

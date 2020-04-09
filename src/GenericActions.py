@@ -66,7 +66,7 @@ def hasCard(cardName, action):
                 return True
         return False
 
-    return conditionally(hasSupplyCondition, action)
+    return conditionally(hasCardCondition, action)
 
 
 # Pregame
@@ -307,16 +307,15 @@ class cleanupPhase(Action):
 class cleanupDraw(Action):
     name = "Cleanup Draw"
 
+    def __init__(self, n=5):
+        self.n = n
+
     def act(self, state, log):
         state = deepcopy(state)
         logLine = log[state.logLine]
         state.player = logLine.player
 
-        remaining = []
-        for d in state.flags:
-            if d[0] != "CLEANUP":
-                remaining.append(d)
-        state.flags = remaining
+        state.flags = [f for f in state.flags if f[0] != "CLEANUP"]
 
         # Discarding stuff from play / hands
         state.moveAllCards(PlayerZones.HAND, PlayerZones.DISCARD)
@@ -334,7 +333,7 @@ class cleanupDraw(Action):
         state.zones[PlayerZones.PLAY][state.player] = remaining
 
         state.stack = [[newTurn()]]
-        state.candidates = [drawN(5)]
+        state.candidates = [drawN(self.n)]
         return state
 
 
@@ -534,7 +533,7 @@ class onBuy(Action):
         cardInfo = getCardInfo(self.target)
 
         for pile in state.piles:
-            if self.target in pile:
+            if self.target in pile.cards:
                 if pile.embargoTokens > 0:
                     state.stack += [[conditionally(hasCard("Curse"), gain())]]
                 break
@@ -738,6 +737,10 @@ class revealHand(Action):
 class putInHand(Action):
     name = "Put In Hand"
 
+    def __init__(self, src=PlayerZones.DECK, dest=PlayerZones.HAND):
+        self.src = src
+        self.dest = dest
+
     def act(self, state, log):
         state = deepcopy(state)
         logLine = log[state.logLine]
@@ -745,7 +748,7 @@ class putInHand(Action):
 
         if logLine.pred == "PUT_IN_HAND":
             state.logLine += 1
-            if state.moveCards(logLine.items, PlayerZones.DECK, PlayerZones.HAND):
+            if state.moveCards(logLine.items, self.src, self.dest):
                 state.candidates = state.stack.pop()
                 return state
         return None
@@ -935,6 +938,21 @@ class passCard(Action):
         return None
 
 
+class chancellor(Action):
+    name = "Deck to Discard"
+
+    def act(self, state, log):
+        state = deepcopy(state)
+        logLine = log[state.logLine]
+        state.player = logLine.player
+
+        if logLine.pred == "DECK_TO_DISCARD":
+            state.moveAllCards(PlayerZones.DECK, PlayerZones.DISCARD)
+            state.candidates = state.stack.pop()
+            return state
+        return None
+
+
 class wishRight(Action):
     name = "Wish Success"
 
@@ -1023,7 +1041,7 @@ class trashAttack(Action):
         state = deepcopy(state)
         state.stack += [
             [maybe(discard(PlayerZones.DECK, PlayerZones.DISCARD))],
-            [trash(PlayerZones.DECK, NeutralZones.TRASH)],
+            [maybe(trash(PlayerZones.DECK, NeutralZones.TRASH))],
             [revealN(self.count)],
         ]
         state.candidates = state.stack.pop()
@@ -1042,6 +1060,46 @@ class scry(Action):
             ],
             [revealN(1)],
         ]
+        state.candidates = state.stack.pop()
+        return state
+
+
+class seek(Action):
+    # Scrying Pool-esque draw
+    name = "Seek"
+
+    def act(self, state, log):
+        state = deepcopy(state)
+        deckCount = state.zoneCount(PlayerZones.DECK)
+        discardCount = state.zoneCount(PlayerZones.DISCARD)
+
+        if deckCount > 0:
+            if log[state.logLine].pred == "REVEAL":
+                state.logLine += 1
+                if not state.moveCards(
+                    logLine.items, PlayerZones.DECK, PlayerZones.DECK
+                ):
+                    return None
+            else:
+                return None
+
+        if discardCount > 0:
+            if log[state.logLine].pred == "SHUFFLES":
+                state.moveAllCards(PlayerZones.DISCARD, PlayerZones.DECK)
+                state.logLine += 1
+
+            if log[state.logLine].pred == "REVEAL":
+                state.logLine += 1
+                if not state.moveCards(
+                    logLine.items, PlayerZones.DECK, PlayerZones.DECK
+                ):
+                    return None
+
+        state.stack += [
+            maybe(discard(PlayerZones.DECK, PlayerZones.DISCARD)),
+            maybe(putInHand()),
+        ]
+
         state.candidates = state.stack.pop()
         return state
 

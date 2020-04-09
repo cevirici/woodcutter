@@ -35,7 +35,7 @@ def simulate(gamelog):
             # print(states[-1].thrones)
             if attempt:
                 states.append(attempt)
-            else:
-                print("Failed")
+            # else:
+            # print("Failed")
 
     return states

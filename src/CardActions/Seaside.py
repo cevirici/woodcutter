@@ -81,7 +81,7 @@ class CARAVAN(CardInfo):
         card = state.cards[cardIndex]
         card.stayingOut = max(card.stayingOut, 1)
 
-        state.flags.append(("STARTS_TURN", "Caravan", caravanDuration()))
+        state.flags.append((FlagTypes.START_OF_TURN, "Caravan", caravanDuration()))
         state.stack += [[getAction()], [drawN(1)]]
         state.candidates = state.stack.pop()
         return state
@@ -202,7 +202,7 @@ class FISHING_VILLAGE(CardInfo):
         card = state.cards[cardIndex]
         card.stayingOut = max(card.stayingOut, 1)
 
-        state.flags.append(("STARTS_TURN", "Fishing Village", fvDuration()))
+        state.flags.append((FlagTypes.START_OF_TURN, "Fishing Village", fvDuration()))
         state.stack += [[getCoin()], [getAction()]]
         state.candidates = state.stack.pop()
         return state
@@ -271,7 +271,12 @@ class havenSet(Action):
                 return None
             else:
                 state.flags.append(
-                    ("STARTS_TURN", "Haven", havenDuration(target.name), target.name)
+                    (
+                        FlagTypes.START_OF_TURN,
+                        "Haven",
+                        havenDuration(target.name),
+                        target.name,
+                    )
                 )
             return state
         else:
@@ -473,7 +478,7 @@ class MERCHANT_SHIP(CardInfo):
         card = state.cards[cardIndex]
         card.stayingOut = max(card.stayingOut, 1)
 
-        state.flags.append(("STARTS_TURN", "Merchant Ship", msDuration()))
+        state.flags.append((FlagTypes.START_OF_TURN, "Merchant Ship", msDuration()))
         state.stack += [[getCoin()]]
         state.candidates = state.stack.pop()
         return state
@@ -523,6 +528,7 @@ class OUTPOST(CardInfo):
         else:
             card = state.cards[cardIndex]
             card.stayingOut = max(card.stayingOut, 1)
+            state.flags.append((FlagTypes.CLEANUP, "Outpost", cleanupDraw(3)))
 
         state.candidates = state.stack.pop()
         return state
@@ -639,7 +645,9 @@ class TACTICIAN(CardInfo):
         if logLine.pred == "TACTICIAN_FAIL":
             state.logLine += 1
         else:
-            state.flags.append(("STARTS_TURN", "Tactician", tacticianDuration()))
+            state.flags.append(
+                (FlagTypes.START_OF_TURN, "Tactician", tacticianDuration())
+            )
             card = state.cards[cardIndex]
             card.stayingOut = max(card.stayingOut, 1)
 
@@ -715,7 +723,7 @@ class TREASURY(CardInfo):
 
     def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
-        state.flags.append(("CLEANUP", "Treasury", treasuryCleanup()))
+        state.flags.append((FlagTypes.CLEANUP, "Treasury", treasuryCleanup()))
         state.stack += [[getCoin()], [getAction()], [drawN(1)]]
         state.candidates = state.stack.pop()
         return state
@@ -756,7 +764,7 @@ class WHARF(CardInfo):
 
     def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
-        state.flags.append(("STARTS_TURN", "Wharf", wharfDuration()))
+        state.flags.append((FlagTypes.START_OF_TURN, "Wharf", wharfDuration()))
         card.stayingOut = max(card.stayingOut, 1)
         state.stack += [[getBuy()], [drawN(2)]]
         state.candidates = state.stack.pop()

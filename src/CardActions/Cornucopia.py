@@ -1,19 +1,15 @@
 # -*- coding: utf-8 -*-
+from copy import deepcopy
 from .CardInfo import CardInfo
 from woodcutter.src.Card import *
 from woodcutter.src.Action import Action
+from woodcutter.src.GenericActions import *
 
 
 class PRIZE(CardInfo):
     names = ["Prize", "Prize", "Prize"]
     types = []
     cost = [0, 0, 0]
-
-    def onPlay(self, state, log, cardIndex):
-        state = deepcopy(state)
-        state.stack += []
-        state.candidates = state.stack.pop()
-        return state
 
 
 class BAG_OF_GOLD(CardInfo):
@@ -23,7 +19,7 @@ class BAG_OF_GOLD(CardInfo):
 
     def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
-        state.stack += []
+        state.stack += [[hasCard("Gold", gain(PlayerZones.DECK))], [getAction()]]
         state.candidates = state.stack.pop()
         return state
 
@@ -33,23 +29,11 @@ class DIADEM(CardInfo):
     types = [Types.TREASURE, Types.PRIZE]
     cost = [0, 0, 0]
 
-    def onPlay(self, state, log, cardIndex):
-        state = deepcopy(state)
-        state.stack += []
-        state.candidates = state.stack.pop()
-        return state
-
 
 class FAIRGROUNDS(CardInfo):
     names = ["Fairgrounds", "Fairgrounds", "a Fairgrounds"]
     types = [Types.VICTORY]
     cost = [6, 0, 0]
-
-    def onPlay(self, state, log, cardIndex):
-        state = deepcopy(state)
-        state.stack += []
-        state.candidates = state.stack.pop()
-        return state
 
 
 class FARMING_VILLAGE(CardInfo):
@@ -59,7 +43,7 @@ class FARMING_VILLAGE(CardInfo):
 
     def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
-        state.stack += []
+        state.stack += [[scry()], [getAction()]]
         state.candidates = state.stack.pop()
         return state
 
@@ -71,7 +55,13 @@ class FOLLOWERS(CardInfo):
 
     def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
-        state.stack += []
+        state.stack += [
+            [maybe(discard())],
+            [maybe(gain())],
+            [hasCard("Estate", gain())],
+            [drawN()],
+            [reactToAttack()],
+        ]
         state.candidates = state.stack.pop()
         return state
 
@@ -83,7 +73,7 @@ class FORTUNE_TELLER(CardInfo):
 
     def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
-        state.stack += []
+        state.stack += [[maybe(scry())], [getCoin()], [reactToAttack()]]
         state.candidates = state.stack.pop()
         return state
 
@@ -95,7 +85,14 @@ class HAMLET(CardInfo):
 
     def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
-        state.stack += []
+        state.stack += [
+            [maybe(getBuy())],
+            [maybe(discard())],
+            [maybe(getAction())],
+            [maybe(discard())],
+            [getAction()],
+            [drawN(1)],
+        ]
         state.candidates = state.stack.pop()
         return state
 
@@ -107,7 +104,28 @@ class HARVEST(CardInfo):
 
     def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
-        state.stack += []
+        state.stack += [
+            [maybe(discard(PlayerZones.DECK, PlayerZones.DISCARD))],
+            [getCoin()],
+            [revealN(4)],
+        ]
+        state.candidates = state.stack.pop()
+        return state
+
+
+class htDuration(Action):
+    name = "Horse Traders Effect"
+
+    def act(self, state, log):
+        state = deepcopy(state)
+        state.stack += [
+            [putInHand(PlayerZones.SET_ASIDE, PlayerZones.HAND)],
+            [drawN(1)],
+        ]
+        for d in state.flags:
+            if d[1] == "Horse Traders":
+                state.flags.remove(d)
+
         state.candidates = state.stack.pop()
         return state
 
@@ -119,7 +137,14 @@ class HORSE_TRADERS(CardInfo):
 
     def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
-        state.stack += []
+        state.stack += [[discard()], [getBuy()], [getCoin()]]
+        state.candidates = state.stack.pop()
+        return state
+
+    def onReact(self, state, log):
+        state = deepcopy(state)
+        state.flags.append((FlagTypes.START_OF_TURN, "Horse Traders", htDuration))
+        state.stack += [[setAside(PlayerZones.PLAY, PlayerZones.SET_ASIDE)]]
         state.candidates = state.stack.pop()
         return state
 
@@ -131,7 +156,43 @@ class HORN_OF_PLENTY(CardInfo):
 
     def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
-        state.stack += []
+        state.stack += [[maybe(trash(PlayerZones.PLAY))], [gain()]]
+        state.candidates = state.stack.pop()
+        return state
+
+
+class hpSeek(Action):
+    name = "Hunting Party Seek"
+
+    def act(self, state, log):
+        state = deepcopy(state)
+        handCount = state.zoneCount(PlayerZones.HAND)
+        deckCount = state.zoneCount(PlayerZones.DECK)
+        discardCount = state.zoneCount(PlayerZones.DISCARD)
+
+        if handCount + deckCount > 0:
+            if log[state.logLine].pred == "REVEAL":
+                state.logLine += 1
+            else:
+                return None
+
+        if discardCount > 0:
+            if log[state.logLine].pred == "SHUFFLES":
+                state.moveAllCards(PlayerZones.DISCARD, PlayerZones.DECK)
+                state.logLine += 1
+
+            if log[state.logLine].pred == "REVEAL":
+                state.logLine += 1
+                if not state.moveCards(
+                    logLine.items, PlayerZones.DECK, PlayerZones.DECK
+                ):
+                    return None
+
+        state.stack += [
+            maybe(discard(PlayerZones.DECK, PlayerZones.DISCARD)),
+            maybe(putInHand()),
+        ]
+
         state.candidates = state.stack.pop()
         return state
 
@@ -143,7 +204,7 @@ class HUNTING_PARTY(CardInfo):
 
     def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
-        state.stack += []
+        state.stack += [[hpSeek()], [getAction()], [drawN(1)]]
         state.candidates = state.stack.pop()
         return state
 
@@ -155,7 +216,12 @@ class JESTER(CardInfo):
 
     def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
-        state.stack += []
+        state.stack += [
+            [maybe(gain())],
+            [maybe(discard(PlayerZones.DECK, PlayerZones.DISCARD))],
+            [getCoin()],
+            [reactToAttack()],
+        ]
         state.candidates = state.stack.pop()
         return state
 
@@ -167,7 +233,7 @@ class MENAGERIE(CardInfo):
 
     def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
-        state.stack += []
+        state.stack += [[drawN(1), drawN(3)], [revealHand()], [getAction()]]
         state.candidates = state.stack.pop()
         return state
 
@@ -179,7 +245,8 @@ class PRINCESS(CardInfo):
 
     def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
-        state.stack += []
+        state.reductions.append([None, 2])
+        state.stack += [[getBuy()]]
         state.candidates = state.stack.pop()
         return state
 
@@ -191,7 +258,12 @@ class REMAKE(CardInfo):
 
     def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
-        state.stack += []
+        state.stack += [
+            [maybe(gain())],
+            [hasCards(trash())],
+            [maybe(gain())],
+            [hasCards(trash())],
+        ]
         state.candidates = state.stack.pop()
         return state
 
@@ -203,7 +275,9 @@ class TOURNAMENT(CardInfo):
 
     def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
-        state.stack += []
+        state.stack += [[maybe(getCoin())], [maybe(drawN(1))], [maybe(gain())]]
+        state.stack += [[maybe(revealHand())] for p in range(PLAYER_COUNT)]
+        state.stack += [[getAction()]]
         state.candidates = state.stack.pop()
         return state
 
@@ -215,7 +289,13 @@ class TRUSTY_STEED(CardInfo):
 
     def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
-        state.stack += []
+        state.stack += [
+            [maybe(chancellor())],
+            [maybe(gain())],
+            [maybe(getCoin())],
+            [maybe(getAction())],
+            [maybe(drawN(2))],
+        ]
         state.candidates = state.stack.pop()
         return state
 
@@ -227,6 +307,12 @@ class YOUNG_WITCH(CardInfo):
 
     def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
-        state.stack += []
+        state.stack += [
+            [maybe(gain())],
+            [maybe(revealHand())],
+            [hasCards(discard())],
+            [drawN(2)],
+            [reactToAttack()],
+        ]
         state.candidates = state.stack.pop()
         return state
