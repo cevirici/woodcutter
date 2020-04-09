@@ -46,7 +46,7 @@ class ALCHEMIST(CardInfo):
 
     def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
-        state.flags.append((FlagTypes.CLEANUP, "Alchemist", alchemistCleanup()))
+        state.flags.append((FlagTypes.CLEANUP, "Alchemist", topdeckerCleanup()))
         state.stack += [[getAction()], [drawN(2)]]
         state.candidates = state.stack.pop()
         return state
@@ -158,40 +158,6 @@ class GOLEM(CardInfo):
         return state
 
 
-class herbalistCleanup(Action):
-    name = "Herbalist Cleanup"
-
-    def act(self, state, log):
-        state = deepcopy(state)
-        logLine = log[state.logLine]
-        state.logLine += 1
-
-        if logLine.pred == "TOPDECK":
-            amount = len(logLine.items)
-            for card in logLine.items:
-                if Types.TREASURE not in getCardInfo(card).types:
-                    return None
-            if not state.moveCards(logLine.items, PlayerZones.PLAY, PlayerZones.DECK):
-                return None
-
-            i = 0
-            remaining = []
-            for d in state.flags:
-                if d[1] == "Herbalist" and i < amount:
-                    i += 1
-                else:
-                    remaining.append(d)
-            state.flags = remaining
-
-            if i < amount:
-                return None
-            else:
-                state.candidates = state.stack.pop()
-                return state
-        else:
-            return None
-
-
 class HERBALIST(CardInfo):
     names = ["Herbalist", "Herbalists", "a Herbalist"]
     types = [Types.ACTION]
@@ -199,7 +165,7 @@ class HERBALIST(CardInfo):
 
     def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
-        state.flags.append((FlagTypes.CLEANUP, "Herbalist", herbalistCleanup()))
+        state.flags.append((FlagTypes.CLEANUP, "Herbalist", topdeckerCleanup()))
         state.stack += [[getCoin()], [getBuy()]]
         state.candidates = state.stack.pop()
         return state

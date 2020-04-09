@@ -742,7 +742,7 @@ class TREASURY(CardInfo):
 
     def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
-        state.flags.append((FlagTypes.CLEANUP, "Treasury", treasuryCleanup()))
+        state.flags.append((FlagTypes.CLEANUP, "Treasury", topdeckerCleanup()))
         state.stack += [[getCoin()], [getAction()], [drawN(1)]]
         state.candidates = state.stack.pop()
         return state

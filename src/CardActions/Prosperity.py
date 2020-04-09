@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
+from copy import deepcopy
 from .CardInfo import CardInfo
 from woodcutter.src.Card import *
 from woodcutter.src.Action import Action
+from woodcutter.src.GenericActions import *
 
 
 class BANK(CardInfo):
@@ -232,7 +234,7 @@ class MINT(CardInfo):
 
     def onBuy(self, state, log):
         state = deepcopy(state)
-        state.candidates = [[trash(PlayerZones.PLAY, NeutralZones.TRASH)]]
+        state.stack += [[trash(PlayerZones.PLAY, NeutralZones.TRASH)]]
         return super().onBuy(state, log)
 
 

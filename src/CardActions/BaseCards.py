@@ -342,7 +342,7 @@ class SENTRY(CardInfo):
             [maybe(topdeck(PlayerZones.DECK, PlayerZones.DECK))],
             [maybe(discard(PlayerZones.DECK, PlayerZones.DISCARD))],
             [maybe(trash(PlayerZones.DECK, NeutralZones.TRASH))],
-            [maybe(lookAtN(2))],
+            [lookAtN(2)],
             [getAction()],
             [drawN(1)],
         ]
@@ -439,6 +439,6 @@ class WORKSHOP(CardInfo):
 
     def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
-        state.stack += [[hasSupply(gain())]]
+        state.stack += [[maybe(gain())]]
         state.candidates = state.stack.pop()
         return state

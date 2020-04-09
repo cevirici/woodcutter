@@ -868,6 +868,21 @@ class takeDebt(Action):
             return None
 
 
+class reveal(Action):
+    name = "Reveal"
+
+    def act(self, state, log):
+        state = deepcopy(state)
+        logLine = log[state.logLine]
+
+        if logLine.pred == "Reveal":
+            state.logLine += 1
+            state.candidates = state.stack.pop()
+            return state
+        else:
+            return None
+
+
 class lookAt(Action):
     name = "Look At"
 
@@ -1097,6 +1112,9 @@ class trashAttack(Action):
 class scry(Action):
     name = "Scry"
 
+    def __init__(self, amount=1):
+        self.amount = amount
+
     def act(self, state, log):
         state = deepcopy(state)
         state.stack += [
@@ -1104,7 +1122,7 @@ class scry(Action):
                 discard(PlayerZones.DECK, PlayerZones.DISCARD),
                 topdeck(PlayerZones.DECK, PlayerZones.DECK),
             ],
-            [revealN(1)],
+            [revealN(self.amount)],
         ]
         state.candidates = state.stack.pop()
         return state
@@ -1156,6 +1174,9 @@ class seek(Action):
 class mayTopdeckGain(Action):
     name = "May Topdeck Gained Card"
 
+    def __init__(self, target):
+        pass
+
     def act(self, state, log):
         state = deepcopy(state)
         state.candidates = [maybe(topdeck())]
@@ -1165,10 +1186,32 @@ class mayTopdeckGain(Action):
 class mayGainAnother(Action):
     name = "May Gain Another"
 
+    def __init__(self, target):
+        pass
+
     def act(self, state, log):
         state = deepcopy(state)
         state.candidates = [maybe(gain())]
         return state
+
+
+class topdeckerCleanup(Action):
+    # This is complex so we don't attempt to figure out *what* caused
+    # each topdecking - we don't need to anyways
+    name = "Topdecker Cleanup"
+
+    def act(self, state, log):
+        state = deepcopy(state)
+        logLine = log[state.logLine]
+        state.logLine += 1
+        sources = ["Alchemist", "Herbalist", "Treasury", "Scheme"]
+
+        if logLine.pred == "TOPDECK":
+            state.flags = [f for f in state.flags if f[1] not in sources]
+            state.candidates = [topdeck(PlayerZones.PLAY)]
+            return state
+        else:
+            return None
 
 
 class forceEnd(Action):
