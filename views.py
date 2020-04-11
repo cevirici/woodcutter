@@ -98,7 +98,11 @@ def plaintext(request, game_id):
         str(i) + ":" + printer.print_line(lines[i]) for i in range(len(lines))
     ]
     return HttpResponse(
-        printer.print_supply(log.supply) + "<br>" + "<br>".join(printedLog)
+        log.players
+        + "<br>"
+        + printer.print_supply(log.supply)
+        + "<br>"
+        + "<br>".join(printedLog)
     )
 
 

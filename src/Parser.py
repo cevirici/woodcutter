@@ -69,13 +69,19 @@ class Printer:
         parsedItems = [parse(item) for item in items]
         return ", ".join(parsedItems)
 
+    def print_args(self, inString):
+        items = inString.split("+")
+
+        parsedItems = [item.replace(":", " ") for item in items]
+        return ", ".join(parsedItems)
+
     def print_line(self, line):
         indent, pred, player, items, args = line.split("|")
         if args:
             return "P{} - {} ({}): {}".format(
                 player,
                 self.preds[int(pred)],
-                self.print_items(args),
+                self.print_args(args),
                 self.print_items(items),
             )
         else:
