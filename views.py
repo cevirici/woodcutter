@@ -58,7 +58,7 @@ def submit(request):
             players=players,
         )
     else:
-        oldLog.version = 2
+        oldLog.version = 3
         oldLog.log = combinedLog
         oldLog.supply = supply
         oldLog.players = players
