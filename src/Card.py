@@ -20,7 +20,7 @@ class Card:
         return self.index
 
     def move(self, dest, state):
-        if self.location == PlayerZones.PLAY:
+        if self.location != dest:
             if self.master:
                 self.master.slaves.remove(self)
                 self.master = None
@@ -29,6 +29,7 @@ class Card:
                     slave.master = None
                 self.slaves = []
 
+        if self.location == PlayerZones.PLAY:
             if hasattr(self.info, "onLeavePlay"):
                 self.info.onLeavePlay(state, self.index)
         elif dest == PlayerZones.PLAY:

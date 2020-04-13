@@ -90,7 +90,7 @@ Apprentice
 Familiar
 Golem
 Herbalist
-Philosophers Stone
+Philosopher's Stone
 Possession
 Potion
 Scrying Pool
@@ -108,7 +108,7 @@ Forge
 Grand Market
 Goons
 Hoard
-Kings Court
+King's Court
 Loan
 Mint
 Monument
@@ -123,9 +123,9 @@ Trade Route
 Vault
 Venture
 Watchtower
-Workers Village
+Worker's Village
 Prize Pile
-Bag Of Gold
+Bag of Gold
 Diadem
 Fairgrounds
 Farming Village
@@ -134,7 +134,7 @@ Fortune Teller
 Hamlet
 Harvest
 Horse Traders
-Horn Of Plenty
+Horn of Plenty
 Hunting Party
 Jester
 Menagerie
@@ -151,12 +151,12 @@ Develop
 Duchess
 Embassy
 Farmland
-Fools Gold
+Fool's Gold
 Haggler
 Highway
-Ill Gotten Gains
+Ill-Gotten Gains
 Inn
-Jack Of All Trades
+Jack of All Trades
 Mandarin
 Noble Brigand
 Nomad Camp
@@ -174,7 +174,7 @@ Knights
 Abandoned Mine
 Altar
 Armory
-Band Of Misfits
+Band of Misfits
 Bandit Camp
 Beggar
 Catacombs
@@ -248,7 +248,7 @@ Borrow
 Bridge Troll
 Caravan Guard
 Champion
-Coin Of The Realm
+Coin of the Realm
 Disciple
 Distant Lands
 Dungeon
@@ -315,7 +315,7 @@ Haunted Castle
 Opulent Castle
 Sprawling Castle
 Grand Castle
-Kings Castle
+King's Castle
 Advance
 Annex
 Archive
@@ -339,7 +339,7 @@ Dominate
 Donate
 Enchantress
 Engineer
-Farmers Market
+Farmers' Market
 Forum
 Fountain
 Groundskeeper
@@ -355,7 +355,7 @@ Palace
 Ritual
 Royal Blacksmith
 Sacrifice
-Salt The Earth
+Salt the Earth
 Tax
 Temple
 Tomb
@@ -375,18 +375,18 @@ State Limbo
 Druid Boons
 Boon Drawpile
 Boon Discardpile
-The Earths Gift
-The Fields Gift
-The Flames Gift
-The Forests Gift
-The Moons Gift
-The Mountains Gift
-The Rivers Gift
-The Seas Gift
-The Skys Gift
-The Suns Gift
-The Swamps Gift
-The Winds Gift
+The Earth's Gift
+The Field's Gift
+The Flame's Gift
+The Forest's Gift
+The Moon's Gift
+The Mountain's Gift
+The River's Gift
+The Sea's Gift
+The Sky's Gift
+The Sun's Gift
+The Swamp's Gift
+The Wind's Gift
 Hex Drawpile
 Hex Discardpile
 Bad Omens
@@ -414,8 +414,8 @@ Cobbler
 Conclave
 Crypt
 Cursed Village
-Den Of Sin
-Devils Workshop
+Den of Sin
+Devil's Workshop
 Druid
 Exorcist
 Faithful Hound
@@ -449,7 +449,7 @@ Pouch
 Bat
 Ghost
 Imp
-Will O Wisp
+Will-o'-Wisp
 Wish
 Zombie Apprentice
 Zombie Mason
@@ -548,26 +548,26 @@ Destrier
 Wayfarer
 Animal Fair
 Horse
-Way Of The Butterfly
-Way Of The Camel
-Way Of The Chameleon
-Way Of The Frog
-Way Of The Goat
-Way Of The Horse
-Way Of The Mole
-Way Of The Monkey
-Way Of The Mouse
-Way Of The Mule
-Way Of The Otter
-Way Of The Owl
-Way Of The Ox
-Way Of The Pig
-Way Of The Rat
-Way Of The Seal
-Way Of The Sheep
-Way Of The Squirrel
-Way Of The Turtle
-Way Of The Worm
+Way of the Butterfly
+Way of the Camel
+Way of the Chameleon
+Way of the Frog
+Way of the Goat
+Way of the Horse
+Way of the Mole
+Way of the Monkey
+Way of the Mouse
+Way of the Mule
+Way of the Otter
+Way of the Owl
+Way of the Ox
+Way of the Pig
+Way of the Rat
+Way of the Seal
+Way of the Sheep
+Way of the Squirrel
+Way of the Turtle
+Way of the Worm
 Delay
 Desperation
 Gamble
@@ -580,7 +580,7 @@ Transport
 Banish
 Bargain
 Invest
-Seize The Day
+Seize the Day
 Commerce
 Demand
 Stampede

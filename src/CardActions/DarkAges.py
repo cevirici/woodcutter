@@ -9,23 +9,11 @@ class RUINS(CardInfo):
     types = [Types.ACTION, Types.RUINS]
     cost = [0, 0, 0]
 
-    def onPlay(self, state, log, cardIndex):
-        state = deepcopy(state)
-        state.stack += []
-        state.candidates = state.stack.pop()
-        return state
-
 
 class KNIGHTS(CardInfo):
     names = ["Knights", "Knights", "a Knights"]
     types = [Types.ACTION, Types.ATTACK, Types.KNIGHT]
     cost = [5, 0, 0]
-
-    def onPlay(self, state, log, cardIndex):
-        state = deepcopy(state)
-        state.stack += []
-        state.candidates = state.stack.pop()
-        return state
 
 
 class ABANDONED_MINE(CardInfo):
@@ -35,7 +23,7 @@ class ABANDONED_MINE(CardInfo):
 
     def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
-        state.stack += []
+        state.stack += [getCoin()]
         state.candidates = state.stack.pop()
         return state
 
@@ -47,7 +35,7 @@ class ALTAR(CardInfo):
 
     def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
-        state.stack += []
+        state.stack += [[maybe(gain())], [hasCards(trash())]]
         state.candidates = state.stack.pop()
         return state
 
@@ -59,7 +47,7 @@ class ARMORY(CardInfo):
 
     def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
-        state.stack += []
+        state.stack += [[maybe(gain(NeutralZones.SUPPLY, PlayerZones.DECK))]]
         state.candidates = state.stack.pop()
         return state
 
