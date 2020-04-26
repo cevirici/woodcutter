@@ -19,6 +19,7 @@ def getArgTypes(predName):
         "GETS_ACTION_FROM": [argTypes.NUMBER, argTypes.CARD],
         "GETS_BUY_FROM": [argTypes.NUMBER, argTypes.CARD],
         "GETS_COIN_FROM": [argTypes.NUMBER, argTypes.CARD],
+        "USES_VILLAGER": [argTypes.NUMBER, argTypes.CARD],
     }
     if predName in correspondences:
         return correspondences[predName]
