@@ -77,7 +77,10 @@ class Printer:
                 if argType == argTypes.NUMBER:
                     return parts[0]
                 else:
-                    return self.cards[int(parts[0])]
+                    try:
+                        return self.cards[int(parts[0])]
+                    except ValueError:
+                        return parts[0]
             else:
                 return "{} {}".format(parts[0], self.cards[int(parts[1])])
 
