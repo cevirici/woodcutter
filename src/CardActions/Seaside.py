@@ -80,6 +80,8 @@ class CARAVAN(CardInfo):
         state = deepcopy(state)
         card = state.cards[cardIndex]
         card.stayingOut = max(card.stayingOut, 1)
+        if card.master:
+            card.master.stayingOut = max(card.master.stayingOut, 1)
 
         state.flags.append((FlagTypes.START_OF_TURN, "Caravan", caravanDuration()))
         state.stack += [[getAction()], [drawN(1)]]
@@ -220,6 +222,8 @@ class FISHING_VILLAGE(CardInfo):
         state = deepcopy(state)
         card = state.cards[cardIndex]
         card.stayingOut = max(card.stayingOut, 1)
+        if card.master:
+            card.master.stayingOut = max(card.master.stayingOut, 1)
 
         state.flags.append((FlagTypes.START_OF_TURN, "Fishing Village", fvDuration()))
         state.stack += [[getCoin()], [getAction()]]
@@ -282,6 +286,8 @@ class havenSet(Action):
             state = deepcopy(state)
             card = state.cards[self.cardIndex]
             card.stayingOut = max(card.stayingOut, 1)
+            if card.master:
+                card.master.stayingOut = max(card.master.stayingOut, 1)
 
             target = state.moveCards(
                 logLine.items, PlayerZones.HAND, PlayerZones.SET_ASIDE
@@ -398,6 +404,8 @@ class LIGHTHOUSE(CardInfo):
         state = deepcopy(state)
         card = state.cards[cardIndex]
         card.stayingOut = max(card.stayingOut, 1)
+        if card.master:
+            card.master.stayingOut = max(card.master.stayingOut, 1)
 
         state.flags.append(["Lighthouse", lighthouseDuration()])
         state.stack += [[getCoin()], [getAction()]]
@@ -496,6 +504,8 @@ class MERCHANT_SHIP(CardInfo):
         state = deepcopy(state)
         card = state.cards[cardIndex]
         card.stayingOut = max(card.stayingOut, 1)
+        if card.master:
+            card.master.stayingOut = max(card.master.stayingOut, 1)
 
         state.flags.append((FlagTypes.START_OF_TURN, "Merchant Ship", msDuration()))
         state.stack += [[getCoin()]]
@@ -547,6 +557,8 @@ class OUTPOST(CardInfo):
         else:
             card = state.cards[cardIndex]
             card.stayingOut = max(card.stayingOut, 1)
+            if card.master:
+                card.master.stayingOut = max(card.master.stayingOut, 1)
             state.flags.append((FlagTypes.CLEANUP, "Outpost", cleanupDraw(3)))
 
         state.candidates = state.stack.pop()
@@ -669,6 +681,8 @@ class TACTICIAN(CardInfo):
             )
             card = state.cards[cardIndex]
             card.stayingOut = max(card.stayingOut, 1)
+            if card.master:
+                card.master.stayingOut = max(card.master.stayingOut, 1)
 
         state.candidates = state.stack.pop()
         return state
@@ -784,7 +798,10 @@ class WHARF(CardInfo):
     def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
         state.flags.append((FlagTypes.START_OF_TURN, "Wharf", wharfDuration()))
+        card = state.cards[cardIndex]
         card.stayingOut = max(card.stayingOut, 1)
+        if card.master:
+            card.master.stayingOut = max(card.master.stayingOut, 1)
         state.stack += [[getBuy()], [drawN(2)]]
         state.candidates = state.stack.pop()
         return state

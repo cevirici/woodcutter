@@ -22,7 +22,8 @@ class Card:
     def move(self, dest, state):
         if self.location != dest:
             if self.master:
-                self.master.slaves.remove(self)
+                if self in self.master.slaves:
+                    self.master.slaves.remove(self)
                 self.master = None
             if self.slaves:
                 for slave in self.slaves:

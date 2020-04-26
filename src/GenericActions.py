@@ -330,8 +330,6 @@ class cleanupDraw(Action):
             if card.stayingOut != 0:
                 card.stayingOut -= 1
                 remaining.append(card)
-            elif [s for s in card.slaves if s.stayingOut != 0]:
-                remaining.append(card)
             else:
                 state.zones[PlayerZones.DISCARD][state.player].append(card)
                 card.move(PlayerZones.DISCARD, state)

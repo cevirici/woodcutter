@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from .Enums import *
 from .Utils import *
+from .Preds import *
 
 
 def itemsToDict(items):
@@ -69,10 +70,24 @@ class Printer:
         parsedItems = [parse(item) for item in items]
         return ", ".join(parsedItems)
 
-    def print_args(self, inString):
-        items = inString.split("+")
+    def print_args(self, inString, predName):
+        def parse(item, argType):
+            parts = item.split(":")
+            if len(parts) == 1:
+                if argType == argTypes.NUMBER:
+                    return parts[0]
+                else:
+                    return self.cards[int(parts[0])]
+            else:
+                return "{} {}".format(parts[0], self.cards[int(parts[1])])
 
-        parsedItems = [item.replace(":", " ") for item in items]
+        items = inString.split("+")
+        args = getArgTypes(predName)
+
+        if args:
+            parsedItems = [parse(item, args[i]) for (i, item) in enumerate(items)]
+        else:
+            parsedItems = [item.replace(":", " ") for item in items]
         return ", ".join(parsedItems)
 
     def print_line(self, line):
@@ -81,7 +96,7 @@ class Printer:
             return "P{} - {} ({}): {}".format(
                 player,
                 self.preds[int(pred)],
-                self.print_args(args),
+                self.print_args(args, self.preds[int(pred)]),
                 self.print_items(items),
             )
         else:

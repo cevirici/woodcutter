@@ -47,8 +47,7 @@ class ARMORY(CardInfo):
 
     def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
-        state.stack += [[maybe(gain(NeutralZones.SUPPLY, PlayerZones.DECK))]]
-        state.candidates = state.stack.pop()
+        state.candidates = [[maybe(gain(NeutralZones.SUPPLY, PlayerZones.DECK))]]
         return state
 
 
@@ -59,7 +58,23 @@ class BAND_OF_MISFITS(CardInfo):
 
     def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
-        state.stack += []
+
+        logLine = log[state.logLine]
+        state.player = logLine.player
+        master = state.cards[cardIndex]
+
+        if logLine.pred == "PLAY" and len(logLine.items) == 1:
+            target = logLine.items[0]
+            state.logLine += 1
+
+            card = state.moveCards([target], NeutralZones.SUPPLY, NeutralZones.SUPPLY)[
+                0
+            ]
+            if card:
+                card.master = master
+
+                state.stack += [[onPlay(card)]]
+
         state.candidates = state.stack.pop()
         return state
 
