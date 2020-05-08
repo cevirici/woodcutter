@@ -1,0 +1,35 @@
+  repos:
+  - repo: git@github.com:pre-commit/pre-commit-hooks
+    rev: v2.5.0
+    hooks:
+    -   id: check-added-large-files
+    -   id: check-case-conflict
+    -   id: check-docstring-first
+    -   id: check-json
+    -   id: check-yaml
+    -   id: end-of-file-fixer
+    -   id: check-ast
+    -   id: end-of-file-fixer
+    -   id: fix-encoding-pragma
+    -   id: mixed-line-ending
+    -   id: pretty-format-json
+    -   id: sort-simple-yaml
+    -   id: name-tests-test
+    -   id: requirements-txt-fixer
+    -   id: trailing-whitespace
+
+#  - repo: https://gitlab.com/pycqa/flake8
+#    rev: 3.7.9  # pick a git hash / tag to point to
+#    hooks:
+#    -   id: flake8
+
+#  - repo: https://github.com/pre-commit/mirrors-autopep8
+#    rev: v1.5  # Use the sha / tag you want to point at
+#    hooks:
+#    -   id: autopep8
+
+  - repo: https://github.com/psf/black
+    rev: 19.10b0
+    hooks:
+      - id: black
+        language_version: python3.6
