@@ -67,9 +67,7 @@ class BAND_OF_MISFITS(CardInfo):
             target = logLine.items[0]
             state.logLine += 1
 
-            card = state.moveCards([target], NeutralZones.SUPPLY, NeutralZones.SUPPLY)[
-                0
-            ]
+            card = state.moveCards([target], NeutralZones.SUPPLY, NeutralZones.SUPPLY)[0]
             if card:
                 card.master = master
 
@@ -86,7 +84,7 @@ class BANDIT_CAMP(CardInfo):
 
     def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
-        state.stack += []
+        state.stack += [[maybe(gain())], [getAction()], [drawN(1)]]
         state.candidates = state.stack.pop()
         return state
 
@@ -98,7 +96,29 @@ class BEGGAR(CardInfo):
 
     def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
-        state.stack += []
+        state.candidates = [hasCard("Copper", gain(NeutralZones.SUPPLY, PlayerZones.HAND))]
+        return state
+
+    def onReact(self, state, log):
+        state = deepcopy(state)
+        state.stack += [
+            [hasCard("Silver", gain())]
+            [hasCard("Silver", gain(NeutralZones.SUPPLY, PlayerZones.DECK))],
+            [discard(PlayerZones.HAND)]
+        ]
+        state.candidates = state.stack.pop()
+        return state
+
+
+class catacombsDeclined(Action):
+    name = "Catacombs Declined"
+
+    def act(self, state, log):
+        state = deepcopy(state)
+        state.stack += [
+            [drawN(3)],
+            [discard(PlayerZones.DECK)]
+        ]
         state.candidates = state.stack.pop()
         return state
 
@@ -110,7 +130,10 @@ class CATACOMBS(CardInfo):
 
     def onPlay(self, state, log, cardIndex):
         state = deepcopy(state)
-        state.stack += []
+        state.stack += [
+            [putInHand(), catacombsDeclined()],
+            [lookAt(3)]
+        ]
         state.candidates = state.stack.pop()
         return state
 

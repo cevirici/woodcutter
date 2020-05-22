@@ -558,7 +558,7 @@ class gain(Action):
         logLine = log[state.logLine]
         state.player = logLine.player
 
-        if logLine.pred == "GAIN":
+        if logLine.pred in ["GAIN", "GAIN_ON_DRAWPILE"]:
             state.logLine += 1
             for target in logLine.items:
                 cardInfo = getCardInfo(target)
