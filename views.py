@@ -38,7 +38,7 @@ def random(request):
 
 @csrf_exempt
 def submit(request):
-    if int(request.POST["v"]) < 3:
+    if int(request.POST["v"]) < 4:
         # Invalid version of grabber
         return request.POST["v"]
 
@@ -58,7 +58,7 @@ def submit(request):
             players=players,
         )
     else:
-        oldLog.version = 3
+        oldLog.version = 4
         oldLog.log = combinedLog
         oldLog.supply = supply
         oldLog.players = players
